@@ -9,7 +9,7 @@ namespace OficinaApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-// [Authorize] // Temporariamente desativado para o Kawan conseguir testar o MVP local via Swagger, sem depender do TokenService ainda.
+[Authorize] // Requires JWT
 public class PartsController : ControllerBase
 {
     private readonly IPartService _partService;
