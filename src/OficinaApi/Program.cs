@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -24,6 +25,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<OficinaApi.Services.TokenService>();
+
+// Configure In-Memory Database for testing purposes locally
+builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
+    options.UseInMemoryDatabase("OficinaDbLocal"));
+
+// Register Repositories
+builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IPartRepository, OficinaApi.Infrastructure.Repositories.PartRepository>();
+builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IServiceOrderRepository, OficinaApi.Infrastructure.Repositories.ServiceOrderRepository>();
+
+// Register Application Services
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IPartService, OficinaApi.Application.Services.PartService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IExternalQueryService, OficinaApi.Application.Services.ExternalQueryService>();
+
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
