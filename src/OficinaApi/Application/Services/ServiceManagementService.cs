@@ -13,16 +13,10 @@ namespace OficinaApi.Application.Services
             _serviceRepository = serviceRepository;
         }
 
-        public async Task<IEnumerable<ServiceDto?>> GetAllServicesAsync()
+        public async Task<IEnumerable<ServiceDto>> GetAllServicesAsync()
         {
-            var service = await _serviceRepository.GetAllAsync();
-            return service.Select(x => new ServiceDto
-            {
-                Id = x.Id,
-                Name = x.Name,
-                DefaultPrice = x.DefaultPrice,
-                Description = x.Description
-            });
+            var services = await _serviceRepository.GetAllAsync();
+            return services.Select(x => new ServiceDto(x));
         }
 
         public async Task<ServiceDto?> GetServiceByIdAsync(Guid id)
@@ -30,27 +24,17 @@ namespace OficinaApi.Application.Services
             var service = await _serviceRepository.GetByIdAsync(id);
             if (service == null) return null;
 
-            return new ServiceDto
-            {
-                Id = service.Id,
-                Name = service.Name,
-                DefaultPrice = service.DefaultPrice,
-                Description = service.Description
-            };
+            return new ServiceDto(service);
         }
+
 
         public async Task<ServiceDto> CreateServiceAsync(CreateServiceDto dto)
         {
             var service = new Service(dto.Name, dto.Description, dto.DefaultPrice);
+
             await _serviceRepository.AddAsync(service);
 
-            return new ServiceDto
-            {
-                Id = service.Id,
-                Name = service.Name,
-                DefaultPrice = service.DefaultPrice,
-                Description = service.Description
-            };
+            return new ServiceDto(service);
         }
 
         public async Task DeleteServiceAsync(Guid id)
@@ -63,7 +47,7 @@ namespace OficinaApi.Application.Services
             var service = await _serviceRepository.GetByIdAsync(id);
 
             if (service == null)
-                throw new Exception("Serviço não encontrado.");
+                throw new ArgumentException("Serviço não encontrado.");
 
             service.Update(
                 dto.Name,
@@ -73,13 +57,7 @@ namespace OficinaApi.Application.Services
 
             await _serviceRepository.UpdateAsync(service);
 
-            return new ServiceDto
-            {
-                Id = service.Id,
-                Name = service.Name,
-                DefaultPrice = service.DefaultPrice,
-                Description = service.Description
-            };
+            return new ServiceDto(service);
         }
     }
 }

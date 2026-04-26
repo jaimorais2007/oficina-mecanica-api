@@ -16,14 +16,7 @@ namespace OficinaApi.Application.Services
         public async Task<IEnumerable<VehicleDto?>> GetAllVehiclesAsync()
         {
             var vehicle = await _vehicleRepository.GetAllAsync();
-            return vehicle.Select(x => new VehicleDto
-            {
-                Id = x.Id,
-                Brand = x.Brand,
-                Model = x.Model,
-                Plate = x.Plate.Value,
-                Year = x.Year,
-            });
+            return vehicle.Select(x => new VehicleDto(x));
         }
 
         public async Task<VehicleDto?> GetVehicleByIdAsync(Guid id)
@@ -31,31 +24,16 @@ namespace OficinaApi.Application.Services
             var vehicle = await _vehicleRepository.GetByIdAsync(id);
             if (vehicle == null) return null;
 
-            return new VehicleDto
-            {
-                Id = vehicle.Id,
-                Name = vehicle.Name,
-                Brand = vehicle.Brand,
-                Model = vehicle.Model,
-                Plate = vehicle.Plate.Value,
-                Year = vehicle.Year,
-            };
+            return new VehicleDto(vehicle);
         }
 
         public async Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto dto)
         {
-            var vehicle = new Vehicle(dto.Name, dto.Plate, dto.Brand, dto.Model, dto.Year);
+            var vehicle = new Vehicle(dto.Plate, dto.Brand, dto.Model, dto.Year);
+
             await _vehicleRepository.AddAsync(vehicle);
 
-            return new VehicleDto
-            {
-                Id = vehicle.Id,
-                Name = vehicle.Name,
-                Brand = vehicle.Brand,
-                Model = vehicle.Model,
-                Plate = vehicle.Plate.Value,
-                Year = vehicle.Year,
-            };
+            return new VehicleDto(vehicle);
         }
 
         public async Task DeleteVehicleAsync(Guid id)
@@ -68,10 +46,9 @@ namespace OficinaApi.Application.Services
             var vehicle = await _vehicleRepository.GetByIdAsync(id);
 
             if (vehicle == null)
-                throw new Exception("Veículo não encontrado.");
+                throw new ArgumentException("Veículo não encontrado.");
 
             vehicle.Update(
-                dto.Name,
                 dto.Plate,
                 dto.Brand,
                 dto.Model,
@@ -80,15 +57,7 @@ namespace OficinaApi.Application.Services
 
             await _vehicleRepository.UpdateAsync(vehicle);
 
-            return new VehicleDto
-            {
-                Id = vehicle.Id,
-                Name = vehicle.Name,
-                Brand = vehicle.Brand,
-                Model = vehicle.Model,
-                Plate = vehicle.Plate.Value,
-                Year = vehicle.Year,
-            };
+            return new VehicleDto(vehicle);
         }
     }
 }

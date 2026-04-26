@@ -6,7 +6,7 @@ namespace OficinaApi.Domain.Entities
     public class Customer
     {
         public Guid Id { get; private set; }
-        public string Name { get; private set; } = null!;
+        public string Name { get; private set; } = string.Empty;
         public PersonType PersonType { get; private set; }
         public Document Document { get; private set; } = null!;
         public DateTime CreatedAt { get; private set; }

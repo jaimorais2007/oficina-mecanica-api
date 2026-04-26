@@ -42,7 +42,6 @@ public class OficinaDbContext : DbContext
         modelBuilder.Entity<Vehicle>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(80);
             entity.Property(e => e.Brand).IsRequired().HasMaxLength(80);
             entity.Property(e => e.Model).IsRequired().HasMaxLength(80);
             entity.Property(e => e.Year).IsRequired();

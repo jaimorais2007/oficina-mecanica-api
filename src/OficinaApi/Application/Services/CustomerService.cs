@@ -16,17 +16,10 @@ namespace OficinaApi.Application.Services
             _customerRepository = customerRepository;
         }
 
-        public async Task<IEnumerable<CustomerDto?>> GetAllCustomersAsync()
+        public async Task<IEnumerable<CustomerDto>> GetAllCustomersAsync()
         {
-            var customer = await _customerRepository.GetAllAsync();
-            return customer.Select(x => new CustomerDto
-            {
-                Id = x.Id,
-                Name = x.Name,
-                PersonType = x.PersonType,
-                Document = x.Document.Value,
-                DateOfBirth = x.DateOfBirth.GetValueOrDefault()
-            });
+            var customers = await _customerRepository.GetAllAsync();
+            return customers.Select(x => new CustomerDto(x));
         }
 
         public async Task<CustomerDto?> GetCustomerByIdAsync(Guid id)
@@ -34,29 +27,21 @@ namespace OficinaApi.Application.Services
             var customer = await _customerRepository.GetByIdAsync(id);
             if (customer == null) return null;
 
-            return new CustomerDto
-            {
-                Id = customer.Id,
-                Name = customer.Name,
-                PersonType = customer.PersonType,
-                Document = customer.Document.Value,
-                DateOfBirth = customer.DateOfBirth.GetValueOrDefault()
-            };
+            return new CustomerDto(customer);
         }
 
         public async Task<CustomerDto> CreateCustomerAsync(CreateCustomerDto dto)
         {
-            var customer = new Customer(dto.Name, dto.PersonType, dto.Document, dto.DateOfBirth);
+            var customer = new Customer(
+                dto.Name,
+                dto.PersonType,
+                dto.Document,
+                dto.DateOfBirth
+            );
+
             await _customerRepository.AddAsync(customer);
 
-            return new CustomerDto
-            {
-                Id = customer.Id,
-                Name = customer.Name,
-                PersonType = customer.PersonType,
-                Document = customer.Document.Value,
-                DateOfBirth = customer.DateOfBirth.GetValueOrDefault()
-            };
+            return new CustomerDto(customer);
         }
 
         public async Task DeleteCustomerAsync(Guid id)
@@ -69,7 +54,7 @@ namespace OficinaApi.Application.Services
             var customer = await _customerRepository.GetByIdAsync(id);
 
             if (customer == null)
-                throw new Exception("Cliente não encontrado.");
+                throw new ArgumentException("Cliente não encontrado.");
 
             customer.Update(
                 dto.Name,
@@ -80,14 +65,8 @@ namespace OficinaApi.Application.Services
 
             await _customerRepository.UpdateAsync(customer);
 
-            return new CustomerDto
-            {
-                Id = customer.Id,
-                Name = customer.Name,
-                PersonType = customer.PersonType,
-                Document = customer.Document.Value,
-                DateOfBirth = customer.DateOfBirth.GetValueOrDefault()
-            };
+            return new CustomerDto(customer);
         }
+    
     }
 }
