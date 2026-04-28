@@ -418,3 +418,6 @@ FodyWeavers.xsd
 *.msp
 **/obj/
 **/bin/
+
+# Configurações de segredos locais
+appsettings.Development.json
