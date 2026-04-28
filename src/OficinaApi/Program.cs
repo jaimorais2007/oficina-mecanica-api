@@ -9,6 +9,8 @@ var jwtSecret   = builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer   = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
+var connectionString = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
         options.TokenValidationParameters = new TokenValidationParameters {
@@ -27,8 +29,17 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<OficinaApi.Services.TokenService>();
 
 // Configure In-Memory Database for testing purposes locally
+//builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
+//    options.UseInMemoryDatabase("OficinaDbLocal"));
+
 builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
-    options.UseInMemoryDatabase("OficinaDbLocal"));
+    options.UseSqlServer(connectionString, sqlOptions =>
+    {
+        sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null);
+    }));
 
 // Register Repositories
 builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IPartRepository, OficinaApi.Infrastructure.Repositories.PartRepository>();
