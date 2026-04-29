@@ -70,6 +70,12 @@ public class ServiceOrderService : IServiceOrderService
                 }
             }
 
+        foreach(var part in partsUsed)
+        {
+            part.RemoveStock(1);
+            await _partRepository.UpdateAsync(part);
+        }
+
         return new ServiceOrderDto
         {
             VehiclePlate = serviceOrder.VehiclePlate,
