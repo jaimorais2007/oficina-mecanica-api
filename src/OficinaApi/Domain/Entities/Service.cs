@@ -5,7 +5,7 @@
     public string Description { get; private set; }
     public decimal DefaultPrice { get; private set; }
     public DateTime CreatedAt { get; private set; }
-
+    public int IdServiceOrder { get; private set; }
     protected Service() { }
 
     public Service(string name, string description, decimal defaultPrice)
