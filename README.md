@@ -121,9 +121,13 @@ A maioria dos endpoints é protegida por JWT. Para testá-los você precisa gera
 ### Usando o token no Swagger
 
 1. Acesse o Swagger: `http://<seu-host>:8080/swagger`
-2. Clique em **Authorize** (cadeado no topo da página)
-3. Digite: `Bearer <token_gerado>`
-4. Clique em **Authorize**
+2. Clique no botão **Authorize** (cadeado verde no topo da página)
+3. No campo **Value**, digite:
+```
+Bearer <token_gerado>
+```
+4. Clique em **Authorize** e depois em **Close**
+5. A partir deste momento todos os endpoints protegidos já aceitarão o token
 
 ---
 
