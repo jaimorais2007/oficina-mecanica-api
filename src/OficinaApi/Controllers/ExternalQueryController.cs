@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.Interfaces;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OficinaApi.Controllers;
 
@@ -18,7 +19,8 @@ public class ExternalQueryController : ControllerBase
         _queryService = queryService;
     }
 
-    // Acompanhamento do progresso da OS
+    [SwaggerOperation(Summary = "Consulta o progresso de uma ordem de serviço",
+                      Description = "Rota pública (sem autenticação) que permite ao cliente acompanhar o andamento da sua OS a partir do identificador único.")]
     [HttpGet("orders/{id}/progress")]
     public async Task<IActionResult> GetOrderProgress(Guid id)
     {
@@ -28,7 +30,8 @@ public class ExternalQueryController : ControllerBase
         return Ok(progress);
     }
 
-    // Monitoramento do tempo médio de execução dos serviços
+    [SwaggerOperation(Summary = "Retorna o tempo médio de execução dos serviços",
+                      Description = "Rota pública (sem autenticação) que retorna métricas com o tempo médio de execução dos serviços realizados pela oficina.")]
     [HttpGet("metrics/average-execution-time")]
     public async Task<IActionResult> GetAverageExecutionTime()
     {

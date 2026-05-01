@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OficinaApi.Controllers
 {
@@ -18,6 +19,8 @@ namespace OficinaApi.Controllers
             _vehicleService = vehicleService;
         }
 
+        [SwaggerOperation(Summary = "Lista todos os veículos cadastrados",
+                          Description = "Retorna uma lista com todos os veículos registrados no sistema.")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -25,6 +28,8 @@ namespace OficinaApi.Controllers
             return Ok(vehicle);
         }
 
+        [SwaggerOperation(Summary = "Busca veículo por ID",
+                          Description = "Retorna os dados de um veículo específico a partir do seu identificador único.")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -33,6 +38,8 @@ namespace OficinaApi.Controllers
             return Ok(vehicle);
         }
 
+        [SwaggerOperation(Summary = "Cria um novo veículo",
+                          Description = "Cadastra um novo veículo no sistema. Não é permitido cadastrar dois veículos com a mesma placa.")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateVehicleDto dto)
         {
@@ -40,6 +47,8 @@ namespace OficinaApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
+        [SwaggerOperation(Summary = "Atualiza os dados de um veículo",
+                          Description = "Atualiza as informações de um veículo existente a partir do seu identificador único.")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleDto dto)
         {
@@ -47,6 +56,8 @@ namespace OficinaApi.Controllers
             return Ok(result);
         }
 
+        [SwaggerOperation(Summary = "Remove um veículo",
+                          Description = "Exclui permanentemente o cadastro de um veículo a partir do seu identificador único.")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
