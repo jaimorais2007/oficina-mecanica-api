@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OficinaApi.Controllers
 {
@@ -17,6 +18,8 @@ namespace OficinaApi.Controllers
             _serviceManagementService = serviceManagementService;
         }
 
+        [SwaggerOperation(Summary = "Lista todos os serviços cadastrados",
+                          Description = "Retorna uma lista com todos os tipos de serviços disponíveis na oficina.")]
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -24,6 +27,8 @@ namespace OficinaApi.Controllers
             return Ok(vehicle);
         }
 
+        [SwaggerOperation(Summary = "Busca serviço por ID",
+                          Description = "Retorna os dados de um serviço específico a partir do seu identificador único.")]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -32,6 +37,8 @@ namespace OficinaApi.Controllers
             return Ok(vehicle);
         }
 
+        [SwaggerOperation(Summary = "Cria um novo serviço",
+                          Description = "Cadastra um novo tipo de serviço oferecido pela oficina com os dados informados no corpo da requisição.")]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateServiceDto dto)
         {
@@ -39,6 +46,8 @@ namespace OficinaApi.Controllers
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
+        [SwaggerOperation(Summary = "Atualiza os dados de um serviço",
+                          Description = "Atualiza as informações de um tipo de serviço existente a partir do seu identificador único.")]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateServiceDto dto)
         {
@@ -46,6 +55,8 @@ namespace OficinaApi.Controllers
             return Ok(result);
         }
 
+        [SwaggerOperation(Summary = "Remove um serviço",
+                          Description = "Exclui permanentemente o cadastro de um tipo de serviço a partir do seu identificador único.")]
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
