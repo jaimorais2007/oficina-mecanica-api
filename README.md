@@ -7,6 +7,10 @@ API RESTful para gerenciamento de uma oficina mecânica, desenvolvida com .NET 8
 ## Índice
 
 - [Pré-requisitos](#pré-requisitos)
+- [Arquitetura](#arquitetura)
+- [Modelo de dados](#modelo-de-dados)
+- [Fluxo de autenticação](#fluxo-de-autenticação)
+- [Fluxo principal — Ordem de Serviço](#fluxo-principal--ordem-de-serviço)
 - [Configuração do ambiente](#configuração-do-ambiente)
 - [Subindo a aplicação](#subindo-a-aplicação)
 - [Banco de dados e migrations](#banco-de-dados-e-migrations)
@@ -21,6 +25,116 @@ API RESTful para gerenciamento de uma oficina mecânica, desenvolvida com .NET 8
 
 - [Docker](https://www.docker.com/) e Docker Compose instalados
 - Git
+
+---
+
+## Arquitetura
+
+```mermaid
+graph TD
+    Cliente(["👤 Cliente / Professor"])
+    Swagger["Swagger UI\n:8080/swagger"]
+    API["OficinaApi\n.NET 8\n:8080"]
+    DB[("PostgreSQL 16\n:5432")]
+    JWT["jwt.io\nGeração do token"]
+
+    Cliente -->|"Acessa"| Swagger
+    Cliente -->|"Gera token"| JWT
+    JWT -->|"Bearer token"| Swagger
+    Swagger -->|"HTTP requests"| API
+    API -->|"Leitura / Escrita"| DB
+
+    subgraph Docker Compose
+        API
+        DB
+    end
+```
+
+---
+
+## Modelo de dados
+
+```mermaid
+erDiagram
+    Customer {
+        uuid Id
+        string Name
+        string Email
+        string Phone
+    }
+    Vehicle {
+        uuid Id
+        string Plate
+        string Brand
+        string Model
+        int Year
+        uuid CustomerId
+    }
+    ServiceOrder {
+        uuid Id
+        datetime CreatedAt
+        string Status
+        uuid VehicleId
+    }
+    Service {
+        uuid Id
+        string Name
+        string Description
+        decimal Price
+    }
+    Part {
+        uuid Id
+        string Name
+        int StockQuantity
+        decimal Price
+    }
+
+    Customer ||--o{ Vehicle : "possui"
+    Vehicle ||--o{ ServiceOrder : "gera"
+    ServiceOrder }o--o{ Service : "contém"
+    ServiceOrder }o--o{ Part : "utiliza"
+```
+
+---
+
+## Fluxo de autenticação
+
+```mermaid
+sequenceDiagram
+    actor Prof as Professor
+    participant JwtIo as jwt.io
+    participant Swagger as Swagger UI
+    participant API as OficinaApi
+
+    Prof->>JwtIo: Informa payload + secret (@Postech$2026)
+    JwtIo-->>Prof: Retorna Bearer token
+
+    Prof->>Swagger: Clica em Authorize
+    Prof->>Swagger: Cola Bearer {token}
+    Swagger-->>Prof: Token salvo na sessão
+
+    Prof->>Swagger: Executa endpoint protegido
+    Swagger->>API: GET /api/Customer + Authorization header
+    API-->>Swagger: 200 OK + dados
+    Swagger-->>Prof: Exibe resposta
+```
+
+---
+
+## Fluxo principal — Ordem de Serviço
+
+```mermaid
+flowchart TD
+    A([Início]) --> B[Criar Cliente\nPOST /api/Customer]
+    B --> C[Criar Veículo\nPOST /api/Vehicle]
+    C --> D[Criar Serviço\nPOST /api/Service]
+    D --> E[Criar Peça e adicionar estoque\nPOST /api/Parts\nPOST /api/Parts/id/add-stock]
+    E --> F[Criar Ordem de Serviço\nPOST /api/ServiceOrders]
+    F --> G[Estoque debitado automaticamente]
+    G --> H[Consultar OS\nGET /api/ServiceOrders/id]
+    H --> I[Acompanhar progresso público\nGET /api/external/orders/id/progress]
+    I --> Z([Fim])
+```
 
 ---
 
