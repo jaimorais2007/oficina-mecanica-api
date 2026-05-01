@@ -11,6 +11,7 @@ public class OficinaDbContext : DbContext
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Service> Services { get; set; }
+    public DbSet<User> Users { get; set; }
 
     public DbSet<ServiceOrder> ServiceOrders { get; set; }
 
@@ -36,7 +37,7 @@ public class OficinaDbContext : DbContext
                    .IsRequired()
                    .HasMaxLength(50);
             });
-            entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
+            entity.Property(e => e.DateOfBirth).HasColumnType("date");
         });
 
         modelBuilder.Entity<Vehicle>(entity =>
@@ -69,6 +70,15 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.DefaultPrice).HasColumnType("decimal(10,2)").IsRequired();
+        });
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.Role).HasMaxLength(50);
         });
     }
 }

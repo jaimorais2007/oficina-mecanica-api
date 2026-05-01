@@ -9,7 +9,7 @@ var jwtSecret   = builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer   = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
-var connectionString = builder.Configuration.GetConnectionString("AZURE_SQL_CONNECTIONSTRING");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
@@ -28,18 +28,9 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<OficinaApi.Services.TokenService>();
 
-// Configure In-Memory Database for testing purposes locally
-//builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
-//    options.UseInMemoryDatabase("OficinaDbLocal"));
-
+// Configure PostgreSQL Database
 builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
-    options.UseSqlServer(connectionString, sqlOptions =>
-    {
-        sqlOptions.EnableRetryOnFailure(
-            maxRetryCount: 5,
-            maxRetryDelay: TimeSpan.FromSeconds(10),
-            errorNumbersToAdd: null);
-    }));
+    options.UseNpgsql(connectionString));
 
 // Register Repositories
 builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IPartRepository, OficinaApi.Infrastructure.Repositories.PartRepository>();
@@ -47,6 +38,7 @@ builder.Services.AddScoped<OficinaApi.Domain.Interfaces.ICustomerRepository, Ofi
 builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IServiceOrderRepository, OficinaApi.Infrastructure.Repositories.ServiceOrderRepository>();
 builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IVehicleRepository, OficinaApi.Infrastructure.Repositories.VehicleRepository>();
 builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IServiceRepository, OficinaApi.Infrastructure.Repositories.ServiceRepository>();
+builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IUserRepository, OficinaApi.Infrastructure.Repositories.UserRepository>();
 
 // Register Application Services
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IPartService, OficinaApi.Application.Services.PartService>();
@@ -54,10 +46,37 @@ builder.Services.AddScoped<OficinaApi.Application.Interfaces.ICustomerService, O
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IExternalQueryService, OficinaApi.Application.Services.ExternalQueryService>();
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IVehicleService, OficinaApi.Application.Services.VehicleService>();
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceManagementService, OficinaApi.Application.Services.ServiceManagementService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IUserService, OficinaApi.Application.Services.UserService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.ApiKey,
+        Scheme = "Bearer",
+        BearerFormat = "JWT",
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Insira o token JWT desta maneira: Bearer {seu token}"
+    });
+
+    c.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+    {
+        {
+            new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                {
+                    Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
+});
 
 var app = builder.Build();
 
@@ -68,5 +87,29 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    var userService = scope.ServiceProvider.GetRequiredService<OficinaApi.Application.Interfaces.IUserService>();
+    var users = await userService.GetAllUsersAsync();
+    
+    // Verifica se não tem nenhum admin@gmail.com
+    bool hasAdmin = false;
+    foreach (var u in users)
+    {
+        if (u.Email == "admin@gmail.com") hasAdmin = true;
+    }
+
+    if (!hasAdmin)
+    {
+        await userService.CreateUserAsync(new OficinaApi.Application.DTOs.CreateUserDto
+        {
+            Name = "Admin Inicial",
+            Email = "admin@gmail.com",
+            Password = "123",
+            Role = "Admin"
+        });
+    }
+}
 
 app.Run();
