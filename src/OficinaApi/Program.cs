@@ -86,25 +86,31 @@ app.MapControllers();
 
 using (var scope = app.Services.CreateScope())
 {
-    var userService = scope.ServiceProvider.GetRequiredService<OficinaApi.Application.Interfaces.IUserService>();
-    var users = await userService.GetAllUsersAsync();
-    
-    // Verifica se não tem nenhum admin@gmail.com
-    bool hasAdmin = false;
-    foreach (var u in users)
+    try
     {
-        if (u.Email == "admin@gmail.com") hasAdmin = true;
-    }
-
-    if (!hasAdmin)
-    {
-        await userService.CreateUserAsync(new OficinaApi.Application.DTOs.CreateUserDto
+        var userService = scope.ServiceProvider.GetRequiredService<OficinaApi.Application.Interfaces.IUserService>();
+        var users = await userService.GetAllUsersAsync();
+        
+        bool hasAdmin = false;
+        foreach (var u in users)
         {
-            Name = "Admin Inicial",
-            Email = "admin@gmail.com",
-            Password = "123",
-            Role = "Admin"
-        });
+            if (u.Email == "admin@gmail.com") hasAdmin = true;
+        }
+
+        if (!hasAdmin)
+        {
+            await userService.CreateUserAsync(new OficinaApi.Application.DTOs.CreateUserDto
+            {
+                Name = "Admin Inicial",
+                Email = "admin@gmail.com",
+                Password = "123",
+                Role = "Admin"
+            });
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Aviso: Não foi possível verificar/criar o usuário Admin inicial. O banco de dados pode estar indisponível ou a tabela Users ainda não foi criada. Detalhe: {ex.Message}");
     }
 }
 
