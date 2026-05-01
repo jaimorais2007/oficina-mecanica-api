@@ -36,7 +36,7 @@ public class OficinaDbContext : DbContext
                    .IsRequired()
                    .HasMaxLength(50);
             });
-            entity.Property(e => e.DateOfBirth).HasColumnType("datetime");
+            entity.Property(e => e.DateOfBirth).HasColumnType("timestamp without time zone");
         });
 
         modelBuilder.Entity<Vehicle>(entity =>
