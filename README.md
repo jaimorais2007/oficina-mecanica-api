@@ -26,13 +26,7 @@ API RESTful para gerenciamento de uma oficina mecânica, desenvolvida com .NET 8
 
 ## Configuração do ambiente
 
-Copie o arquivo de exemplo e preencha com os seus valores:
-
-```bash
-cp .env.example .env
-```
-
-Edite o arquivo `.env`:
+Crie o arquivo `.env` na raiz do projeto com o conteúdo abaixo (credenciais do ambiente de testes):
 
 ```env
 # Banco de dados
@@ -47,7 +41,7 @@ JWT_ISSUER=oficina-api
 JWT_AUDIENCE=oficina-clientes
 ```
 
-> **Atenção:** `JWT_SECRET` deve ter no mínimo 32 caracteres. Os valores de `JWT_ISSUER` e `JWT_AUDIENCE` serão necessários para gerar o token de autenticação.
+> Esses valores já estão configurados para o ambiente de testes. Não é necessário alterar nada para subir e testar a aplicação.
 
 ---
 
@@ -118,9 +112,10 @@ A maioria dos endpoints é protegida por JWT. Para testá-los você precisa gera
 }
 ```
 
-> Substitua `"iss"` e `"aud"` pelos valores definidos em `JWT_ISSUER` e `JWT_AUDIENCE` no seu `.env`.
-
-3. No campo **Verify Signature**, cole o valor de `JWT_SECRET` do seu `.env`
+3. No campo **Verify Signature**, cole a secret abaixo:
+```
+chave-super-secreta-minimo-32-caracteres
+```
 4. Copie o token gerado no painel esquerdo
 
 ### Usando o token no Swagger
