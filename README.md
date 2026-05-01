@@ -31,12 +31,12 @@ Crie o arquivo `.env` na raiz do projeto com o conteúdo abaixo (credenciais do 
 ```env
 # Banco de dados
 DB_USER=postgres
-DB_PASSWORD=senha_forte
+DB_PASSWORD=@Postech$2026
 DB_NAME=oficina_db
-DB_CONNECTION_STRING=Host=db;Port=5432;Database=oficina_db;Username=postgres;Password=senha_forte
+DB_CONNECTION_STRING=Host=db;Port=5432;Database=oficina_db;Username=postgres;Password=@Postech$2026
 
 # JWT
-JWT_SECRET=chave-super-secreta-minimo-32-caracteres
+JWT_SECRET=@Postech$2026
 JWT_ISSUER=oficina-api
 JWT_AUDIENCE=oficina-clientes
 ```
@@ -114,7 +114,7 @@ A maioria dos endpoints é protegida por JWT. Para testá-los você precisa gera
 
 3. No campo **Verify Signature**, cole a secret abaixo:
 ```
-chave-super-secreta-minimo-32-caracteres
+@Postech$2026
 ```
 4. Copie o token gerado no painel esquerdo
 
