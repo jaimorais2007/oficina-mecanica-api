@@ -112,7 +112,8 @@ public class ServiceOrder : BaseEntity
     {
         return StatusHistory
             .OrderByDescending(s => s.CreatedAt)
-            .First();
+            .FirstOrDefault()
+            ?? throw new InvalidOperationException($"Ordem de serviço {Id} não possui histórico de status.");
     }
 
     public ICollection<ServiceOrderPart> GetPendingStocks()
