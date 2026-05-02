@@ -1,4 +1,5 @@
 using System;
+using System.Reflection.Metadata;
 using OficinaApi.Domain.Enums;
 
 namespace OficinaApi.Domain.Entities;
@@ -6,8 +7,10 @@ namespace OficinaApi.Domain.Entities;
 public class ServiceOrder
 {
     public Guid Id { get; private set; }
-    public string ClientCpf { get; private set; }
-    public Plate VehiclePlate { get; private set; }
+    public Customer Customer { get; set; }
+    public Guid CustomerId { get; set; }
+    public Vehicle Vehicle { get; set; }
+    public Guid VehicleId { get; set; }
     public DateTime CreatedAt { get; private set; }
     public ICollection<ServiceOrderStatus> StatusHistory { get; set; } = [];
     public ICollection<ServiceOrderServices> ServicesUsed { get; set; } = [];
@@ -15,17 +18,15 @@ public class ServiceOrder
     public decimal Budget { get; private set; }
 
     // For EF Core
-    protected ServiceOrder() 
-    {
-        ClientCpf = string.Empty;
-        VehiclePlate = default!;
-    }
+    protected ServiceOrder() { }
 
-    public ServiceOrder(string clientCpf, string vehiclePlate)
+    public ServiceOrder(Customer customer, Vehicle vehicle)
     {
         Id = Guid.NewGuid();
-        ClientCpf = clientCpf;
-        VehiclePlate = new Plate(vehiclePlate);
+        Customer = customer;
+        CustomerId = customer.Id;
+        Vehicle = vehicle;
+        VehicleId = vehicle.Id;
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Received));
         CreatedAt = DateTime.UtcNow;
     }
