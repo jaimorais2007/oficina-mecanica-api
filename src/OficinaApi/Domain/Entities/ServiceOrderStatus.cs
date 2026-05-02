@@ -2,9 +2,8 @@ using OficinaApi.Domain.Enums;
 
 namespace OficinaApi.Domain.Entities;
 
-public class ServiceOrderStatus
+public class ServiceOrderStatus : BaseEntity
 {
-    public Guid Id { get; private set; }
     public OrderStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public ServiceOrder ServiceOrder { get; private set; }

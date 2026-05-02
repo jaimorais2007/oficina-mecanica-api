@@ -1,9 +1,8 @@
 ﻿using System.Xml.Linq;
 using OficinaApi.Domain.Entities;
 
-public class Vehicle
+public class Vehicle : BaseEntity
 {
-    public Guid Id { get; private set; }
     public Plate Plate { get; private set; }
     public string Brand { get; private set; }
     public string Model { get; private set; }

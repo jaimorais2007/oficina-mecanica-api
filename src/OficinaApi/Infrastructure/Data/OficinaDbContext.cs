@@ -5,15 +5,19 @@ namespace OficinaApi.Infrastructure.Data;
 
 public class OficinaDbContext : DbContext
 {
-    public OficinaDbContext(DbContextOptions<OficinaDbContext> options) : base(options) { }
 
     public DbSet<Part> Parts { get; set; }
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceOrderStatus> ServiceOrderStatuses { get; set; }
-
     public DbSet<ServiceOrder> ServiceOrders { get; set; }
+    public DbSet<ServiceOrderServices> ServiceOrderServices { get; set; }
+    public DbSet<ServiceOrderParts> ServiceOrderParts { get; set; }
+    public DbSet<ServiceOrderAlerts> ServiceOrderAlerts { get; set; }
+
+
+    public OficinaDbContext(DbContextOptions<OficinaDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,6 +29,7 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Code).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+            entity.Ignore(e => e.DomainEvents);
         });
 
         modelBuilder.Entity<Customer>(entity =>
@@ -45,6 +50,7 @@ public class OficinaDbContext : DbContext
             entity.HasMany(c => c.Vehicles)
                   .WithOne(v => v.Customer)
                   .HasForeignKey(v => v.CustomerId);
+            entity.Ignore(e => e.DomainEvents);
         });
 
         modelBuilder.Entity<Vehicle>(entity =>
@@ -66,6 +72,7 @@ public class OficinaDbContext : DbContext
             entity.HasMany(v => v.ServiceOrders)
                   .WithOne(so => so.Vehicle)
                   .HasForeignKey(so => so.VehicleId);
+            entity.Ignore(e => e.DomainEvents);
         });
 
         modelBuilder.Entity<ServiceOrder>(entity =>
@@ -94,6 +101,7 @@ public class OficinaDbContext : DbContext
                 .WithOne(a => a.ServiceOrder)
                 .HasForeignKey(a => a.ServiceOrderId)
                 .OnDelete(DeleteBehavior.Cascade);
+            entity.Ignore(e => e.DomainEvents);
         });
 
         modelBuilder.Entity<Service>(entity =>
@@ -102,6 +110,7 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.DefaultPrice).HasColumnType("decimal(18,2)").IsRequired();
+            entity.Ignore(e => e.DomainEvents);
         });
 
         modelBuilder.Entity<ServiceOrderStatus>(entity =>
@@ -112,6 +121,7 @@ public class OficinaDbContext : DbContext
             entity.HasOne(sos => sos.ServiceOrder)
                   .WithMany(so => so.StatusHistory)
                   .HasForeignKey(sos => sos.ServiceOrderId);
+            entity.Ignore(e => e.DomainEvents);
         });
 
         modelBuilder.Entity<ServiceOrderServices>(entity =>
@@ -123,6 +133,7 @@ public class OficinaDbContext : DbContext
             entity.HasOne(sos => sos.Service)
                   .WithMany(s => s.ServiceOrders)
                   .HasForeignKey(sos => sos.ServiceId);
+            entity.Ignore(e => e.DomainEvents);
         });
 
         modelBuilder.Entity<ServiceOrderParts>(entity =>
@@ -135,6 +146,7 @@ public class OficinaDbContext : DbContext
                   .WithMany(p => p.ServiceOrders)
                   .HasForeignKey(sop => sop.PartId);
             entity.Property(sop => sop.Quantity).IsRequired();
+            entity.Ignore(e => e.DomainEvents);
         });
 
         modelBuilder.Entity<ServiceOrderAlerts>(entity =>
@@ -145,6 +157,7 @@ public class OficinaDbContext : DbContext
             entity.HasOne(soa => soa.ServiceOrder)
                   .WithMany(so => so.Alerts)
                   .HasForeignKey(soa => soa.ServiceOrderId);
+            entity.Ignore(e => e.DomainEvents);
         });
     }
 }

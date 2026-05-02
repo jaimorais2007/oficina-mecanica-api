@@ -3,9 +3,8 @@ using OficinaApi.Domain.ValueObjects;
 
 namespace OficinaApi.Domain.Entities
 {
-    public class Customer
+    public class Customer : BaseEntity
     {
-        public Guid Id { get; private set; }
         public string Name { get; private set; } = string.Empty;
         public PersonType PersonType { get; private set; }
         public Document Document { get; private set; } = null!;

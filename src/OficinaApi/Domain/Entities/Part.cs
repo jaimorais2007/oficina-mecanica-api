@@ -2,9 +2,8 @@ using System;
 
 namespace OficinaApi.Domain.Entities;
 
-public class Part
+public class Part : BaseEntity
 {
-    public Guid Id { get; private set; }
     public string Name { get; private set; }
     public string Code { get; private set; }
     public int QuantityInStock { get; private set; }

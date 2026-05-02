@@ -4,9 +4,8 @@ using OficinaApi.Domain.Enums;
 
 namespace OficinaApi.Domain.Entities;
 
-public class ServiceOrder
+public class ServiceOrder : BaseEntity
 {
-    public Guid Id { get; private set; }
     public Customer Customer { get; set; }
     public Guid CustomerId { get; set; }
     public Vehicle Vehicle { get; set; }

@@ -1,8 +1,7 @@
 ﻿using OficinaApi.Domain.Entities;
 
-public class Service
+public class Service : BaseEntity
 {
-    public Guid Id { get; private set; }
     public string Name { get; private set; }
     public string Description { get; private set; }
     public decimal DefaultPrice { get; private set; }

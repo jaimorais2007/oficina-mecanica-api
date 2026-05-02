@@ -2,9 +2,8 @@ using System;
 
 namespace OficinaApi.Domain.Entities;
 
-public class ServiceOrderAlerts
+public class ServiceOrderAlerts : BaseEntity
 {
-    public Guid Id { get; private set; }
     public string Message { get; private set; } = string.Empty;
     public bool Concluded { get; private set; }
     public DateTime CreatedAt { get; private set; }
