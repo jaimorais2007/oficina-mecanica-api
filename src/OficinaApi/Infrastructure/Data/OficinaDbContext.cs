@@ -11,6 +11,7 @@ public class OficinaDbContext : DbContext
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Service> Services { get; set; }
+    public DbSet<ServiceOrderStatus> ServiceOrderStatuses { get; set; }
 
     public DbSet<ServiceOrder> ServiceOrders { get; set; }
 
@@ -60,7 +61,11 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.ClientCpf).IsRequired().HasMaxLength(14);
             entity.Property(e => e.VehiclePlate).IsRequired().HasMaxLength(10);
             // Storing enum as string for better readability in DB
-            entity.Property(e => e.Status).HasConversion<string>();
+            entity.Property(e => e.Status).HasConversion<string>().IsRequired();
+            entity.HasMany(so => so.StatusHistory)
+                  .WithOne(sos => sos.ServiceOrder)
+                  .HasForeignKey("ServiceOrderId")
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Service>(entity =>
@@ -69,6 +74,17 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.DefaultPrice).HasColumnType("decimal(10,2)").IsRequired();
+        });
+
+        modelBuilder.Entity<ServiceOrderStatus>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp without time zone").IsRequired();
+            entity.Property(e => e.Status).HasConversion<string>().IsRequired();
+            entity.HasOne(sos => sos.ServiceOrder)
+                  .WithMany(so => so.StatusHistory)
+                  .HasForeignKey("ServiceOrderId")
+                  .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

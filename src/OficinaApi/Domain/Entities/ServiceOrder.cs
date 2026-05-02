@@ -12,6 +12,7 @@ public class ServiceOrder
     public DateTime CreatedAt { get; private set; }
     public DateTime? StartedExecutionAt { get; private set; }
     public DateTime? FinishedExecutionAt { get; private set; }
+    public ICollection<ServiceOrderStatus> StatusHistory { get; set; } = [];
 
     // For EF Core
     protected ServiceOrder() 
