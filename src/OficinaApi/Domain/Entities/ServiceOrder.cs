@@ -15,7 +15,6 @@ public class ServiceOrder : BaseEntity
     public ICollection<ServiceOrderStatus> StatusHistory { get; private set; } = [];
     public ICollection<ServiceOrderService> ServicesUsed { get; private set; } = [];
     public ICollection<ServiceOrderPart> PartsUsed { get; private set; } = [];
-    public int MyProperty { get; set; }
     public decimal Budget { get; private set; }
 
     // For EF Core
