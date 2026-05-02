@@ -15,6 +15,7 @@ public class ServiceOrder
     public ICollection<ServiceOrderStatus> StatusHistory { get; set; } = [];
     public ICollection<ServiceOrderServices> ServicesUsed { get; set; } = [];
     public ICollection<ServiceOrderParts> PartsUsed { get; set; } = [];
+    public ICollection<ServiceOrderAlerts> Alerts { get; private set; } = [];
     public decimal Budget { get; private set; }
 
     // For EF Core
