@@ -12,9 +12,9 @@ public class ServiceOrder : BaseEntity
     public Guid VehicleId { get; set; }
     public DateTime CreatedAt { get; private set; }
     public ICollection<ServiceOrderStatus> StatusHistory { get; set; } = [];
-    public ICollection<ServiceOrderServices> ServicesUsed { get; set; } = [];
-    public ICollection<ServiceOrderParts> PartsUsed { get; set; } = [];
-    public ICollection<ServiceOrderAlerts> Alerts { get; private set; } = [];
+    public ICollection<ServiceOrderService> ServicesUsed { get; set; } = [];
+    public ICollection<ServiceOrderPart> PartsUsed { get; set; } = [];
+    public ICollection<ServiceOrderAlert> Alerts { get; private set; } = [];
     public decimal Budget { get; private set; }
 
     // For EF Core
@@ -27,9 +27,14 @@ public class ServiceOrder : BaseEntity
         CustomerId = customer.Id;
         Vehicle = vehicle;
         VehicleId = vehicle.Id;
-        ServicesUsed = servicesUserd.Select(s => new ServiceOrderServices(this, s)).ToList();
+        ServicesUsed = servicesUserd.Select(s => new ServiceOrderService(this, s)).ToList();
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Received));
         CreatedAt = DateTime.UtcNow;
+    }
+
+    public void AddAlert(string message)
+    {
+        Alerts.Add(new ServiceOrderAlert(this, message));
     }
 
     public void CalculateBudget()
@@ -64,6 +69,9 @@ public class ServiceOrder : BaseEntity
 
     public void FinishExecution()
     {
+        if(Alerts.Any())
+            throw new InvalidOperationException("Não é possível finalizar a execução de uma ordem de serviço que possui alertas pendentes. Por favor, resolva os alertas antes de finalizar.");
+
         var lastStatus = GetLastStatusHistory();
         if(lastStatus.Status != OrderStatus.Executing)
             throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Execução' para finalizar a execução.");
@@ -93,7 +101,7 @@ public class ServiceOrder : BaseEntity
         if (!HasPermissionToUpdatePartsAndServices())
             throw new InvalidOperationException("Não é permitido adicionar peças neste status da ordem de serviço.");
 
-        PartsUsed.Add(new ServiceOrderParts(this, part, quantity));
+        PartsUsed.Add(new ServiceOrderPart(this, part, quantity));
     }
 
     public void AddService(Service service)
@@ -101,7 +109,7 @@ public class ServiceOrder : BaseEntity
         if (!HasPermissionToUpdatePartsAndServices())
             throw new InvalidOperationException("Não é permitido adicionar serviços neste status da ordem de serviço.");
             
-        ServicesUsed.Add(new ServiceOrderServices(this, service));
+        ServicesUsed.Add(new ServiceOrderService(this, service));
     }
 
     private bool HasPermissionToUpdatePartsAndServices()

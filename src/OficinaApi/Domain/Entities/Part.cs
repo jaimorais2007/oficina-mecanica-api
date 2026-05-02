@@ -9,7 +9,7 @@ public class Part : BaseEntity
     public int QuantityInStock { get; private set; }
     public decimal Price { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public ICollection<ServiceOrderParts> ServiceOrders { get; set; } = [];
+    public ICollection<ServiceOrderPart> ServiceOrders { get; set; } = [];
 
     // For EF Core
     protected Part() 

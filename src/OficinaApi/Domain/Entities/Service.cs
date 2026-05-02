@@ -6,7 +6,7 @@ public class Service : BaseEntity
     public string Description { get; private set; }
     public decimal DefaultPrice { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public ICollection<ServiceOrderServices> ServiceOrders { get; set; } = [];
+    public ICollection<ServiceOrderService> ServiceOrders { get; set; } = [];
 
     protected Service() { }
 
