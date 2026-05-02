@@ -1,4 +1,5 @@
 using System;
+using OficinaApi.Domain.Entities;
 
 namespace OficinaApi.Application.DTOs;
 
@@ -11,16 +12,22 @@ public class ServiceOrderDto
     public DateTime? StartedExecutionAt { get; set; }
     public decimal Budget { get; set; }
     public DateTime? FinishedExecutionAt { get; set; }
+
+    public ServiceOrderDto(ServiceOrder serviceOrder)
+    {
+        Id = serviceOrder.Id;
+        ClientCpf = serviceOrder.ClientCpf;
+        VehiclePlate = serviceOrder.VehiclePlate.Value;
+        CreatedAt = serviceOrder.CreatedAt;
+        StartedExecutionAt = serviceOrder.StartedExecutionAt;
+        FinishedExecutionAt = serviceOrder.FinishedExecutionAt;
+        Budget = serviceOrder.Budget;
+    }
 }
 
 public class CreateServiceOrderDto
 {
-    public Guid Id { get; set; }
     public string ClientCpf { get; set; } = string.Empty;
-    public DateTime CreatedAt { get; set; }
-    public CreateVehicleDto VehicleUsed { get; set; }
-    public List<CreateServiceDto> ServicesUsed { get; set; } = [];
-    public List<CreatePartDto> PartsUsed { get; set; } = [];
-    public DateTime? StartedExecutionAt { get; set; }
-    public DateTime? FinishedExecutionAt { get; set; }
+    public string VehiclePlate { get; set; } = string.Empty;
+    public List<Guid> ServicesUsed { get; set; } = [];
 }

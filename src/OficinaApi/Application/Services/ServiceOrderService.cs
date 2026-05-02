@@ -32,60 +32,21 @@ public class ServiceOrderService : IServiceOrderService
 
     public async Task<ServiceOrderDto> CreateServiceOrderAsync(CreateServiceOrderDto dto)
     {
-        if (dto.VehicleUsed is null) throw new ArgumentException("Veículo da Ordem de Serviço não informado.");
+        if (string.IsNullOrEmpty(dto.VehiclePlate)) throw new ArgumentException("Veículo da Ordem de Serviço não informado.");
         if (dto.ServicesUsed.IsNullOrEmpty()) throw new ArgumentException("Serviços que serão feitos não foram informados.");
 
-        var serviceOrder = new ServiceOrder(dto.ClientCpf, dto.VehicleUsed.Plate);
+        var serviceOrder = new ServiceOrder(dto.ClientCpf, dto.VehiclePlate);
         await _serviceOrderRepository.AddAsync(serviceOrder);
 
-        var existingVehicle = await _vehicleRepository.GetVehicleAsync(new Plate(dto.VehicleUsed.Plate));
+        var existingVehicle = await _vehicleRepository.GetVehicleAsync(new Plate(dto.VehiclePlate));
         if (existingVehicle is null)
-            await _vehicleRepository.AddAsync(new Vehicle(dto.VehicleUsed.Plate, dto.VehicleUsed.Brand, dto.VehicleUsed.Model, dto.VehicleUsed.Year));
+            throw new ArgumentException("Placa de veiculo não identificada.");
 
-        var servicesUsed = new List<Service>();
-        var partsUsed = new List<Part>();
-
-        foreach (var service in dto.ServicesUsed)
-        {
-            if (service.Id.HasValue)
-                servicesUsed.Add(await _serviceRepository.GetByIdAsync(service.Id.Value));
-            else
-            {
-                var serviceEntity = new Service(service.Name, service.Description, service.DefaultPrice);
-                await _serviceRepository.AddAsync(serviceEntity);
-                servicesUsed.Add(serviceEntity);
-            }
-        }
+        var servicesFounds = await _serviceRepository.GetByIdListAsync(dto.ServicesUsed);
+        if(servicesFounds.Count() != dto.ServicesUsed.Count())
+            throw new ArgumentException("Algum dos serviços informados não foi encontrado.");
         
-        if (!dto.PartsUsed.IsNullOrEmpty())
-            foreach(var part in dto.PartsUsed)
-            {
-                if (part.Id.HasValue)
-                    partsUsed.Add(await _partRepository.GetByIdAsync(part.Id.Value));
-                else
-                {
-                    var partEntity = new Part(part.Name, part.Code, part.InitialQuantity, part.Price);
-                    await _partRepository.AddAsync(partEntity);
-                    partsUsed.Add(partEntity);
-                }
-            }
-
-        foreach(var part in partsUsed)
-        {
-            part.RemoveStock(1);
-            await _partRepository.UpdateAsync(part);
-        }
-
-        return new ServiceOrderDto
-        {
-            VehiclePlate = serviceOrder.VehiclePlate,
-            ClientCpf = serviceOrder.ClientCpf,
-            CreatedAt = serviceOrder.CreatedAt,
-            FinishedExecutionAt = serviceOrder.FinishedExecutionAt,
-            StartedExecutionAt = serviceOrder.StartedExecutionAt,
-            Id = serviceOrder.Id,
-            Budget = servicesUsed.Sum(s => s.DefaultPrice) + partsUsed.Sum(p => p.Price)
-        };
+        return new ServiceOrderDto(serviceOrder);
     }
 
     public async Task<ServiceOrderDto?> GetServiceOrderByIdAsync(Guid id)
@@ -93,14 +54,6 @@ public class ServiceOrderService : IServiceOrderService
         var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
         if (serviceOrder == null) return null;
 
-        return new ServiceOrderDto
-        {
-            VehiclePlate = serviceOrder.VehiclePlate,
-            ClientCpf = serviceOrder.ClientCpf,
-            CreatedAt = serviceOrder.CreatedAt,
-            FinishedExecutionAt = serviceOrder.FinishedExecutionAt,
-            StartedExecutionAt = serviceOrder.StartedExecutionAt,
-            Id = serviceOrder.Id
-        };
+        return new ServiceOrderDto(serviceOrder);
     }
 }
