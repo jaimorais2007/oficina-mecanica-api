@@ -16,31 +16,39 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
     private readonly IVehicleRepository _vehicleRepository;
     private readonly IServiceRepository _serviceRepository;
     private readonly IPartRepository _partRepository;
+    private readonly ICustomerRepository _customerRepository;
 
     public ServiceOrderService(
         IServiceOrderRepository serviceOrderRepository, 
         IVehicleRepository vehicleRepository, 
         IServiceRepository serviceRepository,
-        IPartRepository partRepository
+        IPartRepository partRepository,
+        ICustomerRepository customerRepository
     )
     {
         _serviceOrderRepository = serviceOrderRepository;
         _vehicleRepository = vehicleRepository;
         _serviceRepository = serviceRepository;
         _partRepository = partRepository;
+        _customerRepository = customerRepository;
     }
 
     public async Task<ServiceOrderDto> CreateServiceOrderAsync(CreateServiceOrderDto dto)
     {
-        if (string.IsNullOrEmpty(dto.VehiclePlate)) throw new ArgumentException("Veículo da Ordem de Serviço não informado.");
+        if (dto.VehicleId == Guid.Empty) throw new ArgumentException("Veículo da Ordem de Serviço não informado.");
         if (dto.ServicesUsed.IsNullOrEmpty()) throw new ArgumentException("Serviços que serão feitos não foram informados.");
 
-        var serviceOrder = new ServiceOrder(dto.ClientCpf, dto.VehiclePlate);
+        var existingVehicle = await _vehicleRepository.GetByIdAsync(dto.VehicleId);
+        if (existingVehicle is null)
+            throw new ArgumentException("Veículo não encontrado.");
+
+        var existingCustomer = await _customerRepository.GetByIdAsync(dto.CustomerId);
+        if (existingCustomer is null)
+            throw new ArgumentException("Cliente não encontrado.");
+
+        var serviceOrder = new ServiceOrder(existingCustomer, existingVehicle);
         await _serviceOrderRepository.AddAsync(serviceOrder);
 
-        var existingVehicle = await _vehicleRepository.GetVehicleAsync(new Plate(dto.VehiclePlate));
-        if (existingVehicle is null)
-            throw new ArgumentException("Placa de veiculo não identificada.");
 
         var servicesFounds = await _serviceRepository.GetByIdListAsync(dto.ServicesUsed);
         if(servicesFounds.Count() != dto.ServicesUsed.Count())

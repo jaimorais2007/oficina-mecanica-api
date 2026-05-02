@@ -1,4 +1,5 @@
 ﻿using System.Xml.Linq;
+using OficinaApi.Domain.Entities;
 
 public class Vehicle
 {
@@ -8,12 +9,19 @@ public class Vehicle
     public string Model { get; private set; }
     public int Year { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public Customer Customer { get; set; }
+    public Guid CustomerId { get; set; }
+    public ICollection<ServiceOrder> ServiceOrders { get; private set; } = [];
+
+    //et; }
 
     protected Vehicle() { }
 
-    public Vehicle(string plate, string brand, string model, int year)
+    public Vehicle(Customer customer, string plate, string brand, string model, int year)
     {
         Id = Guid.NewGuid();
+        Customer = customer;
+        CustomerId = customer.Id;
         Plate = new Plate(plate);
         Brand = brand;
         Model = model;
@@ -35,7 +43,6 @@ public class Vehicle
 
     private void Validate()
     {
-
         if (string.IsNullOrWhiteSpace(Brand))
             throw new ArgumentException("Marca é obrigatória.");
 

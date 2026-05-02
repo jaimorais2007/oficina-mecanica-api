@@ -38,6 +38,13 @@ public class OficinaDbContext : DbContext
                    .HasMaxLength(50);
             });
             entity.Property(e => e.DateOfBirth).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.PersonType).HasConversion<string>().IsRequired();
+            entity.HasMany(c => c.ServiceOrders)
+                  .WithOne(so => so.Customer)
+                  .HasForeignKey(so => so.CustomerId);
+            entity.HasMany(c => c.Vehicles)
+                  .WithOne(v => v.Customer)
+                  .HasForeignKey(v => v.CustomerId);
         });
 
         modelBuilder.Entity<Vehicle>(entity =>
@@ -53,26 +60,36 @@ public class OficinaDbContext : DbContext
                      .IsRequired()
                      .HasMaxLength(10);
             });
+            entity.HasOne(v => v.Customer)
+                  .WithMany(c => c.Vehicles)
+                  .HasForeignKey(v => v.CustomerId);
+            entity.HasMany(v => v.ServiceOrders)
+                  .WithOne(so => so.Vehicle)
+                  .HasForeignKey(so => so.VehicleId);
         });
 
         modelBuilder.Entity<ServiceOrder>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.ClientCpf).IsRequired().HasMaxLength(14);
-            entity.Property(e => e.VehiclePlate).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.CustomerId).IsRequired().HasMaxLength(14);
+            entity.Property(e => e.VehicleId).IsRequired().HasMaxLength(14);
             entity.Property(e => e.Budget).HasColumnType("decimal(18,2)");
             entity.HasMany(so => so.StatusHistory)
                   .WithOne(sos => sos.ServiceOrder)
                   .HasForeignKey("ServiceOrderId")
                   .OnDelete(DeleteBehavior.Cascade);
-
             entity.HasMany(so => so.ServicesUsed)
                 .WithOne(s => s.ServiceOrder)
                 .HasForeignKey(s => s.ServiceOrderId);
-
             entity.HasMany(so => so.PartsUsed)
                 .WithOne(p => p.ServiceOrder)
                 .HasForeignKey(p => p.ServiceOrderId);
+            entity.HasOne(so => so.Customer)
+                  .WithMany(c => c.ServiceOrders)
+                  .HasForeignKey(so => so.CustomerId);
+            entity.HasOne(so => so.Vehicle)
+                  .WithMany(v => v.ServiceOrders)
+                  .HasForeignKey(so => so.VehicleId);
         });
 
         modelBuilder.Entity<Service>(entity =>

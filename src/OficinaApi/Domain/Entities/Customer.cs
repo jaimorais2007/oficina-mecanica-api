@@ -11,7 +11,10 @@ namespace OficinaApi.Domain.Entities
         public Document Document { get; private set; } = null!;
         public DateTime CreatedAt { get; private set; }
         public DateTime? DateOfBirth { get; private set; }
+        public ICollection<ServiceOrder> ServiceOrders { get; private set; } = [];
+        public ICollection<Vehicle> Vehicles { get; private set; } = [];
 
+        // For EF Core
         protected Customer()
         {
             Name = string.Empty;
