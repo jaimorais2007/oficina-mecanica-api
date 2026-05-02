@@ -105,7 +105,7 @@ public class ServiceOrder : BaseEntity
     private bool HasPermissionToUpdatePartsAndServices()
     {
         var currentStatus = StatusHistory.OrderByDescending(s => s.CreatedAt).FirstOrDefault()?.Status;
-        return currentStatus == OrderStatus.Received || currentStatus == OrderStatus.InDiagnostics || currentStatus == OrderStatus.WaitingApproval;
+        return currentStatus == OrderStatus.Received || currentStatus == OrderStatus.InDiagnostics;
     }
 
     public ServiceOrderStatus GetLastStatusHistory()
