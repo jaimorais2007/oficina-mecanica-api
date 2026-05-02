@@ -65,7 +65,10 @@ builder.Services.AddScoped<IDomainEventDispatcher, OficinaApi.Infrastructure.Dat
 builder.Services.AddScoped<IDomainEventHandler<ServiceOrderApprovedEvent>, ServiceOrderApprovedEventHandler>();
 builder.Services.AddScoped<IDomainEventHandler<PartStockAddedEvent>, PartStockAddedEventHandler>();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options =>
+{
+    options.Filters.Add<OficinaApi.ExceptionFilters.GlobalExceptionFilter>();
+});
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
     c.EnableAnnotations();
