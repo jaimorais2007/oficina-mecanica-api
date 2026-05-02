@@ -60,6 +60,7 @@ public class OficinaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ClientCpf).IsRequired().HasMaxLength(14);
             entity.Property(e => e.VehiclePlate).IsRequired().HasMaxLength(10);
+            entity.Property(e => e.Budget).HasColumnType("decimal(18,2)");
             entity.HasMany(so => so.StatusHistory)
                   .WithOne(sos => sos.ServiceOrder)
                   .HasForeignKey("ServiceOrderId")
@@ -71,7 +72,7 @@ public class OficinaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Description).HasMaxLength(500);
-            entity.Property(e => e.DefaultPrice).HasColumnType("decimal(10,2)").IsRequired();
+            entity.Property(e => e.DefaultPrice).HasColumnType("decimal(18,2)").IsRequired();
         });
 
         modelBuilder.Entity<ServiceOrderStatus>(entity =>
