@@ -43,7 +43,7 @@ public class ServiceOrderApprovedEventHandler : IDomainEventHandler<ServiceOrder
             }
         }
 
-        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
         
         _logger.LogInformation("Service order with ID {ServiceOrderId} approved. Stock levels updated for used parts.", domainEvent.ServiceOrderId);
     }

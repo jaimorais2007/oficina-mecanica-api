@@ -72,7 +72,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
 
     public async Task<ServiceOrderDto> StartDiagnosticsAsync(Guid id)
     {
-        var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+        var serviceOrder = await _serviceOrderRepository.GetByIdForUpdateAsync(id);
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
         serviceOrder.StartDiagnostics();

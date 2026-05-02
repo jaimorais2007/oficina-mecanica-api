@@ -12,7 +12,7 @@ public interface IServiceOrderRepository
     Task<ServiceOrder?> GetByIdWithPartsDetailsAsync(Guid id);
     Task<ServiceOrder?> GetByIdForUpdateAsync(Guid id);
     Task AddAsync(ServiceOrder order);
-    Task UpdateAsync(ServiceOrder order);
+    Task SaveChangesAsync(ServiceOrder order);
     Task<double> GetAverageDurationInDaysAsync();
     Task<ServiceOrder?> GetServiceOrderByIdToGetPeddingStocksAsync(Guid id);
 }

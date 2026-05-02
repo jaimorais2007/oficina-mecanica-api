@@ -40,6 +40,7 @@ public class ServiceOrderRepository : IServiceOrderRepository
             .Include(so => so.Vehicle)
             .Include(so => so.ServicesUsed).ThenInclude(s => s.Service)
             .Include(so => so.PartsUsed).ThenInclude(p => p.Part)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(so => so.Id == id);
     }
 
@@ -48,6 +49,7 @@ public class ServiceOrderRepository : IServiceOrderRepository
         var serviceOrder = await _context.ServiceOrders
             .Include(so => so.PartsUsed)
             .ThenInclude(sop => sop.Part)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(so => so.Id == id);
         return serviceOrder;
     }
@@ -74,9 +76,8 @@ public class ServiceOrderRepository : IServiceOrderRepository
             .FirstOrDefaultAsync(so => so.Id == id);
     }
 
-    public async Task UpdateAsync(ServiceOrder order)
+    public async Task SaveChangesAsync(ServiceOrder order)
     {
-        _context.ServiceOrders.Update(order);
         await _context.SaveChangesAsync();
     }
 

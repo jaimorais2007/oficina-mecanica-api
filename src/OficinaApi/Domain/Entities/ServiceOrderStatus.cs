@@ -18,7 +18,6 @@ public class ServiceOrderStatus : BaseEntity
 
     public ServiceOrderStatus(ServiceOrder serviceOrder, OrderStatus status)
     {
-        Id = Guid.NewGuid();
         ServiceOrder = serviceOrder;
         ServiceOrderId = serviceOrder.Id;
         Status = status;
