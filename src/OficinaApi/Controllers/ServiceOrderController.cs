@@ -114,7 +114,7 @@ public class ServiceOrdersController : ControllerBase
     [SwaggerOperation(Summary = "Lista os estoques pendentes da ordem de serviço",
                       Description = "Retorna uma lista de estoques pendentes relacionados a uma ordem de serviço.")]
     [HttpGet("{id}/pendingStocks")]
-    public async Task<IActionResult> GetServiceOrderPeddingStocks(Guid id)
+    public async Task<IActionResult> GetServiceOrderPendingStocks(Guid id)
     {
         var result = await _serviceOrderService.GetServiceOrderPeddingStocksAsync(id);
         return Ok(result);
@@ -122,8 +122,8 @@ public class ServiceOrdersController : ControllerBase
 
     [SwaggerOperation(Summary = "Relatorio de duração média de um serviço",
                         Description = "Retorna a duração média de um tipo de serviço com base nas ordens de serviço finalizadas.")]
-    [HttpGet("{id}/average-duration")]
-    public async Task<IActionResult> GetAverageDuration(Guid id)
+    [HttpGet("average-duration")]
+    public async Task<IActionResult> GetAverageDuration()
     {
         var result = await _serviceOrderService.GetAverageDurationInDaysAsync();
         return Ok(new { AverageDurationInDays = result });
