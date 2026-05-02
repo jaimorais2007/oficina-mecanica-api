@@ -8,6 +8,7 @@ namespace OficinaApi.Application.Interfaces;
 public interface IServiceOrderService
 {
     Task<ServiceOrderDto> CreateServiceOrderAsync(CreateServiceOrderDto dto);
+    Task<IEnumerable<ServiceOrderDto>> GetAllServiceOrdersAsync();
     Task<ServiceOrderDto?> GetServiceOrderByIdAsync(Guid id);
     Task<ServiceOrderDto> StartDiagnosticsAsync(Guid id);
     Task<ServiceOrderDto> AddPartToServiceOrderAsync(Guid id, AddPartDto dto);

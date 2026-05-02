@@ -18,6 +18,15 @@ public class ServiceOrdersController : ControllerBase
         _serviceOrderService = serviceOrderService;
     }
 
+    [SwaggerOperation(Summary = "Lista todas as ordens de serviço",
+                      Description = "Retorna todas as ordens de serviço cadastradas no sistema.")]
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var result = await _serviceOrderService.GetAllServiceOrdersAsync();
+        return Ok(result);
+    }
+
     [SwaggerOperation(Summary = "Busca ordem de serviço por ID",
                       Description = "Retorna os dados completos de uma ordem de serviço, incluindo serviços realizados, peças utilizadas e veículo associado.")]
     [HttpGet("{id}")] 

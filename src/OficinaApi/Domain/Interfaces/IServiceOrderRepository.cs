@@ -7,6 +7,7 @@ namespace OficinaApi.Domain.Interfaces;
 
 public interface IServiceOrderRepository
 {
+    Task<IEnumerable<ServiceOrder>> GetAllAsync();
     Task<ServiceOrder?> GetByIdAsync(Guid id);
     Task<ServiceOrder?> GetByIdWithPartsDetailsAsync(Guid id);
     Task<ServiceOrder?> GetByIdForUpdateAsync(Guid id);

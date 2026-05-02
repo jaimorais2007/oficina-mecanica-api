@@ -14,6 +14,18 @@ public class ServiceOrderRepository : IServiceOrderRepository
         _context = context;
     }
 
+    public async Task<IEnumerable<ServiceOrder>> GetAllAsync()
+    {
+        return await _context.ServiceOrders
+            .Include(so => so.StatusHistory)
+            .Include(so => so.Customer)
+            .Include(so => so.Vehicle)
+            .Include(so => so.ServicesUsed).ThenInclude(s => s.Service)
+            .Include(so => so.PartsUsed).ThenInclude(p => p.Part)
+            .AsSplitQuery()
+            .ToListAsync();
+    }
+
     public async Task AddAsync(ServiceOrder order)
     {
         await _context.ServiceOrders.AddAsync(order);

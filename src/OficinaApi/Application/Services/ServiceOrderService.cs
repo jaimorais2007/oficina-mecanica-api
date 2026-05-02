@@ -64,6 +64,12 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         return new ServiceOrderDto(serviceOrder);
     }
 
+    public async Task<IEnumerable<ServiceOrderDto>> GetAllServiceOrdersAsync()
+    {
+        var serviceOrders = await _serviceOrderRepository.GetAllAsync();
+        return serviceOrders.Select(so => new ServiceOrderDto(so));
+    }
+
     public async Task<ServiceOrderDto> StartDiagnosticsAsync(Guid id)
     {
         var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);

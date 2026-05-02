@@ -66,7 +66,7 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.Brand).IsRequired().HasMaxLength(80);
             entity.Property(e => e.Model).IsRequired().HasMaxLength(80);
             entity.Property(e => e.Year).IsRequired();
-            entity.OwnsOne(e => e.Plate, plate =>
+            entity.ComplexProperty(e => e.Plate, plate =>
             {
                 plate.Property(p => p.Value)
                      .HasColumnName("Plate")
