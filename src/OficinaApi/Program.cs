@@ -5,6 +5,7 @@ using Microsoft.OpenApi.Models;
 using OficinaApi.Application.EventHandlers;
 using OficinaApi.Application.Services;
 using OficinaApi.Domain.Events;
+using OficinaApi.EventHandlers;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,6 +56,7 @@ builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceManagementS
 
 // Register Domain Event Handlers
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IDomainEventHandler<ServiceOrderApprovedEvent>, ServiceOrderApprovedEventHandler>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IDomainEventHandler<PartStockAddedEvent>, PartStockAddedEventHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
