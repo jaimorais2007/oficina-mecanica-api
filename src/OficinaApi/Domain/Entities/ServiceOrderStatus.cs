@@ -7,7 +7,7 @@ public class ServiceOrderStatus
     public Guid Id { get; private set; }
     public OrderStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public ServiceOrder ServiceOrder { get; set; }
+    public ServiceOrder ServiceOrder { get; private set; }
 
     // For EF Core
     protected ServiceOrderStatus()
