@@ -105,10 +105,6 @@ public class OficinaDbContext : DbContext
             entity.HasOne(so => so.Vehicle)
                   .WithMany(v => v.ServiceOrders)
                   .HasForeignKey(so => so.VehicleId);
-            entity.HasMany(so => so.Alerts)
-                .WithOne(a => a.ServiceOrder)
-                .HasForeignKey(a => a.ServiceOrderId)
-                .OnDelete(DeleteBehavior.Cascade);
             entity.Ignore(e => e.DomainEvents);
         });
 
@@ -155,19 +151,6 @@ public class OficinaDbContext : DbContext
                   .HasForeignKey(sop => sop.PartId);
             entity.Property(sop => sop.Quantity).IsRequired();
             entity.Property(so => so.StockQuantityWasEnsured).IsRequired();
-            entity.Ignore(e => e.DomainEvents);
-        });
-
-        modelBuilder.Entity<ServiceOrderAlert>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Message).IsRequired().HasMaxLength(500);
-            entity.Property(e => e.CreatedAt).HasColumnType("timestamp without time zone").IsRequired();
-            entity.HasOne(soa => soa.ServiceOrder)
-                  .WithMany(so => so.Alerts)
-                  .HasForeignKey(soa => soa.ServiceOrderId);
-            entity.Property(soa => soa.Concluded).IsRequired();
-            entity.Property(soa => soa.PartId).IsRequired(false);
             entity.Ignore(e => e.DomainEvents);
         });
     }

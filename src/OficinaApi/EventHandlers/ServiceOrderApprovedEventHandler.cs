@@ -35,7 +35,6 @@ public class ServiceOrderApprovedEventHandler : IDomainEventHandler<ServiceOrder
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
             {
-                serviceOrder.AddAlert($"Peça com erro: {partUsed.Part.Name}. Erro: {ex.Message}", partUsed.PartId);
                 _logger.LogError(ex, "Error updating stock for part ID {PartId} used in service order ID {ServiceOrderId}.", partUsed.PartId, domainEvent.ServiceOrderId);
             }
             catch (Exception ex)

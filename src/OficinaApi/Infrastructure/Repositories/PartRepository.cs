@@ -48,6 +48,8 @@ public class PartRepository : IPartRepository
         return await _context.Parts
             .Include(p => p.ServiceOrdersParts)
             .ThenInclude(sop => sop.ServiceOrder)
+            .ThenInclude(sop => sop.StatusHistory)
+            .AsSplitQuery()
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 

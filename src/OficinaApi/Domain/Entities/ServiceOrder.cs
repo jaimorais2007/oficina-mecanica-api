@@ -15,6 +15,7 @@ public class ServiceOrder : BaseEntity
     public ICollection<ServiceOrderStatus> StatusHistory { get; private set; } = [];
     public ICollection<ServiceOrderService> ServicesUsed { get; private set; } = [];
     public ICollection<ServiceOrderPart> PartsUsed { get; private set; } = [];
+    public int MyProperty { get; set; }
     public decimal Budget { get; private set; }
 
     // For EF Core
@@ -30,11 +31,6 @@ public class ServiceOrder : BaseEntity
         ServicesUsed = servicesUserd.Select(s => new ServiceOrderService(this, s)).ToList();
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Received));
         CreatedAt = DateTime.UtcNow;
-    }
-
-    public void AddAlert(string message, Guid? partId = null)
-    {
-        Alerts.Add(new ServiceOrderAlert(this, message, partId));
     }
 
     public void CalculateBudget()
@@ -70,8 +66,9 @@ public class ServiceOrder : BaseEntity
 
     public void FinishExecution()
     {
-        if(HasPendingAlerts())
-            throw new InvalidOperationException("Não é possível finalizar a execução de uma ordem de serviço que possui alertas pendentes. Por favor, resolva os alertas antes de finalizar.");
+        var pendingStocks = GetPendingStocks();
+        if(pendingStocks.Any())
+            throw new InvalidOperationException($"Não é possível finalizar a execução de uma ordem de serviço que possui peças pendentes. Por favor verifique as peças: {string.Join(", ", pendingStocks.Select(p => p.Part.Name))}");
 
         var lastStatus = GetLastStatusHistory();
         if(lastStatus.Status != OrderStatus.Executing)
@@ -126,8 +123,8 @@ public class ServiceOrder : BaseEntity
             .First();
     }
 
-    public bool HasPendingAlerts()
+    public ICollection<ServiceOrderPart> GetPendingStocks()
     {
-        return Alerts.Any(a => !a.Concluded);
+        return PartsUsed.Where(p => !p.StockQuantityWasEnsured).ToList();
     }
 }

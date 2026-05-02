@@ -1,4 +1,5 @@
 using System;
+using OficinaApi.Domain.Enums;
 
 namespace OficinaApi.Domain.Entities;
 
@@ -32,5 +33,10 @@ public class ServiceOrderPart : BaseEntity
 
         Part.RemoveStock(Quantity);
         StockQuantityWasEnsured = true;
+    }
+
+    public bool StockQuantityShouldBeEnsured()
+    {
+        return !StockQuantityWasEnsured && ServiceOrder.GetLastStatusHistory().Status == OrderStatus.Executing;
     }
 }
