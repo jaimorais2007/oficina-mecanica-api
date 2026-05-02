@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OficinaApi.Application.Services;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -27,7 +28,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<OficinaApi.Services.TokenService>();
+builder.Services.AddScoped<TokenService>();
 
 // Configure In-Memory Database for testing purposes locally
 //builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
@@ -44,11 +45,11 @@ builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IVehicleRepository, Ofic
 builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IServiceRepository, OficinaApi.Infrastructure.Repositories.ServiceRepository>();
 
 // Register Application Services
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IPartService, OficinaApi.Application.Services.PartService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.ICustomerService, OficinaApi.Application.Services.CustomerService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IExternalQueryService, OficinaApi.Application.Services.ExternalQueryService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IVehicleService, OficinaApi.Application.Services.VehicleService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceManagementService, OficinaApi.Application.Services.ServiceManagementService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IPartService, PartService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.ICustomerService, CustomerService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IExternalQueryService, ExternalQueryService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IVehicleService, VehicleService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceManagementService, ServiceManagementService>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

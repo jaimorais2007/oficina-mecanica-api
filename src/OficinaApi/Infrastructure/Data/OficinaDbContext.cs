@@ -60,8 +60,6 @@ public class OficinaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.ClientCpf).IsRequired().HasMaxLength(14);
             entity.Property(e => e.VehiclePlate).IsRequired().HasMaxLength(10);
-            // Storing enum as string for better readability in DB
-            entity.Property(e => e.Status).HasConversion<string>().IsRequired();
             entity.HasMany(so => so.StatusHistory)
                   .WithOne(sos => sos.ServiceOrder)
                   .HasForeignKey("ServiceOrderId")
