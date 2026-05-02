@@ -10,11 +10,16 @@ public class PartStockAddedEventHandler : IDomainEventHandler<PartStockAddedEven
 {
     private readonly ILogger<PartStockAddedEventHandler> _logger;
     private readonly IPartRepository _partRepository;
+    private readonly IServiceOrderPartRepository _serviceOrderPartRepository;
 
-    public PartStockAddedEventHandler(ILogger<PartStockAddedEventHandler> logger, IPartRepository partRepository)
+    public PartStockAddedEventHandler(
+        ILogger<PartStockAddedEventHandler> logger,
+        IPartRepository partRepository,
+        IServiceOrderPartRepository serviceOrderPartRepository)
     {
         _logger = logger;
         _partRepository = partRepository;
+        _serviceOrderPartRepository = serviceOrderPartRepository;
     }
 
     public async Task HandleAsync(PartStockAddedEvent domainEvent, CancellationToken cancellationToken)
@@ -33,11 +38,13 @@ public class PartStockAddedEventHandler : IDomainEventHandler<PartStockAddedEven
             return;
         }
 
+        var ensured = new List<ServiceOrderPart>();
         foreach (ServiceOrderPart serviceOrderPart in serviceOrderPartsToEnsure)
         {
             try
             {
                 serviceOrderPart.EnsureStockQuantity();
+                ensured.Add(serviceOrderPart);
             }
             catch (Exception ex)
             {
@@ -45,7 +52,10 @@ public class PartStockAddedEventHandler : IDomainEventHandler<PartStockAddedEven
             }
         }
 
-        await _partRepository.UpdateAsync(part);
-        _logger.LogInformation("Estoque descontado automaticamente para a peça com ID {PartId}.", domainEvent.PartId);
+        if (ensured.Count > 0)
+        {
+            await _serviceOrderPartRepository.UpdateRangeAsync(ensured);
+            _logger.LogInformation("Estoque descontado automaticamente para a peça com ID {PartId}.", domainEvent.PartId);
+        }
     }
 }

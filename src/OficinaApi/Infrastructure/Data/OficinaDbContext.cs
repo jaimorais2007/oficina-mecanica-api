@@ -155,37 +155,41 @@ public class OficinaDbContext : DbContext
         });
     }
 
+    private List<BaseEntity> CollectEntitiesWithEvents()
+    {
+        return ChangeTracker.Entries<BaseEntity>()
+            .Where(e => e.Entity.DomainEvents != null && e.Entity.DomainEvents.Any())
+            .Select(e => e.Entity)
+            .ToList();
+    }
+
     public override int SaveChanges()
     {
+        var entitiesWithEvents = CollectEntitiesWithEvents();
         var result = base.SaveChanges();
-        _ = DispatchEventsAsync();
+        _ = DispatchEventsAsync(entitiesWithEvents);
         return result;
     }
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        var entitiesWithEvents = CollectEntitiesWithEvents();
         var result = await base.SaveChangesAsync(cancellationToken);
-        _ = DispatchEventsAsync(cancellationToken);
+        _ = DispatchEventsAsync(entitiesWithEvents, cancellationToken);
         return result;
     }
 
-    private async Task DispatchEventsAsync(CancellationToken cancellationToken = default)
+    private async Task DispatchEventsAsync(List<BaseEntity> entitiesWithEvents, CancellationToken cancellationToken = default)
     {
-        var entitiesWithEvents = ChangeTracker.Entries<BaseEntity>()
-            .Where(e => e.Entity.DomainEvents != null && e.Entity.DomainEvents.Any())
-            .Select(e => e.Entity)
-            .ToList();
-
         foreach (var entity in entitiesWithEvents)
         {
             var events = entity.DomainEvents.ToArray();
+            entity.ClearDomainEvents();
 
             foreach (var domainEvent in events)
             {
                 await _domainEventDispatcher.DispatchAsync(domainEvent, cancellationToken);
             }
-
-            entity.ClearDomainEvents();
         }
     }
 }

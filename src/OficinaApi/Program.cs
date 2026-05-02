@@ -3,9 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using OficinaApi.Application.EventHandlers;
+using OficinaApi.Application.Interfaces;
 using OficinaApi.Application.Services;
 using OficinaApi.Domain.Events;
+using OficinaApi.Domain.Interfaces;
 using OficinaApi.EventHandlers;
+using OficinaApi.Infrastructure.Repositories;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -41,22 +44,23 @@ builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(o
     options.UseNpgsql(connectionString));
 
 // Register Repositories
-builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IPartRepository, OficinaApi.Infrastructure.Repositories.PartRepository>();
-builder.Services.AddScoped<OficinaApi.Domain.Interfaces.ICustomerRepository, OficinaApi.Infrastructure.Repositories.CustomerRepository>();
-builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IServiceOrderRepository, OficinaApi.Infrastructure.Repositories.ServiceOrderRepository>();
-builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IVehicleRepository, OficinaApi.Infrastructure.Repositories.VehicleRepository>();
-builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IServiceRepository, OficinaApi.Infrastructure.Repositories.ServiceRepository>();
+builder.Services.AddScoped<IPartRepository, PartRepository>();
+builder.Services.AddScoped<ICustomerRepository, CustomerRepository>();
+builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
+builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
+builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
+builder.Services.AddScoped<IServiceOrderPartRepository, ServiceOrderPartRepository>();
 
 // Register Application Services
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IPartService, PartService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.ICustomerService, CustomerService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IVehicleService, VehicleService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceOrderService, ServiceOrderService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceManagementService, ServiceManagementService>();
+builder.Services.AddScoped<IPartService, PartService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+builder.Services.AddScoped<IVehicleService, VehicleService>();
+builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
+builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
 
 // Register Domain Event Handlers
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IDomainEventHandler<ServiceOrderApprovedEvent>, ServiceOrderApprovedEventHandler>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IDomainEventHandler<PartStockAddedEvent>, PartStockAddedEventHandler>();
+builder.Services.AddScoped<IDomainEventHandler<ServiceOrderApprovedEvent>, ServiceOrderApprovedEventHandler>();
+builder.Services.AddScoped<IDomainEventHandler<PartStockAddedEvent>, PartStockAddedEventHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

@@ -21,7 +21,7 @@ public class PartService : IPartService
     public async Task AddStockAsync(Guid id, int quantity)
     {
         var part = await _partRepository.GetByIdAsync(id);
-        if (part == null) throw new ArgumentException("Peça não encontrada.");
+        if (part == null) throw new KeyNotFoundException($"Peça com ID '{id}' não encontrada.");
 
         part.AddStock(quantity);
         await _partRepository.UpdateAsync(part);
