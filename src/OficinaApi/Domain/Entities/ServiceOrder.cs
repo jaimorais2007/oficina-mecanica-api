@@ -65,13 +65,14 @@ public class ServiceOrder : BaseEntity
 
     public void FinishExecution()
     {
+        var lastStatus = GetLastStatusHistory();
+        if(lastStatus.Status != OrderStatus.Executing)
+            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Execução' para finalizar a execução.");
+
         var pendingStocks = GetPendingStocks();
         if(pendingStocks.Any())
             throw new InvalidOperationException($"Não é possível finalizar a execução de uma ordem de serviço que possui peças pendentes. Por favor verifique as peças: {string.Join(", ", pendingStocks.Select(p => p.Part.Name))}");
 
-        var lastStatus = GetLastStatusHistory();
-        if(lastStatus.Status != OrderStatus.Executing)
-            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Execução' para finalizar a execução.");
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Finished));
     }
 
