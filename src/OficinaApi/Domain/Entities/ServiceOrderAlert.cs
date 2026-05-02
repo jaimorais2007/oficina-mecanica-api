@@ -2,7 +2,7 @@ using System;
 
 namespace OficinaApi.Domain.Entities;
 
-public class ServiceOrderAlerts : BaseEntity
+public class ServiceOrderAlert : BaseEntity
 {
     public string Message { get; private set; } = string.Empty;
     public bool Concluded { get; private set; }
@@ -11,9 +11,9 @@ public class ServiceOrderAlerts : BaseEntity
     public Guid ServiceOrderId { get; private set; }
 
     // For EF Core
-    protected ServiceOrderAlerts() { }
+    protected ServiceOrderAlert() { }
 
-    public ServiceOrderAlerts(ServiceOrder serviceOrder, string message)
+    public ServiceOrderAlert(ServiceOrder serviceOrder, string message)
     {
         Id = Guid.NewGuid();
         Message = message;

@@ -2,7 +2,7 @@ using System;
 
 namespace OficinaApi.Domain.Entities;
 
-public class ServiceOrderServices : BaseEntity
+public class ServiceOrderService : BaseEntity
 {
     public Guid ServiceOrderId { get; private set; }
     public Guid ServiceId { get; private set; }
@@ -10,9 +10,9 @@ public class ServiceOrderServices : BaseEntity
     public Service Service { get; private set; }
 
     // For EF Core
-    protected ServiceOrderServices() { }
+    protected ServiceOrderService() { }
 
-    public ServiceOrderServices(ServiceOrder serviceOrder, Service service)
+    public ServiceOrderService(ServiceOrder serviceOrder, Service service)
     {
         Id = Guid.NewGuid();
         ServiceOrderId = serviceOrder.Id;
