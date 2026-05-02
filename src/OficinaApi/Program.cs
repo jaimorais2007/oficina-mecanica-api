@@ -37,11 +37,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 
 // Configure In-Memory Database for testing purposes locally
-builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
-    options.UseInMemoryDatabase("OficinaDbLocal"));
-
 //builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
-//    options.UseNpgsql(connectionString));
+//    options.UseInMemoryDatabase("OficinaDbLocal"));
+
+builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 // Register Repositories
 builder.Services.AddScoped<IPartRepository, PartRepository>();

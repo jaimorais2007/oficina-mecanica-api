@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using OficinaApi.Infrastructure.Data;
@@ -11,9 +12,11 @@ using OficinaApi.Infrastructure.Data;
 namespace OficinaApi.Migrations
 {
     [DbContext(typeof(OficinaDbContext))]
-    partial class OficinaDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260502213717_service-order")]
+    partial class serviceorder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
