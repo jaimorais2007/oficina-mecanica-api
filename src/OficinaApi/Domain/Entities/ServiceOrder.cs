@@ -8,7 +8,6 @@ public class ServiceOrder
     public Guid Id { get; private set; }
     public string ClientCpf { get; private set; }
     public string VehiclePlate { get; private set; }
-    public OrderStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime? StartedExecutionAt { get; private set; }
     public DateTime? FinishedExecutionAt { get; private set; }
@@ -26,13 +25,28 @@ public class ServiceOrder
         Id = Guid.NewGuid();
         ClientCpf = clientCpf;
         VehiclePlate = vehiclePlate;
-        Status = OrderStatus.Received;
+        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Received));
         CreatedAt = DateTime.UtcNow;
+    }
+
+    public void FinishAnalysis()
+    {
+        UpdateStatus(OrderStatus.WaitingApproval);
+    }
+
+    public void ApproveServiceOrder()
+    {
+        UpdateStatus(OrderStatus.Executing);
+    }
+
+    public void FinishServiceOrder()
+    {
+        UpdateStatus(OrderStatus.Finished);
     }
 
     public void UpdateStatus(OrderStatus newStatus)
     {
-        // Record times for metrics regarding execution length
+        // Record times for metrics regarding execution length 
         if (newStatus == OrderStatus.Executing && !StartedExecutionAt.HasValue)
         {
             StartedExecutionAt = DateTime.UtcNow;
@@ -42,7 +56,7 @@ public class ServiceOrder
             FinishedExecutionAt = DateTime.UtcNow;
         }
 
-        Status = newStatus;
+        StatusHistory.Add(new ServiceOrderStatus(this, newStatus));
     }
 
     // A helper method for Persona 3 metric: Execution time
