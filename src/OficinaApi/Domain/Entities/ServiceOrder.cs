@@ -21,13 +21,14 @@ public class ServiceOrder
     // For EF Core
     protected ServiceOrder() { }
 
-    public ServiceOrder(Customer customer, Vehicle vehicle)
+    public ServiceOrder(Customer customer, Vehicle vehicle, IEnumerable<Service> servicesUserd)
     {
         Id = Guid.NewGuid();
         Customer = customer;
         CustomerId = customer.Id;
         Vehicle = vehicle;
         VehicleId = vehicle.Id;
+        ServicesUsed = servicesUserd.Select(s => new ServiceOrderServices(this, s)).ToList();
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Received));
         CreatedAt = DateTime.UtcNow;
     }

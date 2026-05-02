@@ -46,13 +46,12 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         if (existingCustomer is null)
             throw new ArgumentException("Cliente não encontrado.");
 
-        var serviceOrder = new ServiceOrder(existingCustomer, existingVehicle);
-        await _serviceOrderRepository.AddAsync(serviceOrder);
-
-
         var servicesFounds = await _serviceRepository.GetByIdListAsync(dto.ServicesUsed);
         if(servicesFounds.Count() != dto.ServicesUsed.Count())
             throw new ArgumentException("Algum dos serviços informados não foi encontrado.");
+
+        var serviceOrder = new ServiceOrder(existingCustomer, existingVehicle, servicesFounds);
+        await _serviceOrderRepository.AddAsync(serviceOrder);
         
         return new ServiceOrderDto(serviceOrder);
     }
@@ -146,5 +145,13 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         await _serviceOrderRepository.UpdateAsync(serviceOrder);
 
         return new ServiceOrderDto(serviceOrder);
+    }
+
+    public async Task<IEnumerable<ServiceOrderAlertDto>> GetServiceOrderAlertsAsync(Guid id)
+    {
+        var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+        if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
+
+        return serviceOrder.Alerts.Select(a => new ServiceOrderAlertDto(a.Message, a.Concluded, a.CreatedAt));
     }
 }

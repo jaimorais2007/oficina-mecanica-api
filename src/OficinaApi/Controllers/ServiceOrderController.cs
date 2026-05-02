@@ -99,4 +99,13 @@ public class ServiceOrdersController : ControllerBase
         var result = await _serviceOrderService.DeliverServiceOrderAsync(id);
         return Ok(result);
     }
+
+    [SwaggerOperation(Summary = "Lista os alertas da ordem de serviço",
+                      Description = "Retorna uma lista de alertas relacionados a uma ordem de serviço, peças em falta ou problemas técnicos.")]
+    [HttpGet("{id}/alerts")]
+    public async Task<IActionResult> GetServiceOrderAlerts(Guid id)
+    {
+        var result = await _serviceOrderService.GetServiceOrderAlertsAsync(id);
+        return Ok(result);
+    }
 }
