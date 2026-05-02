@@ -49,8 +49,8 @@ builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IServiceRepository, Ofic
 // Register Application Services
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IPartService, PartService>();
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.ICustomerService, CustomerService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IExternalQueryService, ExternalQueryService>();
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IVehicleService, VehicleService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceOrderService, ServiceOrderService>();
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceManagementService, ServiceManagementService>();
 
 // Register Domain Event Handlers
