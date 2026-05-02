@@ -1,10 +1,14 @@
-﻿public class Service
+﻿using OficinaApi.Domain.Entities;
+
+public class Service
 {
     public Guid Id { get; private set; }
     public string Name { get; private set; }
     public string Description { get; private set; }
     public decimal DefaultPrice { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public ICollection<ServiceOrderServices> ServiceOrders { get; set; } = [];
+
     protected Service() { }
 
     public Service(string name, string description, decimal defaultPrice)

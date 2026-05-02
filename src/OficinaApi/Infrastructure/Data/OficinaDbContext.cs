@@ -65,6 +65,14 @@ public class OficinaDbContext : DbContext
                   .WithOne(sos => sos.ServiceOrder)
                   .HasForeignKey("ServiceOrderId")
                   .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasMany(so => so.ServicesUsed)
+                .WithOne(s => s.ServiceOrder)
+                .HasForeignKey(s => s.ServiceOrderId);
+
+            entity.HasMany(so => so.PartsUsed)
+                .WithOne(p => p.ServiceOrder)
+                .HasForeignKey(p => p.ServiceOrderId);
         });
 
         modelBuilder.Entity<Service>(entity =>
@@ -82,8 +90,30 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.Status).HasConversion<string>().IsRequired();
             entity.HasOne(sos => sos.ServiceOrder)
                   .WithMany(so => so.StatusHistory)
-                  .HasForeignKey("ServiceOrderId")
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .HasForeignKey(sos => sos.ServiceOrderId);
+        });
+
+        modelBuilder.Entity<ServiceOrderServices>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(sos => sos.ServiceOrder)
+                  .WithMany(so => so.ServicesUsed)
+                  .HasForeignKey(sos => sos.ServiceOrderId);
+            entity.HasOne(sos => sos.Service)
+                  .WithMany(s => s.ServiceOrders)
+                  .HasForeignKey(sos => sos.ServiceId);
+        });
+
+        modelBuilder.Entity<ServiceOrderParts>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasOne(sop => sop.ServiceOrder)
+                  .WithMany(so => so.PartsUsed)
+                  .HasForeignKey(sop => sop.ServiceOrderId);
+            entity.HasOne(sop => sop.Part)
+                  .WithMany(p => p.ServiceOrders)
+                  .HasForeignKey(sop => sop.PartId);
+            entity.Property(sop => sop.Quantity).IsRequired();
         });
     }
 }

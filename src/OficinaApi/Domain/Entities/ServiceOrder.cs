@@ -12,6 +12,8 @@ public class ServiceOrder
     public DateTime? StartedExecutionAt { get; private set; }
     public DateTime? FinishedExecutionAt { get; private set; }
     public ICollection<ServiceOrderStatus> StatusHistory { get; set; } = [];
+    public ICollection<ServiceOrderServices> ServicesUsed { get; set; } = [];
+    public ICollection<ServiceOrderParts> PartsUsed { get; set; } = [];
     public decimal Budget { get; private set; }
 
     // For EF Core
@@ -35,41 +37,55 @@ public class ServiceOrder
         Budget = servicesUsed.Sum(s => s.DefaultPrice) + partsUsed.Sum(p => p.Price);
     }
 
+    public void StartDiagnostics()
+    {
+        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.InDiagnostics));
+    }
+
     public void FinishAnalysis()
     {
-        UpdateStatus(OrderStatus.WaitingApproval);
+        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.WaitingApproval));
     }
 
     public void ApproveServiceOrder()
     {
-        UpdateStatus(OrderStatus.Executing);
+        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Executing));
     }
 
     public void FinishServiceOrder()
     {
-        UpdateStatus(OrderStatus.Finished);
+        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Finished));
     }
 
-    public void UpdateStatus(OrderStatus newStatus)
-    {
-        // Record times for metrics regarding execution length 
-        if (newStatus == OrderStatus.Executing && !StartedExecutionAt.HasValue)
-        {
-            StartedExecutionAt = DateTime.UtcNow;
-        }
-        else if (newStatus == OrderStatus.Finished && !FinishedExecutionAt.HasValue)
-        {
-            FinishedExecutionAt = DateTime.UtcNow;
-        }
-
-        StatusHistory.Add(new ServiceOrderStatus(this, newStatus));
+    public DateTime GetStartedExecutionAt(){
+        var startedStatus = StatusHistory.FirstOrDefault(s => s.Status == OrderStatus.Received);
+        return startedStatus?.CreatedAt ?? DateTime.MinValue;
     }
 
-    // A helper method for Persona 3 metric: Execution time
-    public TimeSpan? GetExecutionTime()
+    public DateTime GetFinishedExecutionAt(){
+        var finishedStatus = StatusHistory.FirstOrDefault(s => s.Status == OrderStatus.Finished);
+        return finishedStatus?.CreatedAt ?? DateTime.MinValue;
+    }
+
+    public void AddPart(Part part, int quantity)
     {
-        if (StartedExecutionAt.HasValue && FinishedExecutionAt.HasValue)
-            return FinishedExecutionAt.Value - StartedExecutionAt.Value;
-        return null;
+        if (!HasPermissionToUpdatePartsAndServices())
+            throw new InvalidOperationException("Não é permitido adicionar peças neste status da ordem de serviço.");
+
+        PartsUsed.Add(new ServiceOrderParts(this, part, quantity));
+    }
+
+    public void AddService(Service service)
+    {
+        if (!HasPermissionToUpdatePartsAndServices())
+            throw new InvalidOperationException("Não é permitido adicionar serviços neste status da ordem de serviço.");
+            
+        ServicesUsed.Add(new ServiceOrderServices(this, service));
+    }
+
+    private bool HasPermissionToUpdatePartsAndServices()
+    {
+        var currentStatus = StatusHistory.LastOrDefault()?.Status;
+        return currentStatus == OrderStatus.Received || currentStatus == OrderStatus.InDiagnostics || currentStatus == OrderStatus.WaitingApproval;
     }
 }

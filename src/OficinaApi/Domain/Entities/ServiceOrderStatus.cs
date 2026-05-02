@@ -8,6 +8,8 @@ public class ServiceOrderStatus
     public OrderStatus Status { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public ServiceOrder ServiceOrder { get; private set; }
+    public Guid ServiceOrderId { get; private set; }
+
 
     // For EF Core
     protected ServiceOrderStatus()
@@ -19,6 +21,7 @@ public class ServiceOrderStatus
     {
         Id = Guid.NewGuid();
         ServiceOrder = serviceOrder;
+        ServiceOrderId = serviceOrder.Id;
         Status = status;
         CreatedAt = DateTime.UtcNow;
     }
