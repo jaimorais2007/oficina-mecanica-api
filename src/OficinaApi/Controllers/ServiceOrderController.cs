@@ -42,8 +42,19 @@ public class ServiceOrdersController : ControllerBase
     [HttpPost("{id}/startAnalysis")]
     public async Task<IActionResult> MoveToAnalysis(Guid id)
     {
-        var result = await _serviceOrderService.StartDiagnosticsAsync(id);
-        return Ok(result);
+        try
+        {
+            var result = await _serviceOrderService.StartDiagnosticsAsync(id);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return UnprocessableEntity(new { message = ex.Message });
+        }
     }
 
     [SwaggerOperation(Summary = "Move uma ordem de serviço para execução",

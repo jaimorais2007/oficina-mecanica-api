@@ -12,6 +12,7 @@ public class ServiceOrderDto
     public string VehiclePlate { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public decimal Budget { get; set; }
+    public string LastStatus { get; set; } = string.Empty;
 
     public ServiceOrderDto(ServiceOrder serviceOrder)
     {
@@ -22,6 +23,7 @@ public class ServiceOrderDto
         VehiclePlate = serviceOrder.Vehicle.Plate.Value;
         CreatedAt = serviceOrder.CreatedAt;
         Budget = serviceOrder.Budget;
+        LastStatus = serviceOrder.GetLastStatusHistory().Status.ToString();
     }
 }
 
