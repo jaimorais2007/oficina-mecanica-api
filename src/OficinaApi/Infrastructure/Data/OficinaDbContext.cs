@@ -179,12 +179,13 @@ public class OficinaDbContext : DbContext
         foreach (var entity in entitiesWithEvents)
         {
             var events = entity.DomainEvents.ToArray();
-            entity.ClearDomainEvents();
 
             foreach (var domainEvent in events)
             {
                 await _domainEventDispatcher.DispatchAsync(domainEvent, cancellationToken);
             }
+
+            entity.ClearDomainEvents();
         }
     }
 }

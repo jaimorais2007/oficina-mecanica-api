@@ -26,7 +26,12 @@ public class PartStockAddedEventHandler : IDomainEventHandler<PartStockAddedEven
             return;
         }
 
-        var serviceOrderPartsToEnsure = part.ServiceOrdersParts.Where(sop => sop.StockQuantityShouldBeEnsured());
+        var serviceOrderPartsToEnsure = part.ServiceOrdersParts.Where(sop => sop.StockQuantityShouldBeEnsured()).ToList();
+        if (!serviceOrderPartsToEnsure.Any())
+        {
+            _logger.LogDebug("Nenhuma ordem de serviço pendente encontrada para a peça com ID {PartId}.", domainEvent.PartId);
+            return;
+        }
 
         foreach (ServiceOrderPart serviceOrderPart in serviceOrderPartsToEnsure)
         {
@@ -40,6 +45,7 @@ public class PartStockAddedEventHandler : IDomainEventHandler<PartStockAddedEven
             }
         }
 
+        await _partRepository.UpdateAsync(part);
         _logger.LogInformation("Estoque descontado automaticamente para a peça com ID {PartId}.", domainEvent.PartId);
     }
 }
