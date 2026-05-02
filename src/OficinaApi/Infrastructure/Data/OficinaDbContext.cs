@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Entities;
 
 namespace OficinaApi.Infrastructure.Data;
@@ -15,9 +16,16 @@ public class OficinaDbContext : DbContext
     public DbSet<ServiceOrderServices> ServiceOrderServices { get; set; }
     public DbSet<ServiceOrderParts> ServiceOrderParts { get; set; }
     public DbSet<ServiceOrderAlerts> ServiceOrderAlerts { get; set; }
+    private readonly IDomainEventDispatcher _domainEventDispatcher;
 
 
-    public OficinaDbContext(DbContextOptions<OficinaDbContext> options) : base(options) { }
+    public OficinaDbContext(
+        DbContextOptions<OficinaDbContext> options,
+        IDomainEventDispatcher domainEventDispatcher
+        ) : base(options)
+    {
+        _domainEventDispatcher = domainEventDispatcher;
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -159,5 +167,38 @@ public class OficinaDbContext : DbContext
                   .HasForeignKey(soa => soa.ServiceOrderId);
             entity.Ignore(e => e.DomainEvents);
         });
+    }
+
+    public override int SaveChanges()
+    {
+        var result = base.SaveChanges();
+        _ = DispatchEventsAsync();
+        return result;
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var result = await base.SaveChangesAsync(cancellationToken);
+        _ = DispatchEventsAsync(cancellationToken);
+        return result;
+    }
+
+    private async Task DispatchEventsAsync(CancellationToken cancellationToken = default)
+    {
+        var entitiesWithEvents = ChangeTracker.Entries<BaseEntity>()
+            .Where(e => e.Entity.DomainEvents != null && e.Entity.DomainEvents.Any())
+            .Select(e => e.Entity)
+            .ToList();
+
+        foreach (var entity in entitiesWithEvents)
+        {
+            var events = entity.DomainEvents.ToArray();
+            entity.ClearDomainEvents();
+
+            foreach (var domainEvent in events)
+            {
+                await _domainEventDispatcher.DispatchAsync(domainEvent, cancellationToken);
+            }
+        }
     }
 }
