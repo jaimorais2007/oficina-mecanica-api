@@ -73,7 +73,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetAllAsync_ShouldReturnEmptyList_WhenNoDatabaseRecords()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var sut = new ServiceOrderRepository(context);
 
         // Act
@@ -87,7 +88,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetAllAsync_ShouldReturnAllServiceOrders_WhenRecordsExist()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -110,7 +112,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetByIdAsync_ShouldReturnNull_WhenServiceOrderDoesNotExist()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var sut = new ServiceOrderRepository(context);
 
         // Act
@@ -124,7 +127,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetByIdAsync_ShouldReturnServiceOrderWithRelations_WhenItExists()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -151,7 +155,8 @@ public class ServiceOrderRepositoryTests
     public async Task AddAsync_ShouldPersistServiceOrder_InDatabase()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -172,7 +177,8 @@ public class ServiceOrderRepositoryTests
     public async Task AddAsync_ShouldPersistServiceOrderWithReceivedStatus()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -195,7 +201,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetByIdWithPartsDetailsAsync_ShouldReturnNull_WhenServiceOrderDoesNotExist()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var sut = new ServiceOrderRepository(context);
 
         // Act
@@ -209,7 +216,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetByIdWithPartsDetailsAsync_ShouldReturnServiceOrderWithPartsPopulated_WhenItExists()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -240,7 +248,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetByIdForUpdateAsync_ShouldReturnNull_WhenServiceOrderDoesNotExist()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var sut = new ServiceOrderRepository(context);
 
         // Act
@@ -254,7 +263,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetByIdForUpdateAsync_ShouldReturnServiceOrderWithAllRelations_WhenItExists()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -281,7 +291,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetServiceOrderByIdToGetPeddingStocksAsync_ShouldReturnNull_WhenServiceOrderDoesNotExist()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var sut = new ServiceOrderRepository(context);
 
         // Act
@@ -295,7 +306,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetServiceOrderByIdToGetPeddingStocksAsync_ShouldReturnServiceOrderWithParts_WhenItExists()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -323,7 +335,8 @@ public class ServiceOrderRepositoryTests
     public async Task SaveChangesAsync_ShouldPersistEntityChanges_WhenStatusIsUpdated()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -351,7 +364,8 @@ public class ServiceOrderRepositoryTests
     public async Task SaveChangesAsync_ShouldPersistAddedPart_WhenPartIsAttachedToOrder()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -382,7 +396,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetAllAsync_ShouldReturnServiceOrdersWithServicesAndPartsLoaded_WhenTheyExist()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -412,7 +427,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetByIdWithPartsDetailsAsync_ShouldReturnCorrectPartQuantity_WhenPartIsAdded()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -439,7 +455,8 @@ public class ServiceOrderRepositoryTests
     public async Task GetByIdForUpdateAsync_ShouldReturnServiceOrderWithPartsLoaded_WhenPartsExist()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
@@ -468,7 +485,8 @@ public class ServiceOrderRepositoryTests
     public async Task AddAsync_ShouldPersistServicesUsed_WhenOrderHasServices()
     {
         // Arrange
-        var (context, connection) = CreateDbContext();
+        using var db = CreateDbContext();
+        var (context, connection) = db;
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var service = CreateService();
