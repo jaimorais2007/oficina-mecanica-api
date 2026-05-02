@@ -48,6 +48,20 @@ public class ServiceOrderRepository : IServiceOrderRepository
             .FirstOrDefaultAsync(so => so.Id == id);
     }
 
+    public async Task<ServiceOrder?> GetByIdForUpdateAsync(Guid id)
+    {
+        return await _context.ServiceOrders
+            .Include(so => so.StatusHistory)
+            .Include(so => so.PartsUsed)
+                .ThenInclude(sop => sop.Part)
+            .Include(so => so.ServicesUsed)
+                .ThenInclude(sos => sos.Service)
+            .Include(so => so.Customer)
+            .Include(so => so.Vehicle)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(so => so.Id == id);
+    }
+
     public async Task UpdateAsync(ServiceOrder order)
     {
         _context.ServiceOrders.Update(order);

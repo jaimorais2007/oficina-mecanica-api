@@ -86,6 +86,9 @@ public class ServiceOrder : BaseEntity
 
     public void AddPart(Part part, int quantity)
     {
+        if (quantity <= 0)
+            throw new ArgumentException("A quantidade deve ser maior que zero.");
+
         if (!HasPermissionToUpdatePartsAndServices())
             throw new InvalidOperationException("Não é permitido adicionar peças neste status da ordem de serviço.");
 
@@ -102,7 +105,7 @@ public class ServiceOrder : BaseEntity
 
     private bool HasPermissionToUpdatePartsAndServices()
     {
-        var currentStatus = StatusHistory.LastOrDefault()?.Status;
+        var currentStatus = StatusHistory.OrderByDescending(s => s.CreatedAt).FirstOrDefault()?.Status;
         return currentStatus == OrderStatus.Received || currentStatus == OrderStatus.InDiagnostics || currentStatus == OrderStatus.WaitingApproval;
     }
 

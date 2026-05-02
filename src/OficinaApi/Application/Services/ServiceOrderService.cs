@@ -77,7 +77,9 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
 
     public async Task<ServiceOrderDto> AddPartToServiceOrderAsync(Guid id, AddPartDto dto)
     {
-        ServiceOrder? serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+        if (dto.Quantity <= 0) throw new ArgumentException("A quantidade deve ser maior que zero.");
+
+        ServiceOrder? serviceOrder = await _serviceOrderRepository.GetByIdForUpdateAsync(id);
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
         Part? part = await _partRepository.GetByIdAsync(dto.PartId);
