@@ -37,11 +37,11 @@ builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 
 // Configure In-Memory Database for testing purposes locally
-//builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
-//    options.UseInMemoryDatabase("OficinaDbLocal"));
-
 builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
-    options.UseNpgsql(connectionString));
+    options.UseInMemoryDatabase("OficinaDbLocal"));
+
+//builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
+//    options.UseNpgsql(connectionString));
 
 // Register Repositories
 builder.Services.AddScoped<IPartRepository, PartRepository>();
@@ -57,6 +57,9 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
 builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
+
+// Register Domain Event Dispatcher
+builder.Services.AddScoped<IDomainEventDispatcher, OficinaApi.Infrastructure.Data.DomainEventDispatcher>();
 
 // Register Domain Event Handlers
 builder.Services.AddScoped<IDomainEventHandler<ServiceOrderApprovedEvent>, ServiceOrderApprovedEventHandler>();
