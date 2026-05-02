@@ -31,11 +31,38 @@ public class ServiceOrdersController : ControllerBase
     } 
 
     [SwaggerOperation(Summary = "Cria  uma nova ordem de serviço",
-                      Description = "Abre uma nova OS no sistema. É possível informar o veículo, os serviços e as peças a utilizar. O estoque das peças é debitado automaticamente na criação.")]
+                      Description = "Abre uma nova OS no sistema. É possível informar o veículo, os serviços a utilizar.")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateServiceOrderDto dto)
     {
         var result = await _serviceOrderService.CreateServiceOrderAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+    }
+
+    [SwaggerOperation(Summary = "Move uma ordem de serviço para analise",
+                      Description = "Move uma ordem de serviço para o status de análise técnica.")]
+    [HttpPost("{id}/analysis")]
+    public async Task<IActionResult> MoveToAnalysis(Guid id)
+    {
+        var result = await _serviceOrderService.StartDiagnosticsAsync(id);
+        return Ok(result);
+    }
+
+    [SwaggerOperation(Summary = "Adiciona uma peça a ordem de serviço",
+                      Description = "Adiciona uma peça a uma ordem de serviço existente.")]
+    [HttpPost("{id}/parts")]
+    public async Task<IActionResult> AddPartToServiceOrder(Guid id, [FromBody] AddPartDto dto)
+    {
+        var result = await _serviceOrderService.AddPartToServiceOrderAsync(id, dto);
+        return Ok(result);
+    }
+
+    [SwaggerOperation(Summary = "Adiciona um serviço a ordem de serviço",
+                      Description = "Adiciona um serviço a uma ordem de serviço existente.")]
+    [HttpPost("{id}/services")]
+    public async Task<IActionResult> AddServiceToServiceOrder(Guid id, [FromBody] AddServiceDto dto)
+    {
+        var result = await _serviceOrderService.AddServiceToServiceOrderAsync(id, dto);
+        return Ok(result);
     }
 }

@@ -32,4 +32,9 @@ namespace OficinaApi.Application.DTOs
         public string Description { get; set; } = string.Empty;
         public decimal DefaultPrice { get; set; }
     }
+
+    public class AddServiceDto
+    {
+        public Guid ServiceId { get; set; }
+    }
 }

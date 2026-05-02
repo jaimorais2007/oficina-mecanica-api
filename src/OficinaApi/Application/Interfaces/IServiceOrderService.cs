@@ -9,4 +9,7 @@ public interface IServiceOrderService
 {
     Task<ServiceOrderDto> CreateServiceOrderAsync(CreateServiceOrderDto dto);
     Task<ServiceOrderDto?> GetServiceOrderByIdAsync(Guid id);
+    Task<ServiceOrderDto> StartDiagnosticsAsync(Guid id);
+    Task<ServiceOrderDto> AddPartToServiceOrderAsync(Guid id, AddPartDto dto);
+    Task<ServiceOrderDto> AddServiceToServiceOrderAsync(Guid id, AddServiceDto dto);
 }
