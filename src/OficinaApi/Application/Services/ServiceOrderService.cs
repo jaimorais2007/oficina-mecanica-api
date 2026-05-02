@@ -155,4 +155,9 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         return serviceOrder.GetPendingStocks().Select(a => new ServiceOrderPeddingStockDto(a.PartId, a.Part.Name, a.Quantity));
 
     }
+
+    public async Task<double> GetAverageDurationInDaysAsync()
+    {
+        return await _serviceOrderRepository.GetAverageDurationInDaysAsync();
+    }
 }

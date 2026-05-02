@@ -84,16 +84,6 @@ public class ServiceOrder : BaseEntity
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Delivered));
     }
 
-    public DateTime GetStartedExecutionAt(){
-        var startedStatus = StatusHistory.FirstOrDefault(s => s.Status == OrderStatus.Received);
-        return startedStatus?.CreatedAt ?? DateTime.MinValue;
-    }
-
-    public DateTime GetFinishedExecutionAt(){
-        var finishedStatus = StatusHistory.FirstOrDefault(s => s.Status == OrderStatus.Finished);
-        return finishedStatus?.CreatedAt ?? DateTime.MinValue;
-    }
-
     public void AddPart(Part part, int quantity)
     {
         if (!HasPermissionToUpdatePartsAndServices())

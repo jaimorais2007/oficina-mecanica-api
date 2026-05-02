@@ -109,5 +109,12 @@ public class ServiceOrdersController : ControllerBase
         return Ok(result);
     }
 
-
+    [SwaggerOperation(Summary = "Relatorio de duração média de um serviço",
+                        Description = "Retorna a duração média de um tipo de serviço com base nas ordens de serviço finalizadas.")]
+    [HttpGet("{id}/average-duration")]
+    public async Task<IActionResult> GetAverageDuration(Guid id)
+    {
+        var result = await _serviceOrderService.GetAverageDurationInDaysAsync();
+        return Ok(new { AverageDurationInDays = result });
+    }
 }

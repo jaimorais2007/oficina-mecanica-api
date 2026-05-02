@@ -11,9 +11,7 @@ public class ServiceOrderDto
     public string CustomerDocument { get; set; } = string.Empty;
     public string VehiclePlate { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
-    public DateTime? StartedExecutionAt { get; set; }
     public decimal Budget { get; set; }
-    public DateTime? FinishedExecutionAt { get; set; }
 
     public ServiceOrderDto(ServiceOrder serviceOrder)
     {

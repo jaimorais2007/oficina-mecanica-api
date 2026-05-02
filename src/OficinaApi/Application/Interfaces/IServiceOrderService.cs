@@ -17,4 +17,6 @@ public interface IServiceOrderService
     Task<ServiceOrderDto> FinishExecutionAsync(Guid id);
     Task<ServiceOrderDto> DeliverServiceOrderAsync(Guid id);
     Task<IEnumerable<ServiceOrderPeddingStockDto>> GetServiceOrderPeddingStocksAsync(Guid id);
+    Task<double> GetAverageDurationInDaysAsync();
+
 }
