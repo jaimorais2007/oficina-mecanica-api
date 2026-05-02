@@ -13,9 +13,9 @@ public class OficinaDbContext : DbContext
     public DbSet<Service> Services { get; set; }
     public DbSet<ServiceOrderStatus> ServiceOrderStatuses { get; set; }
     public DbSet<ServiceOrder> ServiceOrders { get; set; }
-    public DbSet<ServiceOrderServices> ServiceOrderServices { get; set; }
-    public DbSet<ServiceOrderParts> ServiceOrderParts { get; set; }
-    public DbSet<ServiceOrderAlerts> ServiceOrderAlerts { get; set; }
+    public DbSet<ServiceOrderService> ServiceOrderServices { get; set; }
+    public DbSet<ServiceOrderPart> ServiceOrderParts { get; set; }
+    public DbSet<ServiceOrderAlert> ServiceOrderAlerts { get; set; }
     private readonly IDomainEventDispatcher _domainEventDispatcher;
 
 
@@ -132,7 +132,7 @@ public class OficinaDbContext : DbContext
             entity.Ignore(e => e.DomainEvents);
         });
 
-        modelBuilder.Entity<ServiceOrderServices>(entity =>
+        modelBuilder.Entity<ServiceOrderService>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasOne(sos => sos.ServiceOrder)
@@ -144,7 +144,7 @@ public class OficinaDbContext : DbContext
             entity.Ignore(e => e.DomainEvents);
         });
 
-        modelBuilder.Entity<ServiceOrderParts>(entity =>
+        modelBuilder.Entity<ServiceOrderPart>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.HasOne(sop => sop.ServiceOrder)
@@ -157,7 +157,7 @@ public class OficinaDbContext : DbContext
             entity.Ignore(e => e.DomainEvents);
         });
 
-        modelBuilder.Entity<ServiceOrderAlerts>(entity =>
+        modelBuilder.Entity<ServiceOrderAlert>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Message).IsRequired().HasMaxLength(500);
