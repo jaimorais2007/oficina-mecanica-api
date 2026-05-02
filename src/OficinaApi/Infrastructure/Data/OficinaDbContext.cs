@@ -154,6 +154,7 @@ public class OficinaDbContext : DbContext
                   .WithMany(p => p.ServiceOrders)
                   .HasForeignKey(sop => sop.PartId);
             entity.Property(sop => sop.Quantity).IsRequired();
+            entity.Property(so => so.StockQuantityWasEnsured).IsRequired();
             entity.Ignore(e => e.DomainEvents);
         });
 
