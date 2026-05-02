@@ -10,7 +10,7 @@ public class ServiceOrderPart : BaseEntity
     public Part Part { get; private set; }
     public Guid PartId { get; private set; }
     public int Quantity { get; private set; }
-    public bool StockQuantityWasEnsured { get; set; }
+    public bool StockQuantityWasEnsured { get; private set; }
 
     // For EF Core
     protected ServiceOrderPart() { }
