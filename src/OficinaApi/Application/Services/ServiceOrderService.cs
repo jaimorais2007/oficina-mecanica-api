@@ -147,11 +147,12 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         return new ServiceOrderDto(serviceOrder);
     }
 
-    public async Task<IEnumerable<ServiceOrderAlertDto>> GetServiceOrderAlertsAsync(Guid id)
+    public async Task<IEnumerable<ServiceOrderPeddingStockDto>> GetServiceOrderPeddingStocksAsync(Guid id)
     {
-        var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+        var serviceOrder = await _serviceOrderRepository.GetServiceOrderByIdToGetPeddingStocksAsync(id);
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
-        return serviceOrder.Alerts.Select(a => new ServiceOrderAlertDto(a.Message, a.Concluded, a.CreatedAt));
+        return serviceOrder.GetPendingStocks().Select(a => new ServiceOrderPeddingStockDto(a.PartId, a.Part.Name, a.Quantity));
+
     }
 }

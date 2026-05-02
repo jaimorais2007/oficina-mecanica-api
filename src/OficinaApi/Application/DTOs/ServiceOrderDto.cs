@@ -33,3 +33,5 @@ public class CreateServiceOrderDto
     public Guid VehicleId { get; set; }
     public List<Guid> ServicesUsed { get; set; } = [];
 }
+
+public record ServiceOrderPeddingStockDto(Guid PartId, string PartName, int Quantity);

@@ -16,5 +16,5 @@ public interface IServiceOrderService
     Task<ServiceOrderDto> ApproveServiceOrderAsync(Guid id);
     Task<ServiceOrderDto> FinishExecutionAsync(Guid id);
     Task<ServiceOrderDto> DeliverServiceOrderAsync(Guid id);
-    Task<IEnumerable<ServiceOrderAlertDto>> GetServiceOrderAlertsAsync(Guid id);
+    Task<IEnumerable<ServiceOrderPeddingStockDto>> GetServiceOrderPeddingStocksAsync(Guid id);
 }

@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using OficinaApi.Domain.Entities;
-using OficinaApi.Domain.Enums;
 using OficinaApi.Domain.Interfaces;
 using OficinaApi.Infrastructure.Data;
 
@@ -25,15 +20,18 @@ public class ServiceOrderRepository : IServiceOrderRepository
         await _context.SaveChangesAsync();
     }
 
-    public async Task<IEnumerable<ServiceOrder>> GetAllFinishedOrdersAsync()
-    {
-        return await _context.ServiceOrders
-            .Where(o => o.Status == OrderStatus.Finished || o.Status == OrderStatus.Delivered)
-            .ToListAsync();
-    }
     public async Task<ServiceOrder?> GetByIdAsync(Guid id)
     {
         return await _context.ServiceOrders.FindAsync(id);
+    }
+
+    public async Task<ServiceOrder?> GetServiceOrderByIdToGetPeddingStocksAsync(Guid id)
+    {
+        var serviceOrder = await _context.ServiceOrders
+            .Include(so => so.PartsUsed)
+            .ThenInclude(sop => sop.Part)
+            .FirstOrDefaultAsync(so => so.Id == id);
+        return serviceOrder;
     }
 
     public async Task<ServiceOrder?> GetByIdWithPartsDetailsAsync(Guid id)

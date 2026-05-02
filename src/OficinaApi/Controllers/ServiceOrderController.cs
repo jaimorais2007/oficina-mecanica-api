@@ -100,12 +100,14 @@ public class ServiceOrdersController : ControllerBase
         return Ok(result);
     }
 
-    [SwaggerOperation(Summary = "Lista os alertas da ordem de serviço",
-                      Description = "Retorna uma lista de alertas relacionados a uma ordem de serviço, peças em falta ou problemas técnicos.")]
-    [HttpGet("{id}/alerts")]
-    public async Task<IActionResult> GetServiceOrderAlerts(Guid id)
+    [SwaggerOperation(Summary = "Lista os estoques pendentes da ordem de serviço",
+                      Description = "Retorna uma lista de estoques pendentes relacionados a uma ordem de serviço.")]
+    [HttpGet("{id}/pendingStocks")]
+    public async Task<IActionResult> GetServiceOrderPeddingStocks(Guid id)
     {
-        var result = await _serviceOrderService.GetServiceOrderAlertsAsync(id);
+        var result = await _serviceOrderService.GetServiceOrderPeddingStocksAsync(id);
         return Ok(result);
     }
+
+
 }
