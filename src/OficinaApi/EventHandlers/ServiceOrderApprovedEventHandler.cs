@@ -32,7 +32,6 @@ public class ServiceOrderApprovedEventHandler : IDomainEventHandler<ServiceOrder
             try
             {
                 partUsed.EnsureStockQuantity();
-                await _serviceOrderRepository.UpdateAsync(serviceOrder);
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
             {
@@ -45,6 +44,8 @@ public class ServiceOrderApprovedEventHandler : IDomainEventHandler<ServiceOrder
             }
         }
 
+        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        
         _logger.LogInformation("Service order with ID {ServiceOrderId} approved. Stock levels updated for used parts.", domainEvent.ServiceOrderId);
     }
 }
