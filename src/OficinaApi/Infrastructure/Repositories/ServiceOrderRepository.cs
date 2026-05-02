@@ -31,10 +31,17 @@ public class ServiceOrderRepository : IServiceOrderRepository
             .Where(o => o.Status == OrderStatus.Finished || o.Status == OrderStatus.Delivered)
             .ToListAsync();
     }
-
     public async Task<ServiceOrder?> GetByIdAsync(Guid id)
     {
         return await _context.ServiceOrders.FindAsync(id);
+    }
+
+    public async Task<ServiceOrder?> GetByIdWithPartsDetailsAsync(Guid id)
+    {
+        return await _context.ServiceOrders
+            .Include(so => so.PartsUsed)
+            .ThenInclude(sop => sop.Part)
+            .FirstOrDefaultAsync(so => so.Id == id);
     }
 
     public async Task UpdateAsync(ServiceOrder order)
