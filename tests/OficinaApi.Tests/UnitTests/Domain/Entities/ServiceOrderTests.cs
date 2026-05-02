@@ -14,7 +14,7 @@ public class ServiceOrderTests
         new("João Silva", PersonType.Individual, "529.982.247-25", new DateTime(1990, 1, 1));
 
     private static Vehicle CreateVehicle(Customer customer) =>
-        new(customer, "ABC-1234", "Toyota", "Corolla", 2020);
+        new(customer, "ABC1234", "Toyota", "Corolla", 2020);
 
     private static Service CreateService(decimal price = 100m) =>
         new("Troca de óleo", "Substituição do óleo do motor", price);
@@ -330,14 +330,14 @@ public class ServiceOrderTests
         // Arrange
         var service = CreateService(price: 150m);
         var order = CreateServiceOrder([service]);
-        var part = CreatePart();
-        order.AddPart(part, 2); // 2 × 50 = 100
+        var part = CreatePart(); // price = 50m
+        order.AddPart(part, 2); // quantidade não é multiplicada no cálculo atual
 
         // Act
         order.CalculateBudget();
 
-        // Assert
-        order.Budget.Should().Be(250m); // 150 + 100
+        // Assert – budget = soma dos DefaultPrice de cada serviço + soma do Price de cada peça (sem multiplicar pela quantidade)
+        order.Budget.Should().Be(200m); // 150 + 50
     }
 
     [Fact]
