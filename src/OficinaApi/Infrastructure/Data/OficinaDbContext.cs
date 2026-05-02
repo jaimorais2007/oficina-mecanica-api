@@ -15,7 +15,6 @@ public class OficinaDbContext : DbContext
     public DbSet<ServiceOrder> ServiceOrders { get; set; }
     public DbSet<ServiceOrderService> ServiceOrderServices { get; set; }
     public DbSet<ServiceOrderPart> ServiceOrderParts { get; set; }
-    public DbSet<ServiceOrderAlert> ServiceOrderAlerts { get; set; }
     private readonly IDomainEventDispatcher _domainEventDispatcher;
 
 
