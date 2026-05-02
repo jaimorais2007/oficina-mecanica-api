@@ -2,7 +2,9 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using OficinaApi.Application.EventHandlers;
 using OficinaApi.Application.Services;
+using OficinaApi.Domain.Events;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -50,6 +52,9 @@ builder.Services.AddScoped<OficinaApi.Application.Interfaces.ICustomerService, C
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IExternalQueryService, ExternalQueryService>();
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IVehicleService, VehicleService>();
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IServiceManagementService, ServiceManagementService>();
+
+// Register Domain Event Handlers
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IDomainEventHandler<ServiceOrderApprovedEvent>, ServiceOrderApprovedEventHandler>();
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
