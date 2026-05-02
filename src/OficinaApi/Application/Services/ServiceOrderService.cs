@@ -96,4 +96,47 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         return new ServiceOrderDto(serviceOrder);
     }
 
+    public async Task<ServiceOrderDto> FinishAnalysisAsync(Guid id)
+    {
+        var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+        if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
+
+        serviceOrder.FinishAnalysis();
+        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+
+        return new ServiceOrderDto(serviceOrder);
+    }
+
+    public async Task<ServiceOrderDto> ApproveServiceOrderAsync(Guid id)
+    {
+        var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+        if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
+
+        serviceOrder.ApproveServiceOrder();
+        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+
+        return new ServiceOrderDto(serviceOrder);
+    }
+
+    public async Task<ServiceOrderDto> FinishExecutionAsync(Guid id)
+    {
+        var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+        if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
+
+        serviceOrder.FinishExecution();
+        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+
+        return new ServiceOrderDto(serviceOrder);
+    }
+
+    public async Task<ServiceOrderDto> DeliverServiceOrderAsync(Guid id)
+    {
+        var serviceOrder = await _serviceOrderRepository.GetByIdAsync(id);
+        if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
+
+        serviceOrder.Deliver();
+        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+
+        return new ServiceOrderDto(serviceOrder);
+    }
 }

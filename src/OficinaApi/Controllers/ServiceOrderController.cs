@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
@@ -41,10 +39,19 @@ public class ServiceOrdersController : ControllerBase
 
     [SwaggerOperation(Summary = "Move uma ordem de serviço para analise",
                       Description = "Move uma ordem de serviço para o status de análise técnica.")]
-    [HttpPost("{id}/analysis")]
+    [HttpPost("{id}/startAnalysis")]
     public async Task<IActionResult> MoveToAnalysis(Guid id)
     {
         var result = await _serviceOrderService.StartDiagnosticsAsync(id);
+        return Ok(result);
+    }
+
+    [SwaggerOperation(Summary = "Move uma ordem de serviço para execução",
+                      Description = "Move uma ordem de serviço para o status de execução, indicando que os trabalhos começaram.")]
+    [HttpPost("{id}/finishAnalysis")]
+    public async Task<IActionResult> FinishAnalysis(Guid id)
+    {
+        var result = await _serviceOrderService.FinishAnalysisAsync(id);
         return Ok(result);
     }
 
@@ -63,6 +70,33 @@ public class ServiceOrdersController : ControllerBase
     public async Task<IActionResult> AddServiceToServiceOrder(Guid id, [FromBody] AddServiceDto dto)
     {
         var result = await _serviceOrderService.AddServiceToServiceOrderAsync(id, dto);
+        return Ok(result);
+    }
+
+    [SwaggerOperation(Summary = "Aprova uma ordem de serviço",
+                      Description = "Move uma ordem de serviço para o status de execução, indicando que foi aprovada.")]
+    [HttpPost("{id}/approve")]
+    public async Task<IActionResult> ApproveServiceOrder(Guid id)
+    {
+        var result = await _serviceOrderService.ApproveServiceOrderAsync(id);
+        return Ok(result);
+    }
+
+    [SwaggerOperation(Summary = "Finaliza a execução de uma ordem de serviço",
+                      Description = "Move uma ordem de serviço para o status de finalizada, indicando que a execução foi concluída.")]
+    [HttpPost("{id}/finishExecution")]
+    public async Task<IActionResult> FinishExecution(Guid id)
+    {
+        var result = await _serviceOrderService.FinishExecutionAsync(id);
+        return Ok(result);
+    }
+
+    [SwaggerOperation(Summary = "Entrega uma ordem de serviço",
+                      Description = "Move uma ordem de serviço para o status de entregue, indicando que foi entregue ao cliente.")]
+    [HttpPost("{id}/deliver")]
+    public async Task<IActionResult> DeliverServiceOrder(Guid id)
+    {
+        var result = await _serviceOrderService.DeliverServiceOrderAsync(id);
         return Ok(result);
     }
 }

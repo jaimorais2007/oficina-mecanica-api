@@ -9,8 +9,6 @@ public class ServiceOrder
     public string ClientCpf { get; private set; }
     public Plate VehiclePlate { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public DateTime? StartedExecutionAt { get; private set; }
-    public DateTime? FinishedExecutionAt { get; private set; }
     public ICollection<ServiceOrderStatus> StatusHistory { get; set; } = [];
     public ICollection<ServiceOrderServices> ServicesUsed { get; set; } = [];
     public ICollection<ServiceOrderParts> PartsUsed { get; set; } = [];
@@ -32,29 +30,50 @@ public class ServiceOrder
         CreatedAt = DateTime.UtcNow;
     }
 
-    public void CalculateBudget(IEnumerable<Service> servicesUsed, IEnumerable<Part> partsUsed)
+    public void CalculateBudget()
     {
-        Budget = servicesUsed.Sum(s => s.DefaultPrice) + partsUsed.Sum(p => p.Price);
+        Budget = ServicesUsed.Select(s => s.Service).Sum(s => s.DefaultPrice) + PartsUsed.Select(p => p.Part).Sum(p => p.Price);
     }
 
     public void StartDiagnostics()
     {
+        var lastStatus = GetLastStatusHistory();
+        if (lastStatus.Status != OrderStatus.Received)
+            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Recebida' para iniciar a análise técnica.");
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.InDiagnostics));
     }
 
     public void FinishAnalysis()
     {
+        var lastStatus = GetLastStatusHistory();
+        if (lastStatus.Status != OrderStatus.InDiagnostics)
+            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Análise' para finalizar a análise técnica.");
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.WaitingApproval));
+        CalculateBudget();
     }
 
     public void ApproveServiceOrder()
     {
+        var lastStatus = GetLastStatusHistory();
+        if (lastStatus.Status != OrderStatus.WaitingApproval)
+            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Aguardando Aprovação' para ser aprovada.");
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Executing));
     }
 
-    public void FinishServiceOrder()
+    public void FinishExecution()
     {
+        var lastStatus = GetLastStatusHistory();
+        if(lastStatus.Status != OrderStatus.Executing)
+            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Execução' para finalizar a execução.");
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Finished));
+    }
+
+    public void Deliver()
+    {
+        var lastStatus = GetLastStatusHistory();
+        if(lastStatus.Status != OrderStatus.Finished)
+            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Finalizada' para ser entregue.");
+        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Delivered));
     }
 
     public DateTime GetStartedExecutionAt(){
@@ -87,5 +106,12 @@ public class ServiceOrder
     {
         var currentStatus = StatusHistory.LastOrDefault()?.Status;
         return currentStatus == OrderStatus.Received || currentStatus == OrderStatus.InDiagnostics || currentStatus == OrderStatus.WaitingApproval;
+    }
+
+    public ServiceOrderStatus GetLastStatusHistory()
+    {
+        return StatusHistory
+            .OrderByDescending(s => s.CreatedAt)
+            .First();
     }
 }

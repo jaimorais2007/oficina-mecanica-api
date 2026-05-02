@@ -12,4 +12,8 @@ public interface IServiceOrderService
     Task<ServiceOrderDto> StartDiagnosticsAsync(Guid id);
     Task<ServiceOrderDto> AddPartToServiceOrderAsync(Guid id, AddPartDto dto);
     Task<ServiceOrderDto> AddServiceToServiceOrderAsync(Guid id, AddServiceDto dto);
+    Task<ServiceOrderDto> FinishAnalysisAsync(Guid id);
+    Task<ServiceOrderDto> ApproveServiceOrderAsync(Guid id);
+    Task<ServiceOrderDto> FinishExecutionAsync(Guid id);
+    Task<ServiceOrderDto> DeliverServiceOrderAsync(Guid id);
 }
