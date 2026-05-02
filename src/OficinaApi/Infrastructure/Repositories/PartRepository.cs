@@ -38,9 +38,11 @@ public class PartRepository : IPartRepository
         return await _context.Parts.ToListAsync();
     }
 
-    public async Task<Part?> GetByIdAsync(Guid id)
+    public async Task<Part?> GetByIdWithServiceOrderDetailsAsync(Guid id)
     {
-        return await _context.Parts.FindAsync(id);
+        return await _context.Parts
+            .Include(p => p.ServiceOrdersParts)
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task UpdateAsync(Part part)

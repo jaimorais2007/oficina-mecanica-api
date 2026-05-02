@@ -139,7 +139,7 @@ public class OficinaDbContext : DbContext
                   .WithMany(so => so.ServicesUsed)
                   .HasForeignKey(sos => sos.ServiceOrderId);
             entity.HasOne(sos => sos.Service)
-                  .WithMany(s => s.ServiceOrders)
+                  .WithMany(s => s.ServiceOrdersServices)
                   .HasForeignKey(sos => sos.ServiceId);
             entity.Ignore(e => e.DomainEvents);
         });
@@ -151,7 +151,7 @@ public class OficinaDbContext : DbContext
                   .WithMany(so => so.PartsUsed)
                   .HasForeignKey(sop => sop.ServiceOrderId);
             entity.HasOne(sop => sop.Part)
-                  .WithMany(p => p.ServiceOrders)
+                  .WithMany(p => p.ServiceOrdersParts)
                   .HasForeignKey(sop => sop.PartId);
             entity.Property(sop => sop.Quantity).IsRequired();
             entity.Property(so => so.StockQuantityWasEnsured).IsRequired();
