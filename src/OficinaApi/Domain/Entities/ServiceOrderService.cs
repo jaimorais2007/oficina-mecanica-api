@@ -14,7 +14,6 @@ public class ServiceOrderService : BaseEntity
 
     public ServiceOrderService(ServiceOrder serviceOrder, Service service)
     {
-        Id = Guid.NewGuid();
         ServiceOrderId = serviceOrder.Id;
         ServiceOrder = serviceOrder;
         ServiceId = service.Id;
