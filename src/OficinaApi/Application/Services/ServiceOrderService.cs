@@ -76,7 +76,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
         serviceOrder.StartDiagnostics();
-        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
         return new ServiceOrderDto(serviceOrder);
     }
@@ -92,7 +92,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         if (part == null) throw new ArgumentException("Peça não encontrada.");
 
         serviceOrder.AddPart(part, dto.Quantity);
-        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
         return new ServiceOrderDto(serviceOrder);
     }
@@ -106,7 +106,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         if (service == null) throw new ArgumentException("Serviço não encontrado.");
 
         serviceOrder.AddService(service);
-        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
         return new ServiceOrderDto(serviceOrder);
     }
@@ -117,7 +117,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
         serviceOrder.FinishAnalysis();
-        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
         return new ServiceOrderDto(serviceOrder);
     }
@@ -128,7 +128,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
         serviceOrder.ApproveServiceOrder();
-        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
         return new ServiceOrderDto(serviceOrder);
     }
@@ -139,7 +139,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
         serviceOrder.FinishExecution();
-        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
         return new ServiceOrderDto(serviceOrder);
     }
@@ -150,7 +150,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
         serviceOrder.Deliver();
-        await _serviceOrderRepository.UpdateAsync(serviceOrder);
+        await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
         return new ServiceOrderDto(serviceOrder);
     }
