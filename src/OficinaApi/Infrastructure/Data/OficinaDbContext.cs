@@ -49,7 +49,7 @@ public class OficinaDbContext : DbContext
                    .IsRequired()
                    .HasMaxLength(50);
             });
-            entity.Property(e => e.DateOfBirth).HasColumnType("timestamp without time zone");
+            entity.Property(e => e.DateOfBirth).HasColumnType("timestamp with time zone");
             entity.Property(e => e.PersonType).HasConversion<string>().IsRequired();
             entity.HasMany(c => c.ServiceOrders)
                   .WithOne(so => so.Customer)
@@ -119,7 +119,7 @@ public class OficinaDbContext : DbContext
         modelBuilder.Entity<ServiceOrderStatus>(entity =>
         {
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.CreatedAt).HasColumnType("timestamp without time zone").IsRequired();
+            entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone").IsRequired();
             entity.Property(e => e.Status).HasConversion<string>().IsRequired();
             entity.HasOne(sos => sos.ServiceOrder)
                   .WithMany(so => so.StatusHistory)
