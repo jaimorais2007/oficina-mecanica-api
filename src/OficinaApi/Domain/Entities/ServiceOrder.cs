@@ -1,20 +1,20 @@
 using System;
 using System.Reflection.Metadata;
 using OficinaApi.Domain.Enums;
+using OficinaApi.Domain.Events;
 
 namespace OficinaApi.Domain.Entities;
 
 public class ServiceOrder : BaseEntity
 {
-    public Customer Customer { get; set; }
-    public Guid CustomerId { get; set; }
-    public Vehicle Vehicle { get; set; }
-    public Guid VehicleId { get; set; }
+    public Customer Customer { get; private set; }
+    public Guid CustomerId { get; private set; }
+    public Vehicle Vehicle { get; private set; }
+    public Guid VehicleId { get; private set; }
     public DateTime CreatedAt { get; private set; }
-    public ICollection<ServiceOrderStatus> StatusHistory { get; set; } = [];
-    public ICollection<ServiceOrderService> ServicesUsed { get; set; } = [];
-    public ICollection<ServiceOrderPart> PartsUsed { get; set; } = [];
-    public ICollection<ServiceOrderAlert> Alerts { get; private set; } = [];
+    public ICollection<ServiceOrderStatus> StatusHistory { get; private set; } = [];
+    public ICollection<ServiceOrderService> ServicesUsed { get; private set; } = [];
+    public ICollection<ServiceOrderPart> PartsUsed { get; private set; } = [];
     public decimal Budget { get; private set; }
 
     // For EF Core
@@ -32,9 +32,9 @@ public class ServiceOrder : BaseEntity
         CreatedAt = DateTime.UtcNow;
     }
 
-    public void AddAlert(string message)
+    public void AddAlert(string message, Guid? partId = null)
     {
-        Alerts.Add(new ServiceOrderAlert(this, message));
+        Alerts.Add(new ServiceOrderAlert(this, message, partId));
     }
 
     public void CalculateBudget()
@@ -65,11 +65,12 @@ public class ServiceOrder : BaseEntity
         if (lastStatus.Status != OrderStatus.WaitingApproval)
             throw new InvalidOperationException("A ordem de serviço deve estar no status 'Aguardando Aprovação' para ser aprovada.");
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Executing));
+        AddDomainEvent(new ServiceOrderApprovedEvent(Id));
     }
 
     public void FinishExecution()
     {
-        if(Alerts.Any())
+        if(HasPendingAlerts())
             throw new InvalidOperationException("Não é possível finalizar a execução de uma ordem de serviço que possui alertas pendentes. Por favor, resolva os alertas antes de finalizar.");
 
         var lastStatus = GetLastStatusHistory();
@@ -123,5 +124,10 @@ public class ServiceOrder : BaseEntity
         return StatusHistory
             .OrderByDescending(s => s.CreatedAt)
             .First();
+    }
+
+    public bool HasPendingAlerts()
+    {
+        return Alerts.Any(a => !a.Concluded);
     }
 }

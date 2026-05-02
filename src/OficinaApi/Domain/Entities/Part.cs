@@ -1,4 +1,6 @@
 using System;
+using OficinaApi.Controllers;
+using OficinaApi.Domain.Events;
 
 namespace OficinaApi.Domain.Entities;
 
@@ -34,6 +36,7 @@ public class Part : BaseEntity
             throw new ArgumentException("A quantidade a adicionar deve ser maior que zero.");
             
         QuantityInStock += quantity;
+        AddDomainEvent(new PartStockAddedEvent(Id));
     }
 
     public void RemoveStock(int quantity)

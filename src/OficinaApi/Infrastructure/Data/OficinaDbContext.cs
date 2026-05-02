@@ -166,6 +166,8 @@ public class OficinaDbContext : DbContext
             entity.HasOne(soa => soa.ServiceOrder)
                   .WithMany(so => so.Alerts)
                   .HasForeignKey(soa => soa.ServiceOrderId);
+            entity.Property(soa => soa.Concluded).IsRequired();
+            entity.Property(soa => soa.PartId).IsRequired(false);
             entity.Ignore(e => e.DomainEvents);
         });
     }

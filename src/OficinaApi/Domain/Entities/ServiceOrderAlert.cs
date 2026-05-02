@@ -9,16 +9,18 @@ public class ServiceOrderAlert : BaseEntity
     public DateTime CreatedAt { get; private set; }
     public ServiceOrder ServiceOrder { get; private set; }
     public Guid ServiceOrderId { get; private set; }
+    public Guid? PartId { get; set; }
 
     // For EF Core
     protected ServiceOrderAlert() { }
 
-    public ServiceOrderAlert(ServiceOrder serviceOrder, string message)
+    public ServiceOrderAlert(ServiceOrder serviceOrder, string message, Guid? partId = null)
     {
         Id = Guid.NewGuid();
         Message = message;
         CreatedAt = DateTime.UtcNow;
         Concluded = false;
+        PartId = partId;
         ServiceOrder = serviceOrder;
         ServiceOrderId = serviceOrder.Id;
     }
