@@ -28,6 +28,11 @@ namespace OficinaApi.Infrastructure.Repositories
             }
         }
 
+        public async Task<IEnumerable<Service>> GetByIdListAsync(IEnumerable<Guid> ids)
+        {
+            return await _context.Services.Where(s => ids.Contains(s.Id)).ToListAsync();
+        }
+
         public async Task<IEnumerable<Service>> GetAllAsync()
         {
             return await _context.Services.ToListAsync();

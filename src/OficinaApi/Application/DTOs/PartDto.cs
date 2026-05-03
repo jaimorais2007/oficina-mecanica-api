@@ -24,3 +24,9 @@ public class UpdateStockDto
 {
     public int Quantity { get; set; }
 }
+
+public class AddPartDto
+{
+    public Guid PartId { get; set; }
+    public int Quantity { get; set; }
+}

@@ -3,7 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Microsoft.IdentityModel.Tokens;
 
-namespace OficinaApi.Services;
+namespace OficinaApi.Application.Services;
 
 public class TokenService
 {

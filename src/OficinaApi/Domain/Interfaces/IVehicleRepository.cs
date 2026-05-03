@@ -7,6 +7,6 @@
         Task<IEnumerable<Vehicle>> GetAllAsync();
         Task<Vehicle?> GetByIdAsync(Guid id);
         Task UpdateAsync(Vehicle vehicle);
-        Task<Vehicle> GetVehicleAsync(Plate plate);
+        Task<Vehicle?> GetVehicleAsync(Plate plate);
     }
 }

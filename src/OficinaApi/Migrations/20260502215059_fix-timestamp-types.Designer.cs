@@ -12,8 +12,8 @@ using OficinaApi.Infrastructure.Data;
 namespace OficinaApi.Migrations
 {
     [DbContext(typeof(OficinaDbContext))]
-    [Migration("20260501013157_InitialPostgres")]
-    partial class InitialPostgres
+    [Migration("20260502215059_fix-timestamp-types")]
+    partial class fixtimestamptypes
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -35,15 +35,16 @@ namespace OficinaApi.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<DateTime?>("DateOfBirth")
-                        .HasColumnType("date");
+                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("character varying(150)");
 
-                    b.Property<int>("PersonType")
-                        .HasColumnType("integer");
+                    b.Property<string>("PersonType")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("Id");
 
@@ -86,35 +87,78 @@ namespace OficinaApi.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<string>("ClientCpf")
-                        .IsRequired()
-                        .HasMaxLength(14)
-                        .HasColumnType("character varying(14)");
+                    b.Property<decimal>("Budget")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTime?>("FinishedExecutionAt")
-                        .HasColumnType("timestamp with time zone");
+                    b.Property<Guid>("CustomerId")
+                        .HasMaxLength(14)
+                        .HasColumnType("uuid");
 
-                    b.Property<DateTime?>("StartedExecutionAt")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Status")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("VehiclePlate")
-                        .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("character varying(10)");
+                    b.Property<Guid>("VehicleId")
+                        .HasMaxLength(14)
+                        .HasColumnType("uuid");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
+
+                    b.HasIndex("VehicleId");
 
                     b.ToTable("ServiceOrders");
                 });
 
-            modelBuilder.Entity("OficinaApi.Domain.Entities.User", b =>
+            modelBuilder.Entity("OficinaApi.Domain.Entities.ServiceOrderPart", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("PartId")
+                        .HasColumnType("uuid");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ServiceOrderId")
+                        .HasColumnType("uuid");
+
+                    b.Property<bool>("StockQuantityWasEnsured")
+                        .HasColumnType("boolean");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PartId");
+
+                    b.HasIndex("ServiceOrderId");
+
+                    b.ToTable("ServiceOrderParts");
+                });
+
+            modelBuilder.Entity("OficinaApi.Domain.Entities.ServiceOrderService", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ServiceId")
+                        .HasColumnType("uuid");
+
+                    b.Property<Guid>("ServiceOrderId")
+                        .HasColumnType("uuid");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceId");
+
+                    b.HasIndex("ServiceOrderId");
+
+                    b.ToTable("ServiceOrderServices");
+                });
+
+            modelBuilder.Entity("OficinaApi.Domain.Entities.ServiceOrderStatus", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -123,31 +167,18 @@ namespace OficinaApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<string>("Email")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
+                    b.Property<Guid>("ServiceOrderId")
+                        .HasColumnType("uuid");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("character varying(150)");
-
-                    b.Property<string>("PasswordHash")
+                    b.Property<string>("Status")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<string>("Role")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("Email")
-                        .IsUnique();
+                    b.HasIndex("ServiceOrderId");
 
-                    b.ToTable("Users");
+                    b.ToTable("ServiceOrderStatuses");
                 });
 
             modelBuilder.Entity("Service", b =>
@@ -160,7 +191,7 @@ namespace OficinaApi.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<decimal>("DefaultPrice")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Description")
                         .IsRequired()
@@ -191,6 +222,9 @@ namespace OficinaApi.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
+                    b.Property<Guid>("CustomerId")
+                        .HasColumnType("uuid");
+
                     b.Property<string>("Model")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -200,6 +234,8 @@ namespace OficinaApi.Migrations
                         .HasColumnType("integer");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CustomerId");
 
                     b.ToTable("Vehicles");
                 });
@@ -228,8 +264,82 @@ namespace OficinaApi.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("OficinaApi.Domain.Entities.ServiceOrder", b =>
+                {
+                    b.HasOne("OficinaApi.Domain.Entities.Customer", "Customer")
+                        .WithMany("ServiceOrders")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Vehicle", "Vehicle")
+                        .WithMany("ServiceOrders")
+                        .HasForeignKey("VehicleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Customer");
+
+                    b.Navigation("Vehicle");
+                });
+
+            modelBuilder.Entity("OficinaApi.Domain.Entities.ServiceOrderPart", b =>
+                {
+                    b.HasOne("OficinaApi.Domain.Entities.Part", "Part")
+                        .WithMany("ServiceOrdersParts")
+                        .HasForeignKey("PartId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OficinaApi.Domain.Entities.ServiceOrder", "ServiceOrder")
+                        .WithMany("PartsUsed")
+                        .HasForeignKey("ServiceOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Part");
+
+                    b.Navigation("ServiceOrder");
+                });
+
+            modelBuilder.Entity("OficinaApi.Domain.Entities.ServiceOrderService", b =>
+                {
+                    b.HasOne("Service", "Service")
+                        .WithMany("ServiceOrdersServices")
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("OficinaApi.Domain.Entities.ServiceOrder", "ServiceOrder")
+                        .WithMany("ServicesUsed")
+                        .HasForeignKey("ServiceOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Service");
+
+                    b.Navigation("ServiceOrder");
+                });
+
+            modelBuilder.Entity("OficinaApi.Domain.Entities.ServiceOrderStatus", b =>
+                {
+                    b.HasOne("OficinaApi.Domain.Entities.ServiceOrder", "ServiceOrder")
+                        .WithMany("StatusHistory")
+                        .HasForeignKey("ServiceOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ServiceOrder");
+                });
+
             modelBuilder.Entity("Vehicle", b =>
                 {
+                    b.HasOne("OficinaApi.Domain.Entities.Customer", "Customer")
+                        .WithMany("Vehicles")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.OwnsOne("Plate", "Plate", b1 =>
                         {
                             b1.Property<Guid>("VehicleId")
@@ -249,8 +359,41 @@ namespace OficinaApi.Migrations
                                 .HasForeignKey("VehicleId");
                         });
 
+                    b.Navigation("Customer");
+
                     b.Navigation("Plate")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("OficinaApi.Domain.Entities.Customer", b =>
+                {
+                    b.Navigation("ServiceOrders");
+
+                    b.Navigation("Vehicles");
+                });
+
+            modelBuilder.Entity("OficinaApi.Domain.Entities.Part", b =>
+                {
+                    b.Navigation("ServiceOrdersParts");
+                });
+
+            modelBuilder.Entity("OficinaApi.Domain.Entities.ServiceOrder", b =>
+                {
+                    b.Navigation("PartsUsed");
+
+                    b.Navigation("ServicesUsed");
+
+                    b.Navigation("StatusHistory");
+                });
+
+            modelBuilder.Entity("Service", b =>
+                {
+                    b.Navigation("ServiceOrdersServices");
+                });
+
+            modelBuilder.Entity("Vehicle", b =>
+                {
+                    b.Navigation("ServiceOrders");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,15 +1,17 @@
 using System;
+using OficinaApi.Controllers;
+using OficinaApi.Domain.Events;
 
 namespace OficinaApi.Domain.Entities;
 
-public class Part
+public class Part : BaseEntity
 {
-    public Guid Id { get; private set; }
     public string Name { get; private set; }
     public string Code { get; private set; }
     public int QuantityInStock { get; private set; }
     public decimal Price { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public ICollection<ServiceOrderPart> ServiceOrdersParts { get; set; } = [];
 
     // For EF Core
     protected Part() 
@@ -34,6 +36,7 @@ public class Part
             throw new ArgumentException("A quantidade a adicionar deve ser maior que zero.");
             
         QuantityInStock += quantity;
+        AddDomainEvent(new PartStockAddedEvent(Id));
     }
 
     public void RemoveStock(int quantity)

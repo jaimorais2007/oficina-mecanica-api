@@ -4,10 +4,10 @@ namespace OficinaApi.Application.DTOs
 {
     public class ServiceDto
     {
-        public Guid Id { get; private set; }
-        public string Name { get; private set; } = string.Empty;
-        public string Description { get; private set; } = string.Empty;
-        public decimal DefaultPrice { get; private set; }
+        public Guid Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal DefaultPrice { get; set; }
 
         public ServiceDto(Service service)
         {
@@ -20,10 +20,10 @@ namespace OficinaApi.Application.DTOs
 
     public class CreateServiceDto
     {
-        public Guid? Id                 { get; set; }
-        public string Name              { get; set; } = string.Empty;
-        public string Description       { get; set; } = string.Empty;
-        public decimal DefaultPrice     { get; set; }
+        public Guid? Id { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public decimal DefaultPrice { get; set; }
     }
 
     public class UpdateServiceDto
@@ -31,5 +31,10 @@ namespace OficinaApi.Application.DTOs
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal DefaultPrice { get; set; }
+    }
+
+    public class AddServiceDto
+    {
+        public Guid ServiceId { get; set; }
     }
 }

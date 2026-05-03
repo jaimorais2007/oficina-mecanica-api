@@ -37,7 +37,7 @@ namespace OficinaApi.Infrastructure.Repositories
             return await _context.Vehicles.ToListAsync();
         }
 
-        public async Task<Vehicle> GetVehicleAsync(Plate plate)
+        public async Task<Vehicle?> GetVehicleAsync(Plate plate)
         {
             return await _context.Vehicles.FirstOrDefaultAsync(vehicle => vehicle.Plate == plate);
         }
