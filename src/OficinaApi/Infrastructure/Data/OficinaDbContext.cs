@@ -11,6 +11,7 @@ public class OficinaDbContext : DbContext
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Vehicle> Vehicles { get; set; }
     public DbSet<Service> Services { get; set; }
+    public DbSet<User> Users { get; set; }
     public DbSet<ServiceOrderStatus> ServiceOrderStatuses { get; set; }
     public DbSet<ServiceOrder> ServiceOrders { get; set; }
     public DbSet<ServiceOrderService> ServiceOrderServices { get; set; }
@@ -153,6 +154,15 @@ public class OficinaDbContext : DbContext
             entity.Property(sop => sop.Quantity).IsRequired();
             entity.Property(so => so.StockQuantityWasEnsured).IsRequired();
             entity.Ignore(e => e.DomainEvents);
+        });
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(150);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.Property(e => e.PasswordHash).IsRequired();
+            entity.Property(e => e.Role).HasMaxLength(50);
         });
     }
 
