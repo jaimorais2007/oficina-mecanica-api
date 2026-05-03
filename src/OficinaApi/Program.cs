@@ -17,7 +17,7 @@ var jwtSecret   = builder.Configuration["Jwt:Secret"]!;
 var jwtIssuer   = builder.Configuration["Jwt:Issuer"]!;
 var jwtAudience = builder.Configuration["Jwt:Audience"]!;
 
-var connectionString = builder.Configuration.GetConnectionString("Default");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
@@ -36,10 +36,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddAuthorization();
 builder.Services.AddScoped<TokenService>();
 
-// Configure In-Memory Database for testing purposes locally
-//builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
-//    options.UseInMemoryDatabase("OficinaDbLocal"));
-
+// Configure PostgreSQL Database
 builder.Services.AddDbContext<OficinaApi.Infrastructure.Data.OficinaDbContext>(options =>
     options.UseNpgsql(connectionString));
 
@@ -50,6 +47,7 @@ builder.Services.AddScoped<IServiceOrderRepository, ServiceOrderRepository>();
 builder.Services.AddScoped<IVehicleRepository, VehicleRepository>();
 builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IServiceOrderPartRepository, ServiceOrderPartRepository>();
+builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IUserRepository, OficinaApi.Infrastructure.Repositories.UserRepository>();
 
 // Register Application Services
 builder.Services.AddScoped<IPartService, PartService>();
@@ -57,6 +55,7 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
 builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
+builder.Services.AddScoped<OficinaApi.Application.Interfaces.IUserService, OficinaApi.Application.Services.UserService>();
 
 // Register Domain Event Dispatcher
 builder.Services.AddScoped<IDomainEventDispatcher, OficinaApi.Infrastructure.Data.DomainEventDispatcher>();
@@ -102,5 +101,35 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+using (var scope = app.Services.CreateScope())
+{
+    try
+    {
+        var userService = scope.ServiceProvider.GetRequiredService<OficinaApi.Application.Interfaces.IUserService>();
+        var users = await userService.GetAllUsersAsync();
+        
+        bool hasAdmin = false;
+        foreach (var u in users)
+        {
+            if (u.Email == "admin@gmail.com") hasAdmin = true;
+        }
+
+        if (!hasAdmin)
+        {
+            await userService.CreateUserAsync(new OficinaApi.Application.DTOs.CreateUserDto
+            {
+                Name = "Admin Inicial",
+                Email = "admin@gmail.com",
+                Password = "123",
+                Role = "Admin"
+            });
+        }
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"Aviso: Não foi possível verificar/criar o usuário Admin inicial. O banco de dados pode estar indisponível ou a tabela Users ainda não foi criada. Detalhe: {ex.Message}");
+    }
+}
 
 app.Run();
