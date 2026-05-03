@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace OficinaApi.Controllers;
 
@@ -19,6 +20,8 @@ public class UsersController : ControllerBase
         _userService = userService;
     }
 
+    [SwaggerOperation(Summary = "Lista todos os usuários", 
+                      Description = "Retorna uma lista com todos os usuários cadastrados no sistema. (Requer Autenticação)")]
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -26,6 +29,8 @@ public class UsersController : ControllerBase
         return Ok(users);
     }
 
+    [SwaggerOperation(Summary = "Busca usuário por ID", 
+                      Description = "Retorna os dados de um usuário específico a partir do seu identificador único. (Requer Autenticação)")]
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
@@ -34,6 +39,9 @@ public class UsersController : ControllerBase
         return Ok(user);
     }
 
+    [SwaggerOperation(Summary = "Cria um novo usuário", 
+                      Description = "Cadastra um novo usuário no sistema com os dados informados (Nome, Email, Senha e Role). " +
+                                    "Esta rota permite acesso sem token temporariamente para facilitar a criação do primeiro administrador.")]
     [HttpPost]
     [AllowAnonymous] // Permitir criação do primeiro usuário
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
@@ -49,6 +57,8 @@ public class UsersController : ControllerBase
         }
     }
 
+    [SwaggerOperation(Summary = "Atualiza os dados de um usuário", 
+                      Description = "Atualiza as informações (Nome e Role) de um usuário existente a partir do seu identificador único. (Requer Autenticação)")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserDto dto)
     {
@@ -63,6 +73,8 @@ public class UsersController : ControllerBase
         }
     }
 
+    [SwaggerOperation(Summary = "Remove um usuário", 
+                      Description = "Exclui permanentemente o cadastro de um usuário do sistema a partir do seu identificador único. (Requer Autenticação)")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
