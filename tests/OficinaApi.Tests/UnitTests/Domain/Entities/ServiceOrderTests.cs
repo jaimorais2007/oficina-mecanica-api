@@ -6,12 +6,12 @@ using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
 using Xunit;
 
-namespace OficinaApi.Tests.UnitTests.Domain.Entities;
+namespace Unit.Tests;
 
 public class ServiceOrderTests
 {
     private static Customer CreateCustomer() =>
-        new("João Silva", PersonType.Individual, "529.982.247-25", new DateTime(1990, 1, 1));
+        new("João Silva", PersonType.Individual, "529.982.247-25", new DateTime(1990, 1, 1), "teste@gmail.com");
 
     private static Vehicle CreateVehicle(Customer customer) =>
         new(customer, "ABC1234", "Toyota", "Corolla", 2020);

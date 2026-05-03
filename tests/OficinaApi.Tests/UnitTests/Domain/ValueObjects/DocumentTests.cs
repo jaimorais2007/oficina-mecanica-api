@@ -3,7 +3,7 @@ using OficinaApi.Domain.Enums;
 using OficinaApi.Domain.ValueObjects;
 using Xunit;
 
-namespace OficinaApi.Tests.UnitTests.Domain.ValueObjects;
+namespace Unit.Tests;
 
 public class DocumentTests
 {
@@ -16,13 +16,9 @@ public class DocumentTests
     [Fact]
     public void Constructor_WhenValidCpfWithoutMask_ShouldCreateDocument()
     {
-        // Arrange
         var rawCpf = ValidCpf;
-
-        // Act
         var document = new Document(rawCpf, PersonType.Individual);
 
-        // Assert
         document.Value.Should().Be(ValidCpf);
     }
 

@@ -44,6 +44,7 @@ public class OficinaDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
+            entity.Property(e => e.Email).HasMaxLength(80);
             entity.OwnsOne(e => e.Document, doc =>
             {
                 doc.Property(d => d.Value)
@@ -59,6 +60,7 @@ public class OficinaDbContext : DbContext
                   .WithOne(v => v.Customer)
                   .HasForeignKey(v => v.CustomerId);
             entity.Ignore(e => e.DomainEvents);
+
         });
 
         modelBuilder.Entity<Vehicle>(entity =>
@@ -67,9 +69,9 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.Brand).IsRequired().HasMaxLength(80);
             entity.Property(e => e.Model).IsRequired().HasMaxLength(80);
             entity.Property(e => e.Year).IsRequired();
-            entity.ComplexProperty(e => e.Plate, plate =>
+            entity.OwnsOne(e => e.Plate, plate =>
             {
-                plate.Property(p => p.Value)
+                plate.Property(e => e.Value)
                      .HasColumnName("Plate")
                      .IsRequired()
                      .HasMaxLength(10);

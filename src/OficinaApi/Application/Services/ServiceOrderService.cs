@@ -17,20 +17,22 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
     private readonly IServiceRepository _serviceRepository;
     private readonly IPartRepository _partRepository;
     private readonly ICustomerRepository _customerRepository;
+    private readonly IEmailService _emailService;
 
     public ServiceOrderService(
-        IServiceOrderRepository serviceOrderRepository, 
-        IVehicleRepository vehicleRepository, 
+        IServiceOrderRepository serviceOrderRepository,
+        IVehicleRepository vehicleRepository,
         IServiceRepository serviceRepository,
         IPartRepository partRepository,
-        ICustomerRepository customerRepository
-    )
+        ICustomerRepository customerRepository,
+        IEmailService emailService)
     {
         _serviceOrderRepository = serviceOrderRepository;
         _vehicleRepository = vehicleRepository;
         _serviceRepository = serviceRepository;
         _partRepository = partRepository;
         _customerRepository = customerRepository;
+        _emailService = emailService;
     }
 
     public async Task<ServiceOrderDto> CreateServiceOrderAsync(CreateServiceOrderDto dto)
@@ -119,6 +121,16 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         serviceOrder.FinishAnalysis();
         await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
+        if (!string.IsNullOrWhiteSpace(serviceOrder.Customer.Email))
+        {
+            await _emailService.SendAsync(
+                serviceOrder.Customer.Email,
+                "Ordem de Serviço - Aguardando Aprovação",
+                $"Olá, sua ordem de serviço {serviceOrder.Id} foi analisada.\n" +
+                $"Orçamento: R$ {serviceOrder.Budget}\n" +
+                $"Por favor, aprove para continuarmos.");
+        } 
+
         return new ServiceOrderDto(serviceOrder);
     }
 
@@ -152,7 +164,14 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         serviceOrder.Deliver();
         await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
-        return new ServiceOrderDto(serviceOrder);
+        if (!string.IsNullOrWhiteSpace(serviceOrder.Customer.Email))
+        {
+            await _emailService.SendAsync(
+                serviceOrder.Customer.Email,
+                "Ordem de Serviço Finalizada",
+                $"Olá, sua ordem de serviço {serviceOrder.Id} foi concluída e está pronta para retirada.");
+        }
+            return new ServiceOrderDto(serviceOrder);
     }
 
     public async Task<IEnumerable<ServiceOrderPeddingStockDto>> GetServiceOrderPeddingStocksAsync(Guid id)

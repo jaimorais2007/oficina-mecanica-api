@@ -55,6 +55,7 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
 builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<OficinaApi.Application.Interfaces.IUserService, OficinaApi.Application.Services.UserService>();
 
 // Register Domain Event Dispatcher

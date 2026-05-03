@@ -10,6 +10,7 @@ namespace OficinaApi.Application.DTOs
         public PersonType PersonType { get; private set; }
         public string Document { get; private set; } = string.Empty;
         public DateTime DateOfBirth { get; private set; }
+        public string Email { get; private set; } = string.Empty;
 
         public CustomerDto(Customer customer)
         {
@@ -27,6 +28,8 @@ namespace OficinaApi.Application.DTOs
         public PersonType PersonType { get; set; }
         public string Document { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
+        public string Email { get; set; } = string.Empty;
+
     }
 
     public class UpdateCustomerDto
@@ -35,5 +38,7 @@ namespace OficinaApi.Application.DTOs
         public PersonType PersonType { get; set; }
         public string Document { get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; }
+        public string Email { get; set; } = string.Empty;
+
     }
 }

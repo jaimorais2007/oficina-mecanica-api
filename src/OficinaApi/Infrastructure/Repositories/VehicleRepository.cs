@@ -39,7 +39,7 @@ namespace OficinaApi.Infrastructure.Repositories
 
         public async Task<Vehicle?> GetVehicleAsync(Plate plate)
         {
-            return await _context.Vehicles.FirstOrDefaultAsync(vehicle => vehicle.Plate == plate);
+            return await _context.Vehicles.FirstOrDefaultAsync(vehicle => vehicle.Plate.Value == plate.Value);
         }
 
         public async Task<Vehicle?> GetByIdAsync(Guid id)

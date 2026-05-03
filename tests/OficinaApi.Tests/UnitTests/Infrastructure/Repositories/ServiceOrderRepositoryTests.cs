@@ -12,7 +12,7 @@ using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
 using Xunit;
 
-namespace OficinaApi.Tests.UnitTests.Infrastructure.Repositories;
+namespace Unit.Tests;
 
 public class ServiceOrderRepositoryTests
 {
@@ -47,7 +47,7 @@ public class ServiceOrderRepositoryTests
     }
 
     private Customer CreateCustomer()
-        => new("João Silva", PersonType.Individual, "529.982.247-25", new DateTime(1990, 1, 1));
+        => new("João Silva", PersonType.Individual, "529.982.247-25", new DateTime(1990, 1, 1), "teste@gmail.com");
 
     private Vehicle CreateVehicle(Customer customer)
         => new(customer, "ABC1234", "Toyota", "Corolla", 2020);
