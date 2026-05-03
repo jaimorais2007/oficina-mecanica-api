@@ -52,7 +52,6 @@ builder.Services.AddScoped<OficinaApi.Domain.Interfaces.IUserRepository, Oficina
 // Register Application Services
 builder.Services.AddScoped<IPartService, PartService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<OficinaApi.Application.Interfaces.IExternalQueryService, OficinaApi.Application.Services.ExternalQueryService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
 builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
