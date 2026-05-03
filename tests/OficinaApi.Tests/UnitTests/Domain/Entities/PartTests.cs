@@ -3,7 +3,7 @@ using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Events;
 using Xunit;
 
-namespace OficinaApi.Tests.UnitTests.Domain.Entities;
+namespace Unit.Tests;
 
 public class PartTests
 {

@@ -1,14 +1,11 @@
-using System;
-using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
-using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Services;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Interfaces;
 using Xunit;
 
-namespace OficinaApi.Tests;
+namespace Unit.Tests;
 
 public class PartServiceTests
 {

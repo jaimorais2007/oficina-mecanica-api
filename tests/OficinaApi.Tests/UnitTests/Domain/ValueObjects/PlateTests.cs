@@ -1,7 +1,7 @@
 using Xunit;
 using FluentAssertions;
 
-namespace OficinaApi.Tests.UnitTests.Domain.ValueObjects;
+namespace Unit.Tests;
 
 public class PlateTests
 {

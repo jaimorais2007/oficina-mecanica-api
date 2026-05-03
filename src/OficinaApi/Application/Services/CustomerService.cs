@@ -36,7 +36,8 @@ namespace OficinaApi.Application.Services
                 dto.Name,
                 dto.PersonType,
                 dto.Document,
-                dto.DateOfBirth
+                dto.DateOfBirth,
+                dto.Email
             );
 
             await _customerRepository.AddAsync(customer);
@@ -60,7 +61,8 @@ namespace OficinaApi.Application.Services
                 dto.Name,
                 dto.PersonType,
                 dto.Document,
-                dto.DateOfBirth
+                dto.DateOfBirth,
+                dto.Email
             );
 
             await _customerRepository.UpdateAsync(customer);

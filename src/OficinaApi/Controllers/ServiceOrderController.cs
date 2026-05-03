@@ -8,7 +8,7 @@ namespace OficinaApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] 
+//[Authorize] 
 public class ServiceOrdersController : ControllerBase
 {
     private readonly IServiceOrderService _serviceOrderService;

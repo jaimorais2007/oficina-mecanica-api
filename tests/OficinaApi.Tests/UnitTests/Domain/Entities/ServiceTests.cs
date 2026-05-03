@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Xunit;
 
-namespace OficinaApi.Tests.UnitTests.Domain.Entities;
+namespace Unit.Tests;
 
 public class ServiceTests
 {

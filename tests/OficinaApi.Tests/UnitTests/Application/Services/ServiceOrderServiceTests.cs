@@ -11,7 +11,7 @@ using OficinaApi.Domain.Interfaces;
 using Xunit;
 using AppServiceOrderService = OficinaApi.Application.Services.ServiceOrderService;
 
-namespace OficinaApi.Tests.UnitTests.Application.Services;
+namespace Unit.Tests;
 
 public class ServiceOrderServiceTests
 {
@@ -29,18 +29,21 @@ public class ServiceOrderServiceTests
         _serviceRepoMock      = new Mock<IServiceRepository>();
         _partRepoMock         = new Mock<IPartRepository>();
         _customerRepoMock     = new Mock<ICustomerRepository>();
+        var emailServiceMock = new Mock<IEmailService>();
+
 
         _sut = new AppServiceOrderService(
             _serviceOrderRepoMock.Object,
             _vehicleRepoMock.Object,
             _serviceRepoMock.Object,
             _partRepoMock.Object,
-            _customerRepoMock.Object
+            _customerRepoMock.Object,
+            emailServiceMock.Object
         );
     }
 
     private static Customer CreateCustomer()
-        => new("João Silva", PersonType.Individual, "529.982.247-25", new DateTime(1990, 1, 1));
+        => new("João Silva", PersonType.Individual, "529.982.247-25", new DateTime(1990, 1, 1), "teste@gmail.com");
 
     private static Vehicle CreateVehicle(Customer customer)
         => new(customer, "ABC1234", "Toyota", "Corolla", 2020);

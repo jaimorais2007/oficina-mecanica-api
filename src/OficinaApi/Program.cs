@@ -57,6 +57,7 @@ builder.Services.AddScoped<ICustomerService, CustomerService>();
 builder.Services.AddScoped<IVehicleService, VehicleService>();
 builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
 builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 // Register Domain Event Dispatcher
 builder.Services.AddScoped<IDomainEventDispatcher, OficinaApi.Infrastructure.Data.DomainEventDispatcher>();
@@ -94,6 +95,17 @@ builder.Services.AddSwaggerGen(c => {
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var emailService = scope.ServiceProvider.GetRequiredService<IEmailService>();
+
+    await emailService.SendAsync(
+        "kevinpiresdeoliveira@gmail.com",
+        "Teste inicial",
+        "Enviado no startup"
+    );
+}
 
 app.UseSwagger();
 app.UseSwaggerUI();

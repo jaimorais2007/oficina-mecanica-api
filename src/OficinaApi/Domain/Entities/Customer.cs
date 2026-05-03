@@ -10,6 +10,7 @@ namespace OficinaApi.Domain.Entities
         public Document Document { get; private set; } = null!;
         public DateTime CreatedAt { get; private set; }
         public DateTime? DateOfBirth { get; private set; }
+        public string Email { get; private set; }
         public ICollection<ServiceOrder> ServiceOrders { get; private set; } = [];
         public ICollection<Vehicle> Vehicles { get; private set; } = [];
 
@@ -20,23 +21,26 @@ namespace OficinaApi.Domain.Entities
             Document = null!;
         }
 
-        public Customer(string name, PersonType personType, string document, DateTime? dateOfBirth)
+        public Customer(string name, PersonType personType, string document, DateTime? dateOfBirth, string email)
         {
             Id = Guid.NewGuid();
             CreatedAt = DateTime.UtcNow;
 
-            ApplyChanges(name, personType, document, dateOfBirth);
+            ApplyChanges(name, personType, document, dateOfBirth, email);
         }
 
-        public void Update(string name, PersonType personType, string document, DateTime? dateOfBirth)
+        public void Update(string name, PersonType personType, string document, DateTime? dateOfBirth, string email)
         {
-            ApplyChanges(name, personType, document, dateOfBirth);
+            ApplyChanges(name, personType, document, dateOfBirth, email);
         }
 
-        private void ApplyChanges(string name, PersonType personType, string document, DateTime? dateOfBirth)
+        private void ApplyChanges(string name, PersonType personType, string document, DateTime? dateOfBirth, string email)
         {
             if (string.IsNullOrWhiteSpace(name))
                 throw new ArgumentException("Nome é obrigatório.");
+
+            if (string.IsNullOrWhiteSpace(email))
+                throw new ArgumentException("E-mail é obrigatório.");
 
             if (!Enum.IsDefined(typeof(PersonType), personType))
                 throw new ArgumentException("Tipo de pessoa inválido.");
@@ -51,6 +55,7 @@ namespace OficinaApi.Domain.Entities
             Document = new Document(document, personType);
 
             DateOfBirth = dateOfBirth.GetValueOrDefault();
+            Email = email;
         }
     }
 }

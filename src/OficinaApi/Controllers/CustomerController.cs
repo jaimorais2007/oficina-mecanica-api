@@ -10,7 +10,7 @@ namespace OficinaApi.Controllers
 
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
+    //[Authorize]
     public class CustomerController : ControllerBase
     {
         private readonly ICustomerService _customerService;
