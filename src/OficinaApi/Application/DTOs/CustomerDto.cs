@@ -19,6 +19,7 @@ namespace OficinaApi.Application.DTOs
             PersonType = customer.PersonType;
             Document = customer.Document.Value; 
             DateOfBirth = customer.DateOfBirth.GetValueOrDefault();
+            Email = customer.Email;
         }
     }
 
