@@ -7,10 +7,12 @@ namespace OficinaApi.Application.Services
     public class VehicleService : IVehicleService
     {
         private readonly IVehicleRepository _vehicleRepository;
+        private readonly ICustomerRepository _customerRepository;
 
-        public VehicleService(IVehicleRepository vehicleRepository)
+        public VehicleService(IVehicleRepository vehicleRepository, ICustomerRepository customerRepository)
         {
             _vehicleRepository = vehicleRepository;
+            _customerRepository = customerRepository;
         }
 
         public async Task<IEnumerable<VehicleDto?>> GetAllVehiclesAsync()
@@ -29,7 +31,11 @@ namespace OficinaApi.Application.Services
 
         public async Task<VehicleDto> CreateVehicleAsync(CreateVehicleDto dto)
         {
-            var vehicle = new Vehicle(dto.Plate, dto.Brand, dto.Model, dto.Year);
+            var customer = await _customerRepository.GetByIdAsync(dto.CustomerId);
+            if (customer == null)
+                throw new ArgumentException("Cliente não encontrado.");
+
+            var vehicle = new Vehicle(customer, dto.Plate, dto.Brand, dto.Model, dto.Year);
 
             await _vehicleRepository.AddAsync(vehicle);
 

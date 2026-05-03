@@ -12,4 +12,5 @@ public interface IPartRepository
     Task AddAsync(Part part);
     Task UpdateAsync(Part part);
     Task DeleteAsync(Guid id);
+    Task<Part?> GetByIdWithServiceOrderDetailsAsync(Guid id);
 }

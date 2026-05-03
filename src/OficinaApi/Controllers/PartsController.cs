@@ -58,6 +58,10 @@ public class PartsController : ControllerBase
             await _partService.AddStockAsync(id, dto.Quantity);
             return NoContent();
         }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
         catch (Exception ex)
         {
             return BadRequest(new { Message = ex.Message });
