@@ -179,7 +179,7 @@ private readonly IServiceOrderRepository _serviceOrderRepository;
         var serviceOrder = await _serviceOrderRepository.GetServiceOrderByIdToGetPeddingStocksAsync(id);
         if (serviceOrder == null) throw new ArgumentException("Ordem de serviço não encontrada.");
 
-        return serviceOrder.GetPendingStocks().Select(a => new ServiceOrderPeddingStockDto(a.PartId, a.Part.Name, a.Quantity));
+        return serviceOrder.GetPendingStocks().Select(a => new ServiceOrderPeddingStockDto(a));
 
     }
 

@@ -404,6 +404,9 @@ public class ServiceOrderEntityTests
         var order = CreateServiceOrder();
         order.AddPart(part1, 1);
         order.AddPart(part2, 1);
+        order.StartDiagnostics();
+        order.FinishAnalysis();
+        order.ApproveServiceOrder();
 
         // Garante o estoque apenas da primeira peça
         order.PartsUsed.First().EnsureStockQuantity();
@@ -424,7 +427,10 @@ public class ServiceOrderEntityTests
         var order = CreateServiceOrder();
         order.AddPart(part, 1);
         order.PartsUsed.First().EnsureStockQuantity();
-
+        order.StartDiagnostics();
+        order.FinishAnalysis();
+        order.ApproveServiceOrder();
+        
         // Act
         var pendingStocks = order.GetPendingStocks();
 

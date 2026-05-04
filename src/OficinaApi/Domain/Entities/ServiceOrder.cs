@@ -119,6 +119,8 @@ public class ServiceOrder : BaseEntity
 
     public ICollection<ServiceOrderPart> GetPendingStocks()
     {
+        if (GetLastStatusHistory().Status != OrderStatus.Executing)
+            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Execução' para verificar os estoques pendentes.");
         return PartsUsed.Where(p => !p.StockQuantityWasEnsured).ToList();
     }
 }

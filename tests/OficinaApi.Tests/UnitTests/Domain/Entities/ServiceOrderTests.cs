@@ -345,8 +345,13 @@ public class ServiceOrderTests
     {
         // Arrange
         var order = CreateServiceOrder();
+        
+        order.StartDiagnostics();
         var part = CreatePart(stock: 5);
+
         order.AddPart(part, 2);
+        order.FinishAnalysis();
+        order.ApproveServiceOrder();
 
         // Act
         var pending = order.GetPendingStocks();
@@ -354,5 +359,25 @@ public class ServiceOrderTests
         // Assert
         pending.Should().HaveCount(1);
         pending.First().Part.Should().Be(part);
+    }
+
+    [Fact]
+    public void GetPendingStocks_ShouldThrowException_WhenOrderIsNotInExecutingStatus()
+    {
+        // Arrange
+        var order = CreateServiceOrder();
+
+        order.StartDiagnostics();
+        var part = CreatePart(stock: 5);
+
+        order.AddPart(part, 2);
+        order.FinishAnalysis();
+
+
+        Action act = () => order.GetPendingStocks();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*'Em Execução'*");
     }
 }
