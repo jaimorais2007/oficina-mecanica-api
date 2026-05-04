@@ -209,6 +209,10 @@ public class ServiceOrderIntegrationTests
             Quantity = 2
         });
 
+        await service.StartDiagnosticsAsync(orderId);
+        await service.FinishAnalysisAsync(orderId);
+        await service.ApproveServiceOrderAsync(orderId);
+
         var pending = await service.GetServiceOrderPeddingStocksAsync(orderId);
 
         pending.Should().HaveCount(1);
