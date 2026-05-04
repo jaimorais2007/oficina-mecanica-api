@@ -48,7 +48,7 @@ public class ServiceOrdersController : ControllerBase
 
     [SwaggerOperation(Summary = "Move uma ordem de serviço para analise",
                       Description = "Move uma ordem de serviço para o status de análise técnica.")]
-    [HttpPost("{id}/startAnalysis")]
+    [HttpPost("{id}/start-analysis")]
     public async Task<IActionResult> MoveToAnalysis(Guid id)
     {
         try
@@ -68,7 +68,7 @@ public class ServiceOrdersController : ControllerBase
 
     [SwaggerOperation(Summary = "Move uma ordem de serviço para execução",
                       Description = "Move uma ordem de serviço para o status de execução, indicando que os trabalhos começaram.")]
-    [HttpPost("{id}/finishAnalysis")]
+    [HttpPost("{id}/finish-analysis")]
     public async Task<IActionResult> FinishAnalysis(Guid id)
     {
         var result = await _serviceOrderService.FinishAnalysisAsync(id);
@@ -104,7 +104,7 @@ public class ServiceOrdersController : ControllerBase
 
     [SwaggerOperation(Summary = "Finaliza a execução de uma ordem de serviço",
                       Description = "Move uma ordem de serviço para o status de finalizada, indicando que a execução foi concluída.")]
-    [HttpPost("{id}/finishExecution")]
+    [HttpPost("{id}/finish-execution")]
     public async Task<IActionResult> FinishExecution(Guid id)
     {
         var result = await _serviceOrderService.FinishExecutionAsync(id);
@@ -122,7 +122,7 @@ public class ServiceOrdersController : ControllerBase
 
     [SwaggerOperation(Summary = "Lista os estoques pendentes da ordem de serviço",
                       Description = "Retorna uma lista de estoques pendentes relacionados a uma ordem de serviço.")]
-    [HttpGet("{id}/pendingStocks")]
+    [HttpGet("{id}/pending-stocks")]
     public async Task<IActionResult> GetServiceOrderPendingStocks(Guid id)
     {
         var result = await _serviceOrderService.GetServiceOrderPeddingStocksAsync(id);

@@ -34,4 +34,11 @@ public class CreateServiceOrderDto
     public List<Guid> ServicesUsed { get; set; } = [];
 }
 
-public record ServiceOrderPeddingStockDto(Guid PartId, string PartName, int Quantity);
+public record ServiceOrderPeddingStockDto(Guid PartId, string PartName, int Quantity, int PeddingQuantity)
+{
+    public ServiceOrderPeddingStockDto(ServiceOrderPart serviceOrderPart) : this(
+        serviceOrderPart.Part.Id,
+        serviceOrderPart.Part.Name,
+        serviceOrderPart.Quantity,
+        serviceOrderPart.Part.QuantityInStock - serviceOrderPart.Quantity) {}
+}
