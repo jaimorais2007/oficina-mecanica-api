@@ -3,6 +3,7 @@ WORKDIR /app
 
 COPY *.sln .
 COPY src/ ./src/
+COPY tests/ ./tests/
 RUN dotnet restore
 
 RUN dotnet publish src/OficinaApi/OficinaApi.csproj \

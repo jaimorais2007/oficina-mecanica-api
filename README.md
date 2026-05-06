@@ -18,6 +18,8 @@ API RESTful para gerenciamento de uma oficina mecânica, desenvolvida com .NET 8
 - [Documentação Swagger](#documentação-swagger)
 - [Endpoints disponíveis](#endpoints-disponíveis)
 - [Exemplos de requisição](#exemplos-de-requisição)
+- [Testes](#testes)
+- [Análise de segurança do código](#análise-de-segurança-do-código)
 
 ---
 
@@ -358,3 +360,45 @@ curl -X POST http://localhost:8080/api/ServiceOrders \
 ```bash
 curl http://localhost:8080/api/external/orders/<id_da_os>/progress
 ```
+
+---
+
+## Testes
+
+O projeto conta com uma suíte de **257 testes automatizados** (0 falhas), cobrindo os principais fluxos de domínio.
+
+### Executar os testes
+
+```bash
+dotnet test tests/OficinaApi.Tests/OficinaApi.Tests.csproj
+```
+
+### Distribuição
+
+| Categoria | Cobertura |
+|-----------|-----------|
+| Controllers (Auth, Users, Customers, Vehicles, ServiceOrders) | ✅ Unitários |
+| Services (UserService, TokenService, EmailService, PartService, ServiceOrderService) | ✅ Unitários |
+| Domain Entities (ServiceOrder, Part, Service, Vehicle, Customer) | ✅ Unitários |
+| Value Objects (CPF/CNPJ, Placa) | ✅ Unitários |
+| Repositórios | ✅ Unitários |
+| Fluxos de integração (Customers, Parts, Services, ServiceOrders, Vehicles) | ✅ Integração |
+
+---
+
+## Análise de segurança do código
+
+O relatório completo de análise estática do código está disponível em:
+
+📄 [`docs/relatorio-scan-codigo.md`](docs/relatorio-scan-codigo.md)
+
+### Resumo dos achados
+
+| Categoria | Risco | Status |
+|-----------|-------|--------|
+| Injeção de SQL | Nenhum | ✅ OK |
+| Autenticação JWT | Nenhum | ✅ OK |
+| Autorização de endpoints | Baixo | ✅ OK |
+| Segurança do contêiner Docker | Nenhum | ✅ OK |
+| Credenciais expostas | Baixo (intencional — contexto acadêmico) | Aceito |
+| Validação de entrada nos DTOs | Médio | ⚠️ Recomendação documentada |
