@@ -6,10 +6,10 @@ namespace OficinaApi.Domain.Entities;
 public class Vehicle : BaseEntity
 {
     public Plate Plate { get; private set; }
-    public string Brand { get; private set; }
-    public string Model { get; private set; }
-    public int Year { get; private set; }
-    public DateTime CreatedAt { get; private set; }
+    public string Brand { get; private set; } = string.Empty;
+    public string Model { get; private set; } = string.Empty;
+    public int Year { get; private set; } = default;
+    public DateTime CreatedAt { get; private set; } = default;
     public Customer Customer { get; set; }
     public Guid CustomerId { get; set; }
     public ICollection<ServiceOrder> ServiceOrders { get; private set; } = [];

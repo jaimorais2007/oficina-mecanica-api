@@ -4,7 +4,7 @@ namespace OficinaApi.Domain.ValueObjects;
 
 public class Plate
 {
-    public string Value { get; private set; }
+    public string Value { get; private set; } = string.Empty;
 
     protected Plate() { }
 

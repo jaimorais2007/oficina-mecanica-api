@@ -9,7 +9,6 @@ public class ServiceOrderService : BaseEntity
     public ServiceOrder ServiceOrder { get; private set; }
     public Service Service { get; private set; }
 
-    // For EF Core
     protected ServiceOrderService() { }
 
     public ServiceOrderService(ServiceOrder serviceOrder, Service service)

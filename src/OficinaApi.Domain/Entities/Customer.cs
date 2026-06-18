@@ -7,19 +7,14 @@ namespace OficinaApi.Domain.Entities
     {
         public string Name { get; private set; } = string.Empty;
         public PersonType PersonType { get; private set; }
-        public Document Document { get; private set; } = null!;
-        public DateTime CreatedAt { get; private set; }
+        public Document Document { get; private set; }
+        public DateTime CreatedAt { get; private set; } = default;
         public DateTime? DateOfBirth { get; private set; }
         public string Email { get; private set; }
         public ICollection<ServiceOrder> ServiceOrders { get; private set; } = [];
         public ICollection<Vehicle> Vehicles { get; private set; } = [];
 
-        // For EF Core
-        protected Customer()
-        {
-            Name = string.Empty;
-            Document = null!;
-        }
+        protected Customer() {}
 
         public Customer(string name, PersonType personType, string document, DateTime? dateOfBirth, string email)
         {
@@ -51,7 +46,6 @@ namespace OficinaApi.Domain.Entities
             Name = name.Trim();
             PersonType = personType;
 
-            // Validações do documento informado.
             Document = new Document(document, personType);
 
             DateOfBirth = dateOfBirth.GetValueOrDefault();

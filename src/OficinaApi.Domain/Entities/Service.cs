@@ -4,10 +4,10 @@ namespace OficinaApi.Domain.Entities;
 
 public class Service : BaseEntity
 {
-    public string Name { get; private set; }
-    public string Description { get; private set; }
-    public decimal DefaultPrice { get; private set; }
-    public DateTime CreatedAt { get; private set; }
+    public string Name { get; private set; } = string.Empty;
+    public string Description { get; private set; } = string.Empty;
+    public decimal DefaultPrice { get; private set; } = default;
+    public DateTime CreatedAt { get; private set; } = default;
     public ICollection<ServiceOrderService> ServiceOrdersServices { get; set; } = [];
 
     protected Service() { }
