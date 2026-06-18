@@ -1,6 +1,12 @@
 services:
   api:
-    build: .
+    build: 
+      context: .
+      args:
+        EMAIL_PASSWORD: ${EMAIL_PASSWORD}
+        DB_CONNECTION_STRING: ${DB_CONNECTION_STRING}
+        DOTNET_ENVIRONMENT: Production
+        PORT: 8080
     restart: unless-stopped
     ports:
       - "8080:8080"
@@ -8,8 +14,8 @@ services:
       - ASPNETCORE_ENVIRONMENT=Production
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
       - Jwt__Secret=${JWT_SECRET}
-      - Jwt__Issuer=${JWT_ISSUER}
-      - Jwt__Audience=${JWT_AUDIENCE}
+      - EmailSettings__Email=${EMAIL_ADDRESS}
+      - EmailSettings__Password=${EMAIL_PASSWORD}
     volumes:
       - dp_keys:/home/appuser/.aspnet/DataProtection-Keys
     ulimits:
