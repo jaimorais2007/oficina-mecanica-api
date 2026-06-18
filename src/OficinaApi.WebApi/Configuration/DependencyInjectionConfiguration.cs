@@ -48,6 +48,7 @@ public static class DependencyInjectionConfiguration
         services.AddScoped<IUseCase<AddStockRequest, bool>, AddStockUseCase>();
         services.AddScoped<IUseCase<RemoveStockRequest, bool>, RemoveStockUseCase>();
         services.AddScoped<IUseCase<Guid, bool>, DeletePartUseCase>();
+        services.AddScoped<IUseCase<PartStockAddedEvent, bool>, PartStockAddedUseCase>();
 
         services.AddScoped<IUseCase<NoInput, IEnumerable<ServiceDto>>, GetAllServicesUseCase>();
         services.AddScoped<IUseCase<Guid, ServiceDto?>, GetServiceByIdUseCase>();
@@ -67,6 +68,7 @@ public static class DependencyInjectionConfiguration
         services.AddScoped<IUseCase<DeliverServiceOrderRequest, ServiceOrderDto>, DeliverServiceOrderUseCase>();
         services.AddScoped<IUseCase<Guid, IEnumerable<ServiceOrderPeddingStockDto>>, GetServiceOrderPendingStocksUseCase>();
         services.AddScoped<IUseCase<NoInput, double>, GetAverageDurationUseCase>();
+        services.AddScoped<IUseCase<ServiceOrderApprovedEvent, bool>, ServiceOrderApprovedUseCase>();
 
         services.AddScoped<IUseCase<NoInput, IEnumerable<UserDto>>, GetAllUsersUseCase>();
         services.AddScoped<IUseCase<Guid, UserDto?>, GetUserByIdUseCase>();
