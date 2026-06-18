@@ -1,13 +1,17 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.Application.Services;
+using OficinaApi.Application.UseCases.Vehicles;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Integration.Tests;
@@ -25,7 +29,7 @@ public class VehicleIntegrationTests
         return new OficinaDbContext(options, dispatcherMock.Object);
     }
 
-    private async Task<(VehicleService service, Customer customer, OficinaDbContext context)> Setup()
+    private async Task<(Customer customer, OficinaDbContext context)> Setup()
     {
         var context = CreateContext();
 
@@ -40,17 +44,16 @@ public class VehicleIntegrationTests
         context.Customers.Add(customer);
         await context.SaveChangesAsync();
 
-        var vehicleRepo = new VehicleRepository(context);
-        var customerRepo = new CustomerRepository(context);
-        var service = new VehicleService(vehicleRepo, customerRepo);
-
-        return (service, customer, context);
+        return (customer, context);
     }
 
     [Fact]
     public async Task CreateVehicle()
     {
-        var (service, customer, context) = await Setup();
+        var (customer, context) = await Setup();
+        var vehicleRepo = new VehicleRepository(context);
+        var customerRepo = new CustomerRepository(context);
+        var useCase = new CreateVehicleUseCase(vehicleRepo, customerRepo);
 
         var dto = new CreateVehicleDto
         {
@@ -61,9 +64,10 @@ public class VehicleIntegrationTests
             Year = 2020
         };
 
-        var result = await service.CreateVehicleAsync(dto);
+        var result = await useCase.ExecuteAsync(dto);
 
-        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
 
         var vehicle = await context.Vehicles.FirstOrDefaultAsync();
         vehicle.Should().NotBeNull();
@@ -73,38 +77,46 @@ public class VehicleIntegrationTests
     [Fact]
     public async Task GetById()
     {
-        var (service, customer, context) = await Setup();
+        var (customer, context) = await Setup();
+        var vehicleRepo = new VehicleRepository(context);
+        var useCase = new GetVehicleByIdUseCase(vehicleRepo);
 
         var vehicle = new Vehicle(customer, "ABC1234", "Toyota", "Corolla", 2020);
 
         context.Vehicles.Add(vehicle);
         await context.SaveChangesAsync();
 
-        var result = await service.GetVehicleByIdAsync(vehicle.Id);
+        var result = await useCase.ExecuteAsync(vehicle.Id);
 
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(vehicle.Id);
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
+        result.Response!.Id.Should().Be(vehicle.Id);
     }
 
     [Fact]
     public async Task GetAll()
     {
-        var (service, customer, context) = await Setup();
+        var (customer, context) = await Setup();
+        var vehicleRepo = new VehicleRepository(context);
+        var useCase = new GetAllVehiclesUseCase(vehicleRepo);
 
         context.Vehicles.Add(new Vehicle(customer, "ABC1234", "Toyota", "Corolla", 2020));
         context.Vehicles.Add(new Vehicle(customer, "DEF5678", "Honda", "Civic", 2021));
 
         await context.SaveChangesAsync();
 
-        var result = await service.GetAllVehiclesAsync();
+        var result = await useCase.ExecuteAsync(new NoInput());
 
-        result.Should().HaveCount(2);
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().HaveCount(2);
     }
 
     [Fact]
     public async Task UpdateVehicle()
     {
-        var (service, customer, context) = await Setup();
+        var (customer, context) = await Setup();
+        var vehicleRepo = new VehicleRepository(context);
+        var useCase = new UpdateVehicleUseCase(vehicleRepo);
 
         var vehicle = new Vehicle(customer, "ABC1234", "Toyota", "Corolla", 2020);
 
@@ -119,9 +131,10 @@ public class VehicleIntegrationTests
             Year = 2022
         };
 
-        var result = await service.UpdateVehicleAsync(vehicle.Id, dto);
+        var result = await useCase.ExecuteAsync(new UpdateVehicleRequest(vehicle.Id, dto));
 
-        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
 
         var updated = await context.Vehicles.FirstAsync();
 
@@ -132,14 +145,17 @@ public class VehicleIntegrationTests
     [Fact]
     public async Task DeleteVehicle()
     {
-        var (service, customer, context) = await Setup();
+        var (customer, context) = await Setup();
+        var vehicleRepo = new VehicleRepository(context);
+        var useCase = new DeleteVehicleUseCase(vehicleRepo);
 
         var vehicle = new Vehicle(customer, "ABC1234", "Toyota", "Corolla", 2020);
 
         context.Vehicles.Add(vehicle);
         await context.SaveChangesAsync();
 
-        await service.DeleteVehicleAsync(vehicle.Id);
+        var result = await useCase.ExecuteAsync(vehicle.Id);
+        result.IsSuccess.Should().BeTrue();
 
         var exists = await context.Vehicles.AnyAsync();
 

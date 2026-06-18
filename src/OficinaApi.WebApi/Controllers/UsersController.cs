@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -13,11 +15,24 @@ namespace OficinaApi.WebApi.Controllers;
 [Authorize] // Requires JWT
 public class UsersController : ControllerBase
 {
-    private readonly IUserService _userService;
+    private readonly IUseCase<NoInput, IEnumerable<UserDto>> _getAllUsersUseCase;
+    private readonly IUseCase<Guid, UserDto?> _getUserByIdUseCase;
+    private readonly IUseCase<CreateUserDto, UserDto> _createUserUseCase;
+    private readonly IUseCase<UpdateUserRequest, bool> _updateUserUseCase;
+    private readonly IUseCase<Guid, bool> _deleteUserUseCase;
 
-    public UsersController(IUserService userService)
+    public UsersController(
+        IUseCase<NoInput, IEnumerable<UserDto>> getAllUsersUseCase,
+        IUseCase<Guid, UserDto?> getUserByIdUseCase,
+        IUseCase<CreateUserDto, UserDto> createUserUseCase,
+        IUseCase<UpdateUserRequest, bool> updateUserUseCase,
+        IUseCase<Guid, bool> deleteUserUseCase)
     {
-        _userService = userService;
+        _getAllUsersUseCase = getAllUsersUseCase;
+        _getUserByIdUseCase = getUserByIdUseCase;
+        _createUserUseCase = createUserUseCase;
+        _updateUserUseCase = updateUserUseCase;
+        _deleteUserUseCase = deleteUserUseCase;
     }
 
     [SwaggerOperation(Summary = "Lista todos os usuários", 
@@ -25,8 +40,9 @@ public class UsersController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
-        var users = await _userService.GetAllUsersAsync();
-        return Ok(users);
+        var result = await _getAllUsersUseCase.ExecuteAsync(new NoInput());
+        if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+        return Ok(result.Response);
     }
 
     [SwaggerOperation(Summary = "Busca usuário por ID", 
@@ -34,9 +50,10 @@ public class UsersController : ControllerBase
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(Guid id)
     {
-        var user = await _userService.GetUserByIdAsync(id);
-        if (user == null) return NotFound();
-        return Ok(user);
+        var result = await _getUserByIdUseCase.ExecuteAsync(id);
+        if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+        if (result.Response == null) return NotFound();
+        return Ok(result.Response);
     }
 
     [SwaggerOperation(Summary = "Cria um novo usuário", 
@@ -46,15 +63,9 @@ public class UsersController : ControllerBase
     [AllowAnonymous] // Permitir criação do primeiro usuário
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {
-        try
-        {
-            var result = await _userService.CreateUserAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var result = await _createUserUseCase.ExecuteAsync(dto);
+        if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+        return CreatedAtAction(nameof(GetById), new { id = result.Response.Id }, result.Response);
     }
 
     [SwaggerOperation(Summary = "Atualiza os dados de um usuário", 
@@ -62,15 +73,9 @@ public class UsersController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(Guid id, [FromBody] UpdateUserDto dto)
     {
-        try
-        {
-            await _userService.UpdateUserAsync(id, dto);
-            return NoContent();
-        }
-        catch (Exception ex)
-        {
-            return BadRequest(new { Message = ex.Message });
-        }
+        var result = await _updateUserUseCase.ExecuteAsync(new UpdateUserRequest(id, dto));
+        if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+        return NoContent();
     }
 
     [SwaggerOperation(Summary = "Remove um usuário", 
@@ -78,7 +83,8 @@ public class UsersController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(Guid id)
     {
-        await _userService.DeleteUserAsync(id);
+        var result = await _deleteUserUseCase.ExecuteAsync(id);
+        if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
         return NoContent();
     }
 }

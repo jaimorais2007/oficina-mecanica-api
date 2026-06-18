@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
@@ -11,11 +15,24 @@ namespace OficinaApi.WebApi.Controllers
     [Authorize]
     public class ServiceController : ControllerBase
     {
-        private readonly IServiceManagementService _serviceManagementService;
+        private readonly IUseCase<NoInput, IEnumerable<ServiceDto>> _getAllServicesUseCase;
+        private readonly IUseCase<Guid, ServiceDto?> _getServiceByIdUseCase;
+        private readonly IUseCase<CreateServiceDto, ServiceDto> _createServiceUseCase;
+        private readonly IUseCase<UpdateServiceRequest, ServiceDto> _updateServiceUseCase;
+        private readonly IUseCase<Guid, bool> _deleteServiceUseCase;
 
-        public ServiceController(IServiceManagementService serviceManagementService)
+        public ServiceController(
+            IUseCase<NoInput, IEnumerable<ServiceDto>> getAllServicesUseCase,
+            IUseCase<Guid, ServiceDto?> getServiceByIdUseCase,
+            IUseCase<CreateServiceDto, ServiceDto> createServiceUseCase,
+            IUseCase<UpdateServiceRequest, ServiceDto> updateServiceUseCase,
+            IUseCase<Guid, bool> deleteServiceUseCase)
         {
-            _serviceManagementService = serviceManagementService;
+            _getAllServicesUseCase = getAllServicesUseCase;
+            _getServiceByIdUseCase = getServiceByIdUseCase;
+            _createServiceUseCase = createServiceUseCase;
+            _updateServiceUseCase = updateServiceUseCase;
+            _deleteServiceUseCase = deleteServiceUseCase;
         }
 
         [SwaggerOperation(Summary = "Lista todos os serviços cadastrados",
@@ -23,8 +40,9 @@ namespace OficinaApi.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var vehicle = await _serviceManagementService.GetAllServicesAsync();
-            return Ok(vehicle);
+            var result = await _getAllServicesUseCase.ExecuteAsync(new NoInput());
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Busca serviço por ID",
@@ -32,9 +50,10 @@ namespace OficinaApi.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var vehicle = await _serviceManagementService.GetServiceByIdAsync(id);
-            if (vehicle == null) return NotFound();
-            return Ok(vehicle);
+            var result = await _getServiceByIdUseCase.ExecuteAsync(id);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            if (result.Response == null) return NotFound();
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Cria um novo serviço",
@@ -42,8 +61,9 @@ namespace OficinaApi.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateServiceDto dto)
         {
-            var result = await _serviceManagementService.CreateServiceAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            var result = await _createServiceUseCase.ExecuteAsync(dto);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            return CreatedAtAction(nameof(GetById), new { id = result.Response.Id }, result.Response);
         }
 
         [SwaggerOperation(Summary = "Atualiza os dados de um serviço",
@@ -51,8 +71,14 @@ namespace OficinaApi.WebApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateServiceDto dto)
         {
-            var result = await _serviceManagementService.UpdateServiceAsync(id, dto);
-            return Ok(result);
+            var result = await _updateServiceUseCase.ExecuteAsync(new UpdateServiceRequest(id, dto));
+            if (!result.IsSuccess)
+            {
+                if (result.Messages.Any(m => m.Contains("não encontrado")))
+                    return NotFound(new { Message = string.Join(", ", result.Messages) });
+                return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            }
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Remove um serviço",
@@ -60,7 +86,8 @@ namespace OficinaApi.WebApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _serviceManagementService.DeleteServiceAsync(id);
+            var result = await _deleteServiceUseCase.ExecuteAsync(id);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
             return Ok();
         }
     }

@@ -3,13 +3,17 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Application.UseCases.ServiceOrders;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
 using OficinaApi.Domain.Interfaces;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
-using AppServiceOrderService = OficinaApi.Application.Services.ServiceOrderService;
 
 namespace Integration.Tests;
 
@@ -24,27 +28,6 @@ public class ServiceOrderIntegrationTests
         var dispatcherMock = new Mock<IDomainEventDispatcher>();
 
         return new OficinaDbContext(options, dispatcherMock.Object);
-    }
-
-    private AppServiceOrderService CreateService(OficinaDbContext context)
-    {
-        var serviceOrderRepository = new ServiceOrderRepository(context);
-        var vehicleRepository = new VehicleRepository(context);
-        var serviceRepository = new ServiceRepository(context);
-        var partRepository = new PartRepository(context);
-        var customerRepository = new CustomerRepository(context);
-        var emailServiceMock = new Mock<IEmailService>();
-
-
-        return new AppServiceOrderService(
-            serviceOrderRepository,
-            vehicleRepository,
-            serviceRepository,
-            partRepository,
-            customerRepository,
-            emailServiceMock.Object
-
-        );
     }
 
     #region Mocks
@@ -67,8 +50,7 @@ public class ServiceOrderIntegrationTests
     public async Task CreateServiceOrder()
     {
         var context = CreateContext();
-        var service = CreateService(context);
-
+        
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
         var serviceEntity = CreateServiceEntity();
@@ -83,107 +65,142 @@ public class ServiceOrderIntegrationTests
             ServicesUsed = new() { serviceEntity.Id }
         };
 
-        var result = await service.CreateServiceOrderAsync(dto);
+        var useCase = new CreateServiceOrderUseCase(
+            new ServiceOrderRepository(context),
+            new VehicleRepository(context),
+            new ServiceRepository(context),
+            new CustomerRepository(context));
 
-        result.Should().NotBeNull();
-        result.LastStatus.Should().Be("Received");
+        var result = await useCase.ExecuteAsync(dto);
+
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
+        result.Response.LastStatus.Should().Be("Received");
     }
 
     [Fact]
     public async Task DiagnosticsServiceOrderStatus()
     {
         var context = CreateContext();
-        var service = CreateService(context);
 
-        var (orderId, _) = await CreateBaseOrder(context, service);
+        var orderId = await CreateBaseOrder(context);
 
-        var result = await service.StartDiagnosticsAsync(orderId);
+        var useCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        var result = await useCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        result.LastStatus.Should().Be("InDiagnostics");
+        result.IsSuccess.Should().BeTrue();
+        result.Response.LastStatus.Should().Be("InDiagnostics");
     }
 
     [Fact]
     public async Task FinishAnalysisServiceOrderStatus()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var emailServiceMock = new Mock<IEmailService>();
 
-        var (orderId, serviceEntity) = await CreateBaseOrder(context, service, 200m);
+        var orderId = await CreateBaseOrder(context, 200m);
 
-        await service.StartDiagnosticsAsync(orderId);
-        var result = await service.FinishAnalysisAsync(orderId);
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        result.LastStatus.Should().Be("WaitingApproval");
-        result.Budget.Should().Be(200m);
+        var useCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var result = await useCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
+
+        result.IsSuccess.Should().BeTrue();
+        result.Response.LastStatus.Should().Be("WaitingApproval");
+        result.Response.Budget.Should().Be(200m);
     }
 
     [Fact]
     public async Task ApproveServiceOrderStatus()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var emailServiceMock = new Mock<IEmailService>();
 
-        var (orderId, _) = await CreateBaseOrder(context, service);
+        var orderId = await CreateBaseOrder(context);
 
-        await service.StartDiagnosticsAsync(orderId);
-        await service.FinishAnalysisAsync(orderId);
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var result = await service.ApproveServiceOrderAsync(orderId);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        result.LastStatus.Should().Be("Executing");
+        var useCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        var result = await useCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
+
+        result.IsSuccess.Should().BeTrue();
+        result.Response.LastStatus.Should().Be("Executing");
     }
 
     [Fact]
     public async Task FinishExecutionServiceOrderStatus()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var emailServiceMock = new Mock<IEmailService>();
 
-        var (orderId, _) = await CreateBaseOrder(context, service);
+        var orderId = await CreateBaseOrder(context);
 
-        await service.StartDiagnosticsAsync(orderId);
-        await service.FinishAnalysisAsync(orderId);
-        await service.ApproveServiceOrderAsync(orderId);
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var result = await service.FinishExecutionAsync(orderId);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        result.LastStatus.Should().Be("Finished");
+        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        await approveUseCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
+
+        var useCase = new FinishExecutionUseCase(new ServiceOrderRepository(context));
+        var result = await useCase.ExecuteAsync(new FinishExecutionRequest(orderId));
+
+        result.IsSuccess.Should().BeTrue();
+        result.Response.LastStatus.Should().Be("Finished");
     }
 
     [Fact]
     public async Task DeliverServiceOrderStatus()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var emailServiceMock = new Mock<IEmailService>();
 
-        var (orderId, _) = await CreateBaseOrder(context, service);
+        var orderId = await CreateBaseOrder(context);
 
-        await service.StartDiagnosticsAsync(orderId);
-        await service.FinishAnalysisAsync(orderId);
-        await service.ApproveServiceOrderAsync(orderId);
-        await service.FinishExecutionAsync(orderId);
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var result = await service.DeliverServiceOrderAsync(orderId);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        result.LastStatus.Should().Be("Delivered");
+        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        await approveUseCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
+
+        var finishExecUseCase = new FinishExecutionUseCase(new ServiceOrderRepository(context));
+        await finishExecUseCase.ExecuteAsync(new FinishExecutionRequest(orderId));
+
+        var useCase = new DeliverServiceOrderUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var result = await useCase.ExecuteAsync(new DeliverServiceOrderRequest(orderId));
+
+        result.IsSuccess.Should().BeTrue();
+        result.Response.LastStatus.Should().Be("Delivered");
     }
 
     [Fact]
     public async Task AddService()
     {
         var context = CreateContext();
-        var service = CreateService(context);
 
-        var (orderId, _) = await CreateBaseOrder(context, service);
+        var orderId = await CreateBaseOrder(context);
 
         var extraService = CreateServiceEntity(300m);
         context.Services.Add(extraService);
         await context.SaveChangesAsync();
 
-        await service.AddServiceToServiceOrderAsync(orderId, new AddServiceDto
+        var useCase = new AddServiceToServiceOrderUseCase(new ServiceOrderRepository(context), new ServiceRepository(context));
+        var result = await useCase.ExecuteAsync(new AddServiceToServiceOrderRequest(orderId, new AddServiceDto
         {
             ServiceId = extraService.Id
-        });
+        }));
+
+        result.IsSuccess.Should().BeTrue();
 
         var order = await context.ServiceOrders
             .Include(o => o.ServicesUsed)
@@ -196,54 +213,69 @@ public class ServiceOrderIntegrationTests
     public async Task AddPart()
     {
         var context = CreateContext();
-        var service = CreateService(context);
 
-        var (orderId, _) = await CreateBaseOrder(context, service);
+        var orderId = await CreateBaseOrder(context);
 
         var part = CreatePart(stock: 5);
         context.Parts.Add(part);
         await context.SaveChangesAsync();
 
-        await service.AddPartToServiceOrderAsync(orderId, new AddPartDto
+        var addPartUseCase = new AddPartToServiceOrderUseCase(new ServiceOrderRepository(context), new PartRepository(context));
+        var resultPart = await addPartUseCase.ExecuteAsync(new AddPartToServiceOrderRequest(orderId, new AddPartDto
         {
             PartId = part.Id,
             Quantity = 2
-        });
+        }));
+        resultPart.IsSuccess.Should().BeTrue();
 
-        await service.StartDiagnosticsAsync(orderId);
-        await service.FinishAnalysisAsync(orderId);
-        await service.ApproveServiceOrderAsync(orderId);
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var pending = await service.GetServiceOrderPeddingStocksAsync(orderId);
+        var emailServiceMock = new Mock<IEmailService>();
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        pending.Should().HaveCount(1);
-        pending.First().Quantity.Should().Be(2);
+        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        await approveUseCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
+
+        var useCase = new GetServiceOrderPendingStocksUseCase(new ServiceOrderRepository(context));
+        var resultPending = await useCase.ExecuteAsync(orderId);
+
+        resultPending.IsSuccess.Should().BeTrue();
+        resultPending.Response.Should().HaveCount(1);
+        resultPending.Response.First().Quantity.Should().Be(2);
     }
 
     [Fact]
     public async Task ServiceOrderComplete()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var emailServiceMock = new Mock<IEmailService>();
 
-        var (orderId, _) = await CreateBaseOrder(context, service);
+        var orderId = await CreateBaseOrder(context);
 
-        await service.StartDiagnosticsAsync(orderId);
-        await service.FinishAnalysisAsync(orderId);
-        await service.ApproveServiceOrderAsync(orderId);
-        await service.FinishExecutionAsync(orderId);
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var result = await service.DeliverServiceOrderAsync(orderId);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        result.LastStatus.Should().Be("Delivered");
+        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        await approveUseCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
+
+        var finishExecUseCase = new FinishExecutionUseCase(new ServiceOrderRepository(context));
+        await finishExecUseCase.ExecuteAsync(new FinishExecutionRequest(orderId));
+
+        var useCase = new DeliverServiceOrderUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var result = await useCase.ExecuteAsync(new DeliverServiceOrderRequest(orderId));
+
+        result.IsSuccess.Should().BeTrue();
+        result.Response.LastStatus.Should().Be("Delivered");
     }
 
     #region Helper
 
-    private async Task<(Guid orderId, Service serviceEntity)> CreateBaseOrder(
-        OficinaDbContext context,
-        AppServiceOrderService service,
-        decimal price = 100m)
+    private async Task<Guid> CreateBaseOrder(OficinaDbContext context, decimal price = 100m)
     {
         var customer = CreateCustomer();
         var vehicle = CreateVehicle(customer);
@@ -259,9 +291,15 @@ public class ServiceOrderIntegrationTests
             ServicesUsed = new() { serviceEntity.Id }
         };
 
-        var created = await service.CreateServiceOrderAsync(dto);
+        var useCase = new CreateServiceOrderUseCase(
+            new ServiceOrderRepository(context),
+            new VehicleRepository(context),
+            new ServiceRepository(context),
+            new CustomerRepository(context));
 
-        return (created.Id, serviceEntity);
+        var created = await useCase.ExecuteAsync(dto);
+
+        return created.Response.Id;
     }
 
     #endregion

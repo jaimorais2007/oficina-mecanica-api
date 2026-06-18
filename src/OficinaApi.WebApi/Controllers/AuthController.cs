@@ -1,9 +1,9 @@
+using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.Application.Services;
 using Swashbuckle.AspNetCore.Annotations;
 
 namespace OficinaApi.WebApi.Controllers;
@@ -12,13 +12,15 @@ namespace OficinaApi.WebApi.Controllers;
 [Route("api/auth")]
 public class AuthController : ControllerBase
 {
-    private readonly TokenService _tokenService;
-    private readonly IUserService _userService;
+    private readonly IUseCase<AuthenticateUserRequest, UserDto?> _authenticateUserUseCase;
+    private readonly IUseCase<GenerateTokenRequest, string> _generateTokenUseCase;
 
-    public AuthController(TokenService tokenService, IUserService userService)
+    public AuthController(
+        IUseCase<AuthenticateUserRequest, UserDto?> authenticateUserUseCase,
+        IUseCase<GenerateTokenRequest, string> generateTokenUseCase)
     {
-        _tokenService = tokenService;
-        _userService = userService;
+        _authenticateUserUseCase = authenticateUserUseCase;
+        _generateTokenUseCase = generateTokenUseCase;
     }
 
     [SwaggerOperation(Summary = "Realiza o login e retorna o Token JWT", 
@@ -32,17 +34,21 @@ public class AuthController : ControllerBase
             return BadRequest(new { Message = "E-mail e senha são obrigatórios." });
         }
 
-        // Validate user in the database
-        var user = await _userService.AuthenticateAsync(dto.Email, dto.Password);
+        var authResult = await _authenticateUserUseCase.ExecuteAsync(new AuthenticateUserRequest(dto.Email, dto.Password));
 
-        if (user == null)
+        if (!authResult.IsSuccess || authResult.Response == null)
         {
             return Unauthorized(new { Message = "E-mail ou senha incorretos." });
         }
 
-        // Generate token with valid User ID and Email
-        var token = _tokenService.GerarToken(user.Id.ToString(), user.Email);
-        
-        return Ok(new { token, user });
+        var user = authResult.Response;
+        var tokenResult = await _generateTokenUseCase.ExecuteAsync(new GenerateTokenRequest(user.Id.ToString(), user.Email));
+
+        if (!tokenResult.IsSuccess)
+        {
+            return BadRequest(new { Message = string.Join(", ", tokenResult.Messages) });
+        }
+
+        return Ok(new { token = tokenResult.Response, user });
     }
 }

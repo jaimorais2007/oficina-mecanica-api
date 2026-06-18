@@ -5,12 +5,20 @@ using Microsoft.OpenApi.Models;
 using OficinaApi.Application.EventHandlers;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Application.Services;
+using OficinaApi.Application.UseCases.Customers;
+using OficinaApi.Application.UseCases.Parts;
+using OficinaApi.Application.UseCases.Services;
+using OficinaApi.Application.UseCases.ServiceOrders;
+using OficinaApi.Application.UseCases.Users;
+using OficinaApi.Application.UseCases.Vehicles;
+using OficinaApi.Application.DTOs;
 using OficinaApi.Domain.Events;
 using OficinaApi.Domain.Interfaces;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
 using OficinaApi.WebApi.ExceptionFilters;
 using System.Text;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,7 +43,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 builder.Services.AddAuthorization();
-builder.Services.AddScoped<TokenService>();
+// TokenService is now implemented by GenerateTokenUseCase
 
 // Configure PostgreSQL Database
 builder.Services.AddDbContext<OficinaDbContext>(options =>
@@ -50,14 +58,55 @@ builder.Services.AddScoped<IServiceRepository, ServiceRepository>();
 builder.Services.AddScoped<IServiceOrderPartRepository, ServiceOrderPartRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 
-// Register Application Services
-builder.Services.AddScoped<IPartService, PartService>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
-builder.Services.AddScoped<IVehicleService, VehicleService>();
-builder.Services.AddScoped<IServiceOrderService, ServiceOrderService>();
-builder.Services.AddScoped<IServiceManagementService, ServiceManagementService>();
+// Register UseCases
+builder.Services.AddScoped<IUseCase<NoInput, IEnumerable<CustomerDto>>, GetAllCustomersUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, CustomerDto?>, GetCustomerByIdUseCase>();
+builder.Services.AddScoped<IUseCase<CreateCustomerDto, CustomerDto>, CreateCustomerUseCase>();
+builder.Services.AddScoped<IUseCase<UpdateCustomerRequest, CustomerDto>, UpdateCustomerUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, bool>, DeleteCustomerUseCase>();
+
+builder.Services.AddScoped<IUseCase<NoInput, IEnumerable<PartDto>>, GetAllPartsUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, PartDto?>, GetPartByIdUseCase>();
+builder.Services.AddScoped<IUseCase<CreatePartDto, PartDto>, CreatePartUseCase>();
+builder.Services.AddScoped<IUseCase<AddStockRequest, bool>, AddStockUseCase>();
+builder.Services.AddScoped<IUseCase<RemoveStockRequest, bool>, RemoveStockUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, bool>, DeletePartUseCase>();
+
+builder.Services.AddScoped<IUseCase<NoInput, IEnumerable<ServiceDto>>, GetAllServicesUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, ServiceDto?>, GetServiceByIdUseCase>();
+builder.Services.AddScoped<IUseCase<CreateServiceDto, ServiceDto>, CreateServiceUseCase>();
+builder.Services.AddScoped<IUseCase<UpdateServiceRequest, ServiceDto>, UpdateServiceUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, bool>, DeleteServiceUseCase>();
+
+builder.Services.AddScoped<IUseCase<NoInput, IEnumerable<ServiceOrderDto>>, GetAllServiceOrdersUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, ServiceOrderDto?>, GetServiceOrderByIdUseCase>();
+builder.Services.AddScoped<IUseCase<CreateServiceOrderDto, ServiceOrderDto>, CreateServiceOrderUseCase>();
+builder.Services.AddScoped<IUseCase<StartDiagnosticsRequest, ServiceOrderDto>, StartDiagnosticsUseCase>();
+builder.Services.AddScoped<IUseCase<FinishAnalysisRequest, ServiceOrderDto>, FinishAnalysisUseCase>();
+builder.Services.AddScoped<IUseCase<AddPartToServiceOrderRequest, ServiceOrderDto>, AddPartToServiceOrderUseCase>();
+builder.Services.AddScoped<IUseCase<AddServiceToServiceOrderRequest, ServiceOrderDto>, AddServiceToServiceOrderUseCase>();
+builder.Services.AddScoped<IUseCase<ApproveServiceOrderRequest, ServiceOrderDto>, ApproveServiceOrderUseCase>();
+builder.Services.AddScoped<IUseCase<FinishExecutionRequest, ServiceOrderDto>, FinishExecutionUseCase>();
+builder.Services.AddScoped<IUseCase<DeliverServiceOrderRequest, ServiceOrderDto>, DeliverServiceOrderUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, IEnumerable<ServiceOrderPeddingStockDto>>, GetServiceOrderPendingStocksUseCase>();
+builder.Services.AddScoped<IUseCase<NoInput, double>, GetAverageDurationUseCase>();
+
+builder.Services.AddScoped<IUseCase<NoInput, IEnumerable<UserDto>>, GetAllUsersUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, UserDto?>, GetUserByIdUseCase>();
+builder.Services.AddScoped<IUseCase<CreateUserDto, UserDto>, CreateUserUseCase>();
+builder.Services.AddScoped<IUseCase<UpdateUserRequest, bool>, UpdateUserUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, bool>, DeleteUserUseCase>();
+builder.Services.AddScoped<IUseCase<AuthenticateUserRequest, UserDto?>, AuthenticateUserUseCase>();
+builder.Services.AddScoped<IUseCase<GenerateTokenRequest, string>, GenerateTokenUseCase>();
+
+builder.Services.AddScoped<IUseCase<NoInput, IEnumerable<VehicleDto?>>, GetAllVehiclesUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, VehicleDto?>, GetVehicleByIdUseCase>();
+builder.Services.AddScoped<IUseCase<CreateVehicleDto, VehicleDto>, CreateVehicleUseCase>();
+builder.Services.AddScoped<IUseCase<UpdateVehicleRequest, VehicleDto>, UpdateVehicleUseCase>();
+builder.Services.AddScoped<IUseCase<Guid, bool>, DeleteVehicleUseCase>();
+
 builder.Services.AddScoped<IEmailService, EmailService>();
-builder.Services.AddScoped<IUserService, UserService>();
+
 
 // Register Domain Event Dispatcher
 builder.Services.AddScoped<IDomainEventDispatcher, DomainEventDispatcher>();
@@ -108,24 +157,28 @@ using (var scope = app.Services.CreateScope())
 {
     try
     {
-        var userService = scope.ServiceProvider.GetRequiredService<IUserService>();
-        var users = await userService.GetAllUsersAsync();
+        var getAllUsersUseCase = scope.ServiceProvider.GetRequiredService<IUseCase<NoInput, IEnumerable<UserDto>>>();
+        var createUserUseCase = scope.ServiceProvider.GetRequiredService<IUseCase<CreateUserDto, UserDto>>();
         
-        bool hasAdmin = false;
-        foreach (var u in users)
+        var usersResponse = await getAllUsersUseCase.ExecuteAsync(new NoInput());
+        if (usersResponse.IsSuccess)
         {
-            if (u.Email == "admin@gmail.com") hasAdmin = true;
-        }
-
-        if (!hasAdmin)
-        {
-            await userService.CreateUserAsync(new OficinaApi.Application.DTOs.CreateUserDto
+            bool hasAdmin = false;
+            foreach (var u in usersResponse.Response)
             {
-                Name = "Admin Inicial",
-                Email = "admin@gmail.com",
-                Password = "123",
-                Role = "Admin"
-            });
+                if (u.Email == "admin@gmail.com") hasAdmin = true;
+            }
+
+            if (!hasAdmin)
+            {
+                await createUserUseCase.ExecuteAsync(new CreateUserDto
+                {
+                    Name = "Admin Inicial",
+                    Email = "admin@gmail.com",
+                    Password = "123",
+                    Role = "Admin"
+                });
+            }
         }
     }
     catch (Exception ex)

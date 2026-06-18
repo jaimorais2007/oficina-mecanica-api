@@ -6,25 +6,42 @@ using OficinaApi.WebApi.Controllers;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Tests.UnitTests.Application.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Unit.Tests;
 
 public class VehicleControllerTests
 {
-    private readonly Mock<IVehicleService> _serviceMock;
+    private readonly Mock<IUseCase<NoInput, IEnumerable<VehicleDto?>>> _getAllMock;
+    private readonly Mock<IUseCase<Guid, VehicleDto?>> _getByIdMock;
+    private readonly Mock<IUseCase<CreateVehicleDto, VehicleDto>> _createMock;
+    private readonly Mock<IUseCase<UpdateVehicleRequest, VehicleDto>> _updateMock;
+    private readonly Mock<IUseCase<Guid, bool>> _deleteMock;
     private readonly VehicleController _controller;
 
     public VehicleControllerTests()
     {
-        _serviceMock = new Mock<IVehicleService>();
-        _controller = new VehicleController(_serviceMock.Object);
+        _getAllMock = new Mock<IUseCase<NoInput, IEnumerable<VehicleDto?>>>();
+        _getByIdMock = new Mock<IUseCase<Guid, VehicleDto?>>();
+        _createMock = new Mock<IUseCase<CreateVehicleDto, VehicleDto>>();
+        _updateMock = new Mock<IUseCase<UpdateVehicleRequest, VehicleDto>>();
+        _deleteMock = new Mock<IUseCase<Guid, bool>>();
+
+        _controller = new VehicleController(
+            _getAllMock.Object,
+            _getByIdMock.Object,
+            _createMock.Object,
+            _updateMock.Object,
+            _deleteMock.Object);
     }
 
     [Fact]
     public async Task GetAllVehicles()
     {
-        _serviceMock.Setup(s => s.GetAllVehiclesAsync())
-            .ReturnsAsync(new List<VehicleDto>());
+        _getAllMock.Setup(s => s.ExecuteAsync(It.IsAny<NoInput>()))
+            .ReturnsAsync(UseCaseResponse<IEnumerable<VehicleDto?>>.Success(new List<VehicleDto?>()));
 
         var result = await _controller.GetAll();
 
@@ -36,8 +53,8 @@ public class VehicleControllerTests
     {
         var dto = VehicleDtoTests.CreateValid();
 
-        _serviceMock.Setup(s => s.GetVehicleByIdAsync(It.IsAny<Guid>()))
-            .ReturnsAsync(dto);
+        _getByIdMock.Setup(s => s.ExecuteAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(UseCaseResponse<VehicleDto?>.Success(dto));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -47,8 +64,8 @@ public class VehicleControllerTests
     [Fact]
     public async Task GetByIdIfExists()
     {
-        _serviceMock.Setup(s => s.GetVehicleByIdAsync(It.IsAny<Guid>()))
-            .ReturnsAsync((VehicleDto)null);
+        _getByIdMock.Setup(s => s.ExecuteAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(UseCaseResponse<VehicleDto?>.Success(null));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -61,8 +78,8 @@ public class VehicleControllerTests
         var dto = VehicleDtoTests.CreateDto();
         var created = VehicleDtoTests.CreateValid();
 
-        _serviceMock.Setup(s => s.CreateVehicleAsync(dto))
-            .ReturnsAsync(created);
+        _createMock.Setup(s => s.ExecuteAsync(dto))
+            .ReturnsAsync(UseCaseResponse<VehicleDto>.Success(created));
 
         var result = await _controller.Create(dto);
 
@@ -75,8 +92,8 @@ public class VehicleControllerTests
         var dto = VehicleDtoTests.UpdateDto();
         var updated = VehicleDtoTests.CreateValid();
 
-        _serviceMock.Setup(s => s.UpdateVehicleAsync(It.IsAny<Guid>(), dto))
-            .ReturnsAsync(updated);
+        _updateMock.Setup(s => s.ExecuteAsync(It.IsAny<UpdateVehicleRequest>()))
+            .ReturnsAsync(UseCaseResponse<VehicleDto>.Success(updated));
 
         var result = await _controller.Update(Guid.NewGuid(), dto);
 
@@ -86,6 +103,9 @@ public class VehicleControllerTests
     [Fact]
     public async Task DeleteVehicle()
     {
+        _deleteMock.Setup(s => s.ExecuteAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(UseCaseResponse<bool>.Success(true));
+
         var result = await _controller.Delete(Guid.NewGuid());
 
         result.Should().BeOfType<OkResult>();

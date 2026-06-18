@@ -1,13 +1,17 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.Application.Services;
+using OficinaApi.Application.UseCases.Customers;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
 
 namespace Integration.Tests;
@@ -25,11 +29,6 @@ public class CustomerIntegrationTests
         return new OficinaDbContext(options, dispatcherMock.Object);
     }
 
-    private CustomerService CreateService(OficinaDbContext context)
-    {
-        var repo = new CustomerRepository(context);
-        return new CustomerService(repo);
-    }
     #region Data mock
     private Customer MockCreateCustomer()
     {
@@ -53,20 +52,21 @@ public class CustomerIntegrationTests
             Email = "teste@gmail.com"
         }; 
     }
-
     #endregion
 
     [Fact]
     public async Task CreateCustomer()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new CustomerRepository(context);
+        var useCase = new CreateCustomerUseCase(repo);
 
         var dto = MockCreateCustomerDto();
 
-        var result = await service.CreateCustomerAsync(dto);
+        var result = await useCase.ExecuteAsync(dto);
 
-        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
 
         var customer = await context.Customers.FirstOrDefaultAsync();
 
@@ -78,7 +78,8 @@ public class CustomerIntegrationTests
     public async Task GetById()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new CustomerRepository(context);
+        var useCase = new GetCustomerByIdUseCase(repo);
 
         var customer = new Customer(
             "Maria",
@@ -91,33 +92,37 @@ public class CustomerIntegrationTests
         context.Customers.Add(customer);
         await context.SaveChangesAsync();
 
-        var result = await service.GetCustomerByIdAsync(customer.Id);
+        var result = await useCase.ExecuteAsync(customer.Id);
 
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(customer.Id);
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
+        result.Response!.Id.Should().Be(customer.Id);
     }
 
     [Fact]
     public async Task GetAll()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new CustomerRepository(context);
+        var useCase = new GetAllCustomersUseCase(repo);
 
         var customer = MockCreateCustomer();
 
         context.Customers.Add(customer);
         await context.SaveChangesAsync();
 
-        var result = await service.GetAllCustomersAsync();
+        var result = await useCase.ExecuteAsync(new NoInput());
 
-        result.Should().HaveCount(1);
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().HaveCount(1);
     }
 
     [Fact]
     public async Task UpdateCustomer()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new CustomerRepository(context);
+        var useCase = new UpdateCustomerUseCase(repo);
 
         var customer = MockCreateCustomer();
         context.Customers.Add(customer);
@@ -132,9 +137,10 @@ public class CustomerIntegrationTests
             Email = "teste@gmail.com"
         };
 
-        var result = await service.UpdateCustomerAsync(customer.Id, dto);
+        var result = await useCase.ExecuteAsync(new UpdateCustomerRequest(customer.Id, dto));
 
-        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
 
         var updated = await context.Customers.FirstAsync();
 
@@ -145,14 +151,16 @@ public class CustomerIntegrationTests
     public async Task DeleteCustomer()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new CustomerRepository(context);
+        var useCase = new DeleteCustomerUseCase(repo);
 
         var customer = MockCreateCustomer();
 
         context.Customers.Add(customer);
         await context.SaveChangesAsync();
 
-        await service.DeleteCustomerAsync(customer.Id);
+        var result = await useCase.ExecuteAsync(customer.Id);
+        result.IsSuccess.Should().BeTrue();
 
         var exists = await context.Customers.AnyAsync();
 

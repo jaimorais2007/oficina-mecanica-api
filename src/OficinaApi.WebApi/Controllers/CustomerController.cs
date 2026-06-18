@@ -3,20 +3,36 @@ using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OficinaApi.WebApi.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
     public class CustomerController : ControllerBase
     {
-        private readonly ICustomerService _customerService;
+        private readonly IUseCase<NoInput, IEnumerable<CustomerDto>> _getAllCustomersUseCase;
+        private readonly IUseCase<Guid, CustomerDto?> _getCustomerByIdUseCase;
+        private readonly IUseCase<CreateCustomerDto, CustomerDto> _createCustomerUseCase;
+        private readonly IUseCase<UpdateCustomerRequest, CustomerDto> _updateCustomerUseCase;
+        private readonly IUseCase<Guid, bool> _deleteCustomerUseCase;
 
-        public CustomerController(ICustomerService customerService)
+        public CustomerController(
+            IUseCase<NoInput, IEnumerable<CustomerDto>> getAllCustomersUseCase,
+            IUseCase<Guid, CustomerDto?> getCustomerByIdUseCase,
+            IUseCase<CreateCustomerDto, CustomerDto> createCustomerUseCase,
+            IUseCase<UpdateCustomerRequest, CustomerDto> updateCustomerUseCase,
+            IUseCase<Guid, bool> deleteCustomerUseCase)
         {
-            _customerService = customerService;
+            _getAllCustomersUseCase = getAllCustomersUseCase;
+            _getCustomerByIdUseCase = getCustomerByIdUseCase;
+            _createCustomerUseCase = createCustomerUseCase;
+            _updateCustomerUseCase = updateCustomerUseCase;
+            _deleteCustomerUseCase = deleteCustomerUseCase;
         }
 
         [SwaggerOperation(Summary = "Lista todos os clientes cadastrados",
@@ -24,8 +40,9 @@ namespace OficinaApi.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var customer = await _customerService.GetAllCustomersAsync();
-            return Ok(customer);
+            var result = await _getAllCustomersUseCase.ExecuteAsync(new NoInput());
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Busca cliente por ID",
@@ -33,9 +50,10 @@ namespace OficinaApi.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var customer = await _customerService.GetCustomerByIdAsync(id);
-            if (customer == null) return NotFound();
-            return Ok(customer);
+            var result = await _getCustomerByIdUseCase.ExecuteAsync(id);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            if (result.Response == null) return NotFound();
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Cria um novo cliente",
@@ -43,8 +61,9 @@ namespace OficinaApi.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCustomerDto dto)
         {
-            var result = await _customerService.CreateCustomerAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            var result = await _createCustomerUseCase.ExecuteAsync(dto);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            return CreatedAtAction(nameof(GetById), new { id = result.Response.Id }, result.Response);
         }
 
         [SwaggerOperation(Summary = "Atualiza os dados de um cliente",
@@ -52,8 +71,14 @@ namespace OficinaApi.WebApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateCustomerDto dto)
         {
-            var result = await _customerService.UpdateCustomerAsync(id, dto);
-            return Ok(result);
+            var result = await _updateCustomerUseCase.ExecuteAsync(new UpdateCustomerRequest(id, dto));
+            if (!result.IsSuccess)
+            {
+                if (result.Messages.Any(m => m.Contains("não encontrado")))
+                    return NotFound(new { Message = string.Join(", ", result.Messages) });
+                return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            }
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Remove um cliente",
@@ -61,7 +86,8 @@ namespace OficinaApi.WebApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _customerService.DeleteCustomerAsync(id);
+            var result = await _deleteCustomerUseCase.ExecuteAsync(id);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
             return NoContent();
         }
     }

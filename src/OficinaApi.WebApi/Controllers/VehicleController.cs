@@ -3,20 +3,36 @@ using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OficinaApi.WebApi.Controllers
 {
-
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
     public class VehicleController : ControllerBase
     {
-        private readonly IVehicleService _vehicleService;
+        private readonly IUseCase<NoInput, IEnumerable<VehicleDto?>> _getAllVehiclesUseCase;
+        private readonly IUseCase<Guid, VehicleDto?> _getVehicleByIdUseCase;
+        private readonly IUseCase<CreateVehicleDto, VehicleDto> _createVehicleUseCase;
+        private readonly IUseCase<UpdateVehicleRequest, VehicleDto> _updateVehicleUseCase;
+        private readonly IUseCase<Guid, bool> _deleteVehicleUseCase;
 
-        public VehicleController(IVehicleService vehicleService)
+        public VehicleController(
+            IUseCase<NoInput, IEnumerable<VehicleDto?>> getAllVehiclesUseCase,
+            IUseCase<Guid, VehicleDto?> getVehicleByIdUseCase,
+            IUseCase<CreateVehicleDto, VehicleDto> createVehicleUseCase,
+            IUseCase<UpdateVehicleRequest, VehicleDto> updateVehicleUseCase,
+            IUseCase<Guid, bool> deleteVehicleUseCase)
         {
-            _vehicleService = vehicleService;
+            _getAllVehiclesUseCase = getAllVehiclesUseCase;
+            _getVehicleByIdUseCase = getVehicleByIdUseCase;
+            _createVehicleUseCase = createVehicleUseCase;
+            _updateVehicleUseCase = updateVehicleUseCase;
+            _deleteVehicleUseCase = deleteVehicleUseCase;
         }
 
         [SwaggerOperation(Summary = "Lista todos os veículos cadastrados",
@@ -24,8 +40,9 @@ namespace OficinaApi.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var vehicle = await _vehicleService.GetAllVehiclesAsync();
-            return Ok(vehicle);
+            var result = await _getAllVehiclesUseCase.ExecuteAsync(new NoInput());
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Busca veículo por ID",
@@ -33,9 +50,10 @@ namespace OficinaApi.WebApi.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
-            var vehicle = await _vehicleService.GetVehicleByIdAsync(id);
-            if (vehicle == null) return NotFound();
-            return Ok(vehicle);
+            var result = await _getVehicleByIdUseCase.ExecuteAsync(id);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            if (result.Response == null) return NotFound();
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Cria um novo veículo",
@@ -43,8 +61,9 @@ namespace OficinaApi.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateVehicleDto dto)
         {
-            var result = await _vehicleService.CreateVehicleAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            var result = await _createVehicleUseCase.ExecuteAsync(dto);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            return CreatedAtAction(nameof(GetById), new { id = result.Response.Id }, result.Response);
         }
 
         [SwaggerOperation(Summary = "Atualiza os dados de um veículo",
@@ -52,8 +71,14 @@ namespace OficinaApi.WebApi.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UpdateVehicleDto dto)
         {
-            var result = await _vehicleService.UpdateVehicleAsync(id, dto);
-            return Ok(result);
+            var result = await _updateVehicleUseCase.ExecuteAsync(new UpdateVehicleRequest(id, dto));
+            if (!result.IsSuccess)
+            {
+                if (result.Messages.Any(m => m.Contains("não encontrado")))
+                    return NotFound(new { Message = string.Join(", ", result.Messages) });
+                return BadRequest(new { Message = string.Join(", ", result.Messages) });
+            }
+            return Ok(result.Response);
         }
 
         [SwaggerOperation(Summary = "Remove um veículo",
@@ -61,7 +86,8 @@ namespace OficinaApi.WebApi.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            await _vehicleService.DeleteVehicleAsync(id);
+            var result = await _deleteVehicleUseCase.ExecuteAsync(id);
+            if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
             return Ok();
         }
     }
