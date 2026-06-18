@@ -12,11 +12,13 @@ RUN dotnet publish src/OficinaApi.WebApi/OficinaApi.WebApi.csproj \
 FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runner
 WORKDIR /app
 
+ARG JWT_SECRET
 ARG EMAIL_PASSWORD
 ARG DB_CONNECTION_STRING
 ARG DOTNET_ENVIRONMENT=Development
 ARG PORT=8080
 
+ENV Jwt__Secret=$JWT_SECRET
 ENV EmailSettings__Password=$EMAIL_PASSWORD
 ENV ConnectionStrings__DefaultConnection=$DB_CONNECTION_STRING
 ENV ASPNETCORE_ENVIRONMENT=$DOTNET_ENVIRONMENT
