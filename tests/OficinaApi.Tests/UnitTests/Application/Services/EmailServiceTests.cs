@@ -2,6 +2,8 @@ using System;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Xunit;
+using OficinaApi.Application.Services;
+using OficinaApi.Domain.Interfaces;
 
 namespace Unit.Tests;
 

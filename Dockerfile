@@ -6,7 +6,7 @@ COPY src/ ./src/
 COPY tests/ ./tests/
 RUN dotnet restore
 
-RUN dotnet publish src/OficinaApi/OficinaApi.csproj \
+RUN dotnet publish src/OficinaApi.WebApi/OficinaApi.WebApi.csproj \
     -c Release -o /publish
 
 FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runner
@@ -19,4 +19,4 @@ USER appuser
 COPY --from=builder /publish .
 
 EXPOSE 8080
-ENTRYPOINT ["dotnet", "OficinaApi.dll"]
+ENTRYPOINT ["dotnet", "OficinaApi.WebApi.dll"]

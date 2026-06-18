@@ -1,5 +1,6 @@
 using Xunit;
 using FluentAssertions;
+using OficinaApi.Domain.ValueObjects;
 
 namespace Unit.Tests;
 

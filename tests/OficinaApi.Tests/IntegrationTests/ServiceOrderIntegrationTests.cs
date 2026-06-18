@@ -1,10 +1,11 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
+using OficinaApi.Domain.Interfaces;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
 using Xunit;

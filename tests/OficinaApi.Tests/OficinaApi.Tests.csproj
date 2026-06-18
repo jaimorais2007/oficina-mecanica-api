@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -19,7 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OficinaApi\OficinaApi.csproj" />
+    <ProjectReference Include="..\..\src\OficinaApi.Domain\OficinaApi.Domain.csproj" />
+    <ProjectReference Include="..\..\src\OficinaApi.Application\OficinaApi.Application.csproj" />
+    <ProjectReference Include="..\..\src\OficinaApi.Infrastructure\OficinaApi.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\OficinaApi.WebApi\OficinaApi.WebApi.csproj" />
   </ItemGroup>
 
 </Project>
