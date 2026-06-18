@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Integration.Tests;
 
@@ -42,7 +43,7 @@ public class PartIntegrationTests
     public async Task CreatePart()
     {
         var context = CreateContext();
-        var repo = new PartRepository(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
         var useCase = new CreatePartUseCase(repo);
 
         var dto = CreateDto();
@@ -63,8 +64,8 @@ public class PartIntegrationTests
     public async Task GetById()
     {
         var context = CreateContext();
-        var repo = new PartRepository(context);
-        var useCase = new GetPartByIdUseCase(repo);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new GetPartByIdUseCase(repo, Mock.Of<ILogger<GetPartByIdUseCase>>());
 
         var part = new Part("Filtro", "F1", 5, 30m);
         context.Parts.Add(part);
@@ -81,7 +82,7 @@ public class PartIntegrationTests
     public async Task GetAll()
     {
         var context = CreateContext();
-        var repo = new PartRepository(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
         var useCase = new GetAllPartsUseCase(repo);
 
         context.Parts.Add(new Part("P1", "C1", 5, 10m));
@@ -98,8 +99,8 @@ public class PartIntegrationTests
     public async Task AddStock()
     {
         var context = CreateContext();
-        var repo = new PartRepository(context);
-        var useCase = new AddStockUseCase(repo);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new AddStockUseCase(repo, Mock.Of<ILogger<AddStockUseCase>>());
 
         var part = new Part("Filtro", "F1", 10, 30m);
         context.Parts.Add(part);
@@ -117,8 +118,8 @@ public class PartIntegrationTests
     public async Task RemoveStock()
     {
         var context = CreateContext();
-        var repo = new PartRepository(context);
-        var useCase = new RemoveStockUseCase(repo);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new RemoveStockUseCase(repo, Mock.Of<ILogger<RemoveStockUseCase>>());
 
         var part = new Part("Filtro", "F1", 10, 30m);
         context.Parts.Add(part);
@@ -136,8 +137,8 @@ public class PartIntegrationTests
     public async Task RemoveStockWhenInsufficientStock()
     {
         var context = CreateContext();
-        var repo = new PartRepository(context);
-        var useCase = new RemoveStockUseCase(repo);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new RemoveStockUseCase(repo, Mock.Of<ILogger<RemoveStockUseCase>>());
 
         var part = new Part("Filtro", "F1", 2, 30m);
         context.Parts.Add(part);
@@ -153,8 +154,8 @@ public class PartIntegrationTests
     public async Task AddStockWhenPartNotFound()
     {
         var context = CreateContext();
-        var repo = new PartRepository(context);
-        var useCase = new AddStockUseCase(repo);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new AddStockUseCase(repo, Mock.Of<ILogger<AddStockUseCase>>());
 
         var result = await useCase.ExecuteAsync(new AddStockRequest(Guid.NewGuid(), 5));
 
@@ -166,8 +167,8 @@ public class PartIntegrationTests
     public async Task Delete()
     {
         var context = CreateContext();
-        var repo = new PartRepository(context);
-        var useCase = new DeletePartUseCase(repo);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new DeletePartUseCase(repo, Mock.Of<ILogger<DeletePartUseCase>>());
 
         var part = new Part("Filtro", "F1", 10, 30m);
         context.Parts.Add(part);

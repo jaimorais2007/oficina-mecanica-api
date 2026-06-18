@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Interfaces;
 using OficinaApi.Infrastructure.Data;
@@ -8,10 +9,12 @@ namespace OficinaApi.Infrastructure.Repositories;
 public class ServiceOrderRepository : IServiceOrderRepository
 {
     private readonly OficinaDbContext _context;
+    private readonly ILogger<ServiceOrderRepository> _logger;
 
-    public ServiceOrderRepository(OficinaDbContext context)
+    public ServiceOrderRepository(OficinaDbContext context, ILogger<ServiceOrderRepository> logger)
     {
         _context = context;
+        _logger = logger;
     }
 
     public async Task<IEnumerable<ServiceOrder>> GetAllAsync()
@@ -34,6 +37,7 @@ public class ServiceOrderRepository : IServiceOrderRepository
 
     public async Task<ServiceOrder?> GetByIdAsync(Guid id)
     {
+        _logger.LogInformation("Getting ServiceOrder by ID: {Id}", id);
         return await _context.ServiceOrders
             .Include(so => so.StatusHistory)
             .Include(so => so.Customer)
@@ -46,6 +50,7 @@ public class ServiceOrderRepository : IServiceOrderRepository
 
     public async Task<ServiceOrder?> GetServiceOrderByIdToGetPeddingStocksAsync(Guid id)
     {
+        _logger.LogInformation("Getting ServiceOrder by ID to get pending stocks: {Id}", id);
         var serviceOrder = await _context.ServiceOrders
             .Include(so => so.PartsUsed)
             .ThenInclude(sop => sop.Part)
@@ -56,6 +61,7 @@ public class ServiceOrderRepository : IServiceOrderRepository
 
     public async Task<ServiceOrder?> GetByIdWithPartsDetailsAsync(Guid id)
     {
+        _logger.LogInformation("Getting ServiceOrder by ID with parts details: {Id}", id);
         return await _context.ServiceOrders
             .Include(so => so.PartsUsed)
             .ThenInclude(sop => sop.Part)
@@ -64,6 +70,7 @@ public class ServiceOrderRepository : IServiceOrderRepository
 
     public async Task<ServiceOrder?> GetByIdForUpdateAsync(Guid id)
     {
+        _logger.LogInformation("Getting ServiceOrder by ID for update: {Id}", id);
         return await _context.ServiceOrders
             .Include(so => so.StatusHistory)
             .Include(so => so.PartsUsed)

@@ -8,6 +8,7 @@ using OficinaApi.Application.UseCases.Users;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Interfaces;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Unit.Tests.Application.UseCases.Users
 {
@@ -33,7 +34,7 @@ namespace Unit.Tests.Application.UseCases.Users
                 .Setup(r => r.GetAllAsync())
                 .ReturnsAsync(new List<User> { BuildUser() });
 
-            var useCase = new GetAllUsersUseCase(_repoMock.Object);
+            var useCase = new GetAllUsersUseCase(_repoMock.Object, Mock.Of<ILogger<GetAllUsersUseCase>>());
             var result = await useCase.ExecuteAsync(new NoInput());
 
             result.IsSuccess.Should().BeTrue();
@@ -46,7 +47,7 @@ namespace Unit.Tests.Application.UseCases.Users
             var user = BuildUser();
             _repoMock.Setup(r => r.GetByIdAsync(user.Id)).ReturnsAsync(user);
 
-            var useCase = new GetUserByIdUseCase(_repoMock.Object);
+            var useCase = new GetUserByIdUseCase(_repoMock.Object, Mock.Of<ILogger<GetUserByIdUseCase>>());
             var result = await useCase.ExecuteAsync(user.Id);
 
             result.IsSuccess.Should().BeTrue();
@@ -61,7 +62,7 @@ namespace Unit.Tests.Application.UseCases.Users
                 .Setup(r => r.GetByIdAsync(It.IsAny<Guid>()))
                 .ReturnsAsync((User?)null);
 
-            var useCase = new GetUserByIdUseCase(_repoMock.Object);
+            var useCase = new GetUserByIdUseCase(_repoMock.Object, Mock.Of<ILogger<GetUserByIdUseCase>>());
             var result = await useCase.ExecuteAsync(Guid.NewGuid());
 
             result.IsSuccess.Should().BeTrue();
@@ -87,7 +88,7 @@ namespace Unit.Tests.Application.UseCases.Users
                 Role     = "User"
             };
 
-            var useCase = new CreateUserUseCase(_repoMock.Object);
+            var useCase = new CreateUserUseCase(_repoMock.Object, Mock.Of<ILogger<CreateUserUseCase>>());
             var result = await useCase.ExecuteAsync(dto);
 
             result.IsSuccess.Should().BeTrue();
@@ -112,7 +113,7 @@ namespace Unit.Tests.Application.UseCases.Users
                 Role     = "User"
             };
 
-            var useCase = new CreateUserUseCase(_repoMock.Object);
+            var useCase = new CreateUserUseCase(_repoMock.Object, Mock.Of<ILogger<CreateUserUseCase>>());
             var result = await useCase.ExecuteAsync(dto);
 
             result.IsSuccess.Should().BeFalse();
@@ -128,7 +129,7 @@ namespace Unit.Tests.Application.UseCases.Users
 
             var dto = new UpdateUserDto { Name = "Novo Nome", Role = "User" };
 
-            var useCase = new UpdateUserUseCase(_repoMock.Object);
+            var useCase = new UpdateUserUseCase(_repoMock.Object, Mock.Of<ILogger<UpdateUserUseCase>>());
             var result = await useCase.ExecuteAsync(new UpdateUserRequest(user.Id, dto));
 
             result.IsSuccess.Should().BeTrue();
@@ -144,7 +145,7 @@ namespace Unit.Tests.Application.UseCases.Users
 
             var dto = new UpdateUserDto { Name = "Nome", Role = "User" };
 
-            var useCase = new UpdateUserUseCase(_repoMock.Object);
+            var useCase = new UpdateUserUseCase(_repoMock.Object, Mock.Of<ILogger<UpdateUserUseCase>>());
             var result = await useCase.ExecuteAsync(new UpdateUserRequest(Guid.NewGuid(), dto));
 
             result.IsSuccess.Should().BeFalse();
@@ -157,7 +158,7 @@ namespace Unit.Tests.Application.UseCases.Users
             var id = Guid.NewGuid();
             _repoMock.Setup(r => r.DeleteAsync(id)).Returns(Task.CompletedTask);
 
-            var useCase = new DeleteUserUseCase(_repoMock.Object);
+            var useCase = new DeleteUserUseCase(_repoMock.Object, Mock.Of<ILogger<DeleteUserUseCase>>());
             var result = await useCase.ExecuteAsync(id);
 
             result.IsSuccess.Should().BeTrue();
@@ -170,7 +171,7 @@ namespace Unit.Tests.Application.UseCases.Users
             var user = BuildUser("auth@oficina.com");
             _repoMock.Setup(r => r.GetByEmailAsync("auth@oficina.com")).ReturnsAsync(user);
 
-            var useCase = new AuthenticateUserUseCase(_repoMock.Object);
+            var useCase = new AuthenticateUserUseCase(_repoMock.Object, Mock.Of<ILogger<AuthenticateUserUseCase>>());
             var result = await useCase.ExecuteAsync(new AuthenticateUserRequest("auth@oficina.com", "senha123"));
 
             result.IsSuccess.Should().BeTrue();
@@ -184,7 +185,7 @@ namespace Unit.Tests.Application.UseCases.Users
             var user = BuildUser("auth@oficina.com");
             _repoMock.Setup(r => r.GetByEmailAsync("auth@oficina.com")).ReturnsAsync(user);
 
-            var useCase = new AuthenticateUserUseCase(_repoMock.Object);
+            var useCase = new AuthenticateUserUseCase(_repoMock.Object, Mock.Of<ILogger<AuthenticateUserUseCase>>());
             var result = await useCase.ExecuteAsync(new AuthenticateUserRequest("auth@oficina.com", "senha_errada"));
 
             result.IsSuccess.Should().BeTrue();
@@ -198,7 +199,7 @@ namespace Unit.Tests.Application.UseCases.Users
                 .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
                 .ReturnsAsync((User?)null);
 
-            var useCase = new AuthenticateUserUseCase(_repoMock.Object);
+            var useCase = new AuthenticateUserUseCase(_repoMock.Object, Mock.Of<ILogger<AuthenticateUserUseCase>>());
             var result = await useCase.ExecuteAsync(new AuthenticateUserRequest("naoexiste@oficina.com", "senha123"));
 
             result.IsSuccess.Should().BeTrue();

@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Integration.Tests;
 
@@ -51,9 +52,9 @@ public class VehicleIntegrationTests
     public async Task CreateVehicle()
     {
         var (customer, context) = await Setup();
-        var vehicleRepo = new VehicleRepository(context);
-        var customerRepo = new CustomerRepository(context);
-        var useCase = new CreateVehicleUseCase(vehicleRepo, customerRepo);
+        var vehicleRepo = new VehicleRepository(context, Mock.Of<ILogger<VehicleRepository>>());
+        var customerRepo = new CustomerRepository(context, Mock.Of<ILogger<CustomerRepository>>());
+        var useCase = new CreateVehicleUseCase(vehicleRepo, customerRepo, Mock.Of<ILogger<CreateVehicleUseCase>>());
 
         var dto = new CreateVehicleDto
         {
@@ -78,8 +79,8 @@ public class VehicleIntegrationTests
     public async Task GetById()
     {
         var (customer, context) = await Setup();
-        var vehicleRepo = new VehicleRepository(context);
-        var useCase = new GetVehicleByIdUseCase(vehicleRepo);
+        var vehicleRepo = new VehicleRepository(context, Mock.Of<ILogger<VehicleRepository>>());
+        var useCase = new GetVehicleByIdUseCase(vehicleRepo, Mock.Of<ILogger<GetVehicleByIdUseCase>>());
 
         var vehicle = new Vehicle(customer, "ABC1234", "Toyota", "Corolla", 2020);
 
@@ -97,7 +98,7 @@ public class VehicleIntegrationTests
     public async Task GetAll()
     {
         var (customer, context) = await Setup();
-        var vehicleRepo = new VehicleRepository(context);
+        var vehicleRepo = new VehicleRepository(context, Mock.Of<ILogger<VehicleRepository>>());
         var useCase = new GetAllVehiclesUseCase(vehicleRepo);
 
         context.Vehicles.Add(new Vehicle(customer, "ABC1234", "Toyota", "Corolla", 2020));
@@ -115,8 +116,8 @@ public class VehicleIntegrationTests
     public async Task UpdateVehicle()
     {
         var (customer, context) = await Setup();
-        var vehicleRepo = new VehicleRepository(context);
-        var useCase = new UpdateVehicleUseCase(vehicleRepo);
+        var vehicleRepo = new VehicleRepository(context, Mock.Of<ILogger<VehicleRepository>>());
+        var useCase = new UpdateVehicleUseCase(vehicleRepo, Mock.Of<ILogger<UpdateVehicleUseCase>>());
 
         var vehicle = new Vehicle(customer, "ABC1234", "Toyota", "Corolla", 2020);
 
@@ -146,8 +147,8 @@ public class VehicleIntegrationTests
     public async Task DeleteVehicle()
     {
         var (customer, context) = await Setup();
-        var vehicleRepo = new VehicleRepository(context);
-        var useCase = new DeleteVehicleUseCase(vehicleRepo);
+        var vehicleRepo = new VehicleRepository(context, Mock.Of<ILogger<VehicleRepository>>());
+        var useCase = new DeleteVehicleUseCase(vehicleRepo, Mock.Of<ILogger<DeleteVehicleUseCase>>());
 
         var vehicle = new Vehicle(customer, "ABC1234", "Toyota", "Corolla", 2020);
 

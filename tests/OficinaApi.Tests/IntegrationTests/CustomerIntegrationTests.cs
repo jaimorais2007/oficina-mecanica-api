@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Integration.Tests;
 
@@ -58,7 +59,7 @@ public class CustomerIntegrationTests
     public async Task CreateCustomer()
     {
         var context = CreateContext();
-        var repo = new CustomerRepository(context);
+        var repo = new CustomerRepository(context, Mock.Of<ILogger<CustomerRepository>>());
         var useCase = new CreateCustomerUseCase(repo);
 
         var dto = MockCreateCustomerDto();
@@ -78,8 +79,8 @@ public class CustomerIntegrationTests
     public async Task GetById()
     {
         var context = CreateContext();
-        var repo = new CustomerRepository(context);
-        var useCase = new GetCustomerByIdUseCase(repo);
+        var repo = new CustomerRepository(context, Mock.Of<ILogger<CustomerRepository>>());
+        var useCase = new GetCustomerByIdUseCase(repo, Mock.Of<ILogger<GetCustomerByIdUseCase>>());
 
         var customer = new Customer(
             "Maria",
@@ -103,7 +104,7 @@ public class CustomerIntegrationTests
     public async Task GetAll()
     {
         var context = CreateContext();
-        var repo = new CustomerRepository(context);
+        var repo = new CustomerRepository(context, Mock.Of<ILogger<CustomerRepository>>());
         var useCase = new GetAllCustomersUseCase(repo);
 
         var customer = MockCreateCustomer();
@@ -121,8 +122,8 @@ public class CustomerIntegrationTests
     public async Task UpdateCustomer()
     {
         var context = CreateContext();
-        var repo = new CustomerRepository(context);
-        var useCase = new UpdateCustomerUseCase(repo);
+        var repo = new CustomerRepository(context, Mock.Of<ILogger<CustomerRepository>>());
+        var useCase = new UpdateCustomerUseCase(repo, Mock.Of<ILogger<UpdateCustomerUseCase>>());
 
         var customer = MockCreateCustomer();
         context.Customers.Add(customer);
@@ -151,8 +152,8 @@ public class CustomerIntegrationTests
     public async Task DeleteCustomer()
     {
         var context = CreateContext();
-        var repo = new CustomerRepository(context);
-        var useCase = new DeleteCustomerUseCase(repo);
+        var repo = new CustomerRepository(context, Mock.Of<ILogger<CustomerRepository>>());
+        var useCase = new DeleteCustomerUseCase(repo, Mock.Of<ILogger<DeleteCustomerUseCase>>());
 
         var customer = MockCreateCustomer();
 

@@ -7,6 +7,7 @@ using OficinaApi.Application.UseCases.Parts;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Interfaces;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Unit.Tests.Application.UseCases.Parts
 {
@@ -18,7 +19,7 @@ namespace Unit.Tests.Application.UseCases.Parts
         public RemoveStockUseCaseTests()
         {
             _partRepoMock = new Mock<IPartRepository>();
-            _sut = new RemoveStockUseCase(_partRepoMock.Object);
+            _sut = new RemoveStockUseCase(_partRepoMock.Object, Mock.Of<ILogger<RemoveStockUseCase>>());
         }
 
         [Fact]

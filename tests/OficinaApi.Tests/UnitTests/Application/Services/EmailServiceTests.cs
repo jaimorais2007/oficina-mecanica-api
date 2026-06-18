@@ -4,7 +4,8 @@ using FluentAssertions;
 using Xunit;
 using OficinaApi.Application.Services;
 using OficinaApi.Domain.Interfaces;
-
+using Moq;
+using Microsoft.Extensions.Configuration;
 namespace Unit.Tests;
 
 public class EmailServiceTests
@@ -13,7 +14,7 @@ public class EmailServiceTests
 
     public EmailServiceTests()
     {
-        _sut = new EmailService();
+        _sut = new EmailService(Mock.Of<IConfiguration>());
     }
 
     [Fact]

@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Interfaces;
@@ -9,10 +10,12 @@ namespace OficinaApi.Application.UseCases.Services
     public class DeleteServiceUseCase : IUseCase<Guid, bool>
     {
         private readonly IServiceRepository _serviceRepository;
+        private readonly ILogger<DeleteServiceUseCase> _logger;
 
-        public DeleteServiceUseCase(IServiceRepository serviceRepository)
+        public DeleteServiceUseCase(IServiceRepository serviceRepository, ILogger<DeleteServiceUseCase> logger)
         {
             _serviceRepository = serviceRepository;
+            _logger = logger;
         }
 
         public async Task<UseCaseResponse<bool>> ExecuteAsync(Guid input)
@@ -24,6 +27,7 @@ namespace OficinaApi.Application.UseCases.Services
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error deleting service with ID {ServiceId}", input);
                 return UseCaseResponse<bool>.Failure(ex.Message);
             }
         }

@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Integration.Tests;
 
@@ -53,7 +54,7 @@ public class ServiceIntegrationTests
     public async Task CreateServiceIntegration()
     {
         var context = CreateContext();
-        var repo = new ServiceRepository(context);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
         var useCase = new CreateServiceUseCase(repo);
 
         var dto = MockCreateDto();
@@ -73,8 +74,8 @@ public class ServiceIntegrationTests
     public async Task GetById()
     {
         var context = CreateContext();
-        var repo = new ServiceRepository(context);
-        var useCase = new GetServiceByIdUseCase(repo);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
+        var useCase = new GetServiceByIdUseCase(repo, Mock.Of<ILogger<GetServiceByIdUseCase>>());
 
         var entity = MockService();
 
@@ -92,7 +93,7 @@ public class ServiceIntegrationTests
     public async Task GetAll()
     {
         var context = CreateContext();
-        var repo = new ServiceRepository(context);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
         var useCase = new GetAllServicesUseCase(repo);
 
         var entity = MockService();
@@ -110,8 +111,8 @@ public class ServiceIntegrationTests
     public async Task UpdateService()
     {
         var context = CreateContext();
-        var repo = new ServiceRepository(context);
-        var useCase = new UpdateServiceUseCase(repo);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
+        var useCase = new UpdateServiceUseCase(repo, Mock.Of<ILogger<UpdateServiceUseCase>>());
 
         var entity = MockService();
 
@@ -140,8 +141,8 @@ public class ServiceIntegrationTests
     public async Task DeleteService()
     {
         var context = CreateContext();
-        var repo = new ServiceRepository(context);
-        var useCase = new DeleteServiceUseCase(repo);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
+        var useCase = new DeleteServiceUseCase(repo, Mock.Of<ILogger<DeleteServiceUseCase>>());
 
         var entity = MockService();
 

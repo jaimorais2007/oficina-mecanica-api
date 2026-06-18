@@ -7,16 +7,19 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace OficinaApi.Application.UseCases.Users
 {
     public class GenerateTokenUseCase : IUseCase<GenerateTokenRequest, string>
     {
         private readonly IConfiguration _config;
+        private readonly ILogger<GenerateTokenUseCase> _logger;
 
-        public GenerateTokenUseCase(IConfiguration config)
+        public GenerateTokenUseCase(IConfiguration config, ILogger<GenerateTokenUseCase> logger)
         {
             _config = config;
+            _logger = logger;
         }
 
         public async Task<UseCaseResponse<string>> ExecuteAsync(GenerateTokenRequest input)
@@ -47,10 +50,12 @@ namespace OficinaApi.Application.UseCases.Users
                     signingCredentials: creds);
 
                 var tokenStr = new JwtSecurityTokenHandler().WriteToken(token);
+                _logger.LogInformation("Token generated successfully for user {UserId} ({Email}).", input.UserId, input.Email);
                 return UseCaseResponse<string>.Success(tokenStr);
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error generating token for user {UserId} ({Email}).", input.UserId, input.Email);
                 return UseCaseResponse<string>.Failure(ex.Message);
             }
         }

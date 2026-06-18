@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.UseCases.Users;
 using Xunit;
+using Moq;
+using Microsoft.Extensions.Logging;
 
 namespace Unit.Tests.Application.UseCases.Users
 {
@@ -26,7 +28,7 @@ namespace Unit.Tests.Application.UseCases.Users
                 })
                 .Build();
 
-            _sut = new GenerateTokenUseCase(config);
+            _sut = new GenerateTokenUseCase(config, Mock.Of<ILogger<GenerateTokenUseCase>>());
         }
 
         [Fact]

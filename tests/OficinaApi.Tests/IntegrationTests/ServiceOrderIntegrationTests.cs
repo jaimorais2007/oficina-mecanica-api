@@ -14,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Integration.Tests;
 
@@ -66,10 +67,11 @@ public class ServiceOrderIntegrationTests
         };
 
         var useCase = new CreateServiceOrderUseCase(
-            new ServiceOrderRepository(context),
-            new VehicleRepository(context),
-            new ServiceRepository(context),
-            new CustomerRepository(context));
+            new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()),
+            new VehicleRepository(context, Mock.Of<ILogger<VehicleRepository>>()),
+            new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>()),
+            new CustomerRepository(context, Mock.Of<ILogger<CustomerRepository>>()),
+            Mock.Of<ILogger<CreateServiceOrderUseCase>>());
 
         var result = await useCase.ExecuteAsync(dto);
 
@@ -85,7 +87,7 @@ public class ServiceOrderIntegrationTests
 
         var orderId = await CreateBaseOrder(context);
 
-        var useCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        var useCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<StartDiagnosticsUseCase>>());
         var result = await useCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
         result.IsSuccess.Should().BeTrue();
@@ -100,10 +102,10 @@ public class ServiceOrderIntegrationTests
 
         var orderId = await CreateBaseOrder(context, 200m);
 
-        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<StartDiagnosticsUseCase>>());
         await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var useCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var useCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), emailServiceMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>());
         var result = await useCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
         result.IsSuccess.Should().BeTrue();
@@ -119,13 +121,13 @@ public class ServiceOrderIntegrationTests
 
         var orderId = await CreateBaseOrder(context);
 
-        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<StartDiagnosticsUseCase>>());
         await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), emailServiceMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>());
         await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        var useCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        var useCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<ApproveServiceOrderUseCase>>());
         var result = await useCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
 
         result.IsSuccess.Should().BeTrue();
@@ -140,16 +142,16 @@ public class ServiceOrderIntegrationTests
 
         var orderId = await CreateBaseOrder(context);
 
-        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<StartDiagnosticsUseCase>>());
         await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), emailServiceMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>());
         await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<ApproveServiceOrderUseCase>>());
         await approveUseCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
 
-        var useCase = new FinishExecutionUseCase(new ServiceOrderRepository(context));
+        var useCase = new FinishExecutionUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<FinishExecutionUseCase>>());
         var result = await useCase.ExecuteAsync(new FinishExecutionRequest(orderId));
 
         result.IsSuccess.Should().BeTrue();
@@ -164,19 +166,19 @@ public class ServiceOrderIntegrationTests
 
         var orderId = await CreateBaseOrder(context);
 
-        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<StartDiagnosticsUseCase>>());
         await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), emailServiceMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>());
         await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<ApproveServiceOrderUseCase>>());
         await approveUseCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
 
-        var finishExecUseCase = new FinishExecutionUseCase(new ServiceOrderRepository(context));
+        var finishExecUseCase = new FinishExecutionUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<FinishExecutionUseCase>>());
         await finishExecUseCase.ExecuteAsync(new FinishExecutionRequest(orderId));
 
-        var useCase = new DeliverServiceOrderUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var useCase = new DeliverServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), emailServiceMock.Object, Mock.Of<ILogger<DeliverServiceOrderUseCase>>());
         var result = await useCase.ExecuteAsync(new DeliverServiceOrderRequest(orderId));
 
         result.IsSuccess.Should().BeTrue();
@@ -194,7 +196,7 @@ public class ServiceOrderIntegrationTests
         context.Services.Add(extraService);
         await context.SaveChangesAsync();
 
-        var useCase = new AddServiceToServiceOrderUseCase(new ServiceOrderRepository(context), new ServiceRepository(context));
+        var useCase = new AddServiceToServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>()), Mock.Of<ILogger<AddServiceToServiceOrderUseCase>>());
         var result = await useCase.ExecuteAsync(new AddServiceToServiceOrderRequest(orderId, new AddServiceDto
         {
             ServiceId = extraService.Id
@@ -220,7 +222,7 @@ public class ServiceOrderIntegrationTests
         context.Parts.Add(part);
         await context.SaveChangesAsync();
 
-        var addPartUseCase = new AddPartToServiceOrderUseCase(new ServiceOrderRepository(context), new PartRepository(context));
+        var addPartUseCase = new AddPartToServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), new PartRepository(context, Mock.Of<ILogger<PartRepository>>()), Mock.Of<ILogger<AddPartToServiceOrderUseCase>>());
         var resultPart = await addPartUseCase.ExecuteAsync(new AddPartToServiceOrderRequest(orderId, new AddPartDto
         {
             PartId = part.Id,
@@ -228,17 +230,17 @@ public class ServiceOrderIntegrationTests
         }));
         resultPart.IsSuccess.Should().BeTrue();
 
-        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<StartDiagnosticsUseCase>>());
         await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
         var emailServiceMock = new Mock<IEmailService>();
-        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), emailServiceMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>());
         await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<ApproveServiceOrderUseCase>>());
         await approveUseCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
 
-        var useCase = new GetServiceOrderPendingStocksUseCase(new ServiceOrderRepository(context));
+        var useCase = new GetServiceOrderPendingStocksUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<GetServiceOrderPendingStocksUseCase>>());
         var resultPending = await useCase.ExecuteAsync(orderId);
 
         resultPending.IsSuccess.Should().BeTrue();
@@ -254,19 +256,19 @@ public class ServiceOrderIntegrationTests
 
         var orderId = await CreateBaseOrder(context);
 
-        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context));
+        var startDiagUseCase = new StartDiagnosticsUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<StartDiagnosticsUseCase>>());
         await startDiagUseCase.ExecuteAsync(new StartDiagnosticsRequest(orderId));
 
-        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var finishAnalysisUseCase = new FinishAnalysisUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), emailServiceMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>());
         await finishAnalysisUseCase.ExecuteAsync(new FinishAnalysisRequest(orderId));
 
-        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context));
+        var approveUseCase = new ApproveServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<ApproveServiceOrderUseCase>>());
         await approveUseCase.ExecuteAsync(new ApproveServiceOrderRequest(orderId));
 
-        var finishExecUseCase = new FinishExecutionUseCase(new ServiceOrderRepository(context));
+        var finishExecUseCase = new FinishExecutionUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), Mock.Of<ILogger<FinishExecutionUseCase>>());
         await finishExecUseCase.ExecuteAsync(new FinishExecutionRequest(orderId));
 
-        var useCase = new DeliverServiceOrderUseCase(new ServiceOrderRepository(context), emailServiceMock.Object);
+        var useCase = new DeliverServiceOrderUseCase(new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()), emailServiceMock.Object, Mock.Of<ILogger<DeliverServiceOrderUseCase>>());
         var result = await useCase.ExecuteAsync(new DeliverServiceOrderRequest(orderId));
 
         result.IsSuccess.Should().BeTrue();
@@ -292,10 +294,11 @@ public class ServiceOrderIntegrationTests
         };
 
         var useCase = new CreateServiceOrderUseCase(
-            new ServiceOrderRepository(context),
-            new VehicleRepository(context),
-            new ServiceRepository(context),
-            new CustomerRepository(context));
+            new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>()),
+            new VehicleRepository(context, Mock.Of<ILogger<VehicleRepository>>()),
+            new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>()),
+            new CustomerRepository(context, Mock.Of<ILogger<CustomerRepository>>()),
+            Mock.Of<ILogger<CreateServiceOrderUseCase>>());
 
         var created = await useCase.ExecuteAsync(dto);
 
