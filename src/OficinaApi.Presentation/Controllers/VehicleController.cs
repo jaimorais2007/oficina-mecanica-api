@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace OficinaApi.WebApi.Controllers
+namespace OficinaApi.Presentation.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

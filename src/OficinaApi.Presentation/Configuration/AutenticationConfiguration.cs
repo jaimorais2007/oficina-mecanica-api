@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-namespace OficinaApi.WebApi.Configuration;
+namespace OficinaApi.Presentation.Configuration;
 
 public static class AutenticationConfiguration
 {

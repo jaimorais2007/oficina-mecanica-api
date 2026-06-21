@@ -11,7 +11,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OficinaApi.Application", "s
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OficinaApi.Infrastructure", "src\OficinaApi.Infrastructure\OficinaApi.Infrastructure.csproj", "{A1B2C3D4-0003-0000-0000-000000000003}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OficinaApi.WebApi", "src\OficinaApi.WebApi\OficinaApi.WebApi.csproj", "{A1B2C3D4-0004-0000-0000-000000000004}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OficinaApi.Presentation", "src\OficinaApi.Presentation\OficinaApi.Presentation.csproj", "{A1B2C3D4-0004-0000-0000-000000000004}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject

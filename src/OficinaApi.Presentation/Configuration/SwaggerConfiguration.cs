@@ -1,6 +1,6 @@
 using Microsoft.OpenApi.Models;
 
-namespace OficinaApi.WebApi.Configuration;
+namespace OficinaApi.Presentation.Configuration;
 
 public static class SwaggerConfiguration
 {

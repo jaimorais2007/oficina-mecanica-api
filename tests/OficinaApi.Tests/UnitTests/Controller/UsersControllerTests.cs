@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.WebApi.Controllers;
+using OficinaApi.Presentation.Controllers;
 using Xunit;
 
 namespace Unit.Tests;

@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 
-namespace OficinaApi.WebApi.ExceptionFilters;
+namespace OficinaApi.Presentation.ExceptionFilters;
 
 public class GlobalExceptionFilter : IExceptionFilter
 {

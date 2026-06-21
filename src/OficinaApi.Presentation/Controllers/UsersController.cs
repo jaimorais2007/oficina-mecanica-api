@@ -8,7 +8,7 @@ using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
 
-namespace OficinaApi.WebApi.Controllers;
+namespace OficinaApi.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

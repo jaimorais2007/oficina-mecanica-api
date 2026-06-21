@@ -14,7 +14,7 @@ using OficinaApi.Domain.Interfaces;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
 
-namespace OficinaApi.WebApi.Configuration;
+namespace OficinaApi.Presentation.Configuration;
 
 public static class DependencyInjectionConfiguration
 {

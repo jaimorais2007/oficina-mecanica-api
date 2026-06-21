@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 
-namespace OficinaApi.WebApi.Configuration;
+namespace OficinaApi.Presentation.Configuration;
 
 public static class LoggingConfiguration
 {

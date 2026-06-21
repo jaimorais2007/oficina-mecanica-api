@@ -1,5 +1,5 @@
-using OficinaApi.WebApi.Configuration;
-using OficinaApi.WebApi.ExceptionFilters;
+using OficinaApi.Presentation.Configuration;
+using OficinaApi.Presentation.ExceptionFilters;
 
 var builder = WebApplication.CreateBuilder(args);
 
