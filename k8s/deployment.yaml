@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: oficina-mecanica-api
+spec:
+  selector:
+    matchLabels:
+      app: oficina-mecanica-api
+  template:
+    metadata:
+      labels:
+        app: oficina-mecanica-api
+    spec:
+      containers:
+      - name: oficina-mecanica-api
+        image: oficina:local
+        imagePullPolicy: Never
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "500m"
+          limits:
+            memory: "1024Mi"
+            cpu: "1000m"
+        ports:
+        - containerPort: 80
