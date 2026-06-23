@@ -1,13 +1,18 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.Application.Services;
+using OficinaApi.Application.UseCases.Services;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Integration.Tests;
 
@@ -24,14 +29,7 @@ public class ServiceIntegrationTests
         return new OficinaDbContext(options, dispatcherMock.Object);
     }
 
-    private ServiceManagementService CreateService(OficinaDbContext context)
-    {
-        var repo = new ServiceRepository(context);
-        return new ServiceManagementService(repo);
-    }
-
     #region Data Mocks
-
     private Service MockService()
     {
         return new Service(
@@ -50,20 +48,21 @@ public class ServiceIntegrationTests
             DefaultPrice = 80m
         };
     }
-
     #endregion
 
     [Fact]
     public async Task CreateServiceIntegration()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
+        var useCase = new CreateServiceUseCase(repo);
 
         var dto = MockCreateDto();
 
-        var result = await service.CreateServiceAsync(dto);
+        var result = await useCase.ExecuteAsync(dto);
 
-        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
 
         var entity = await context.Services.FirstOrDefaultAsync();
 
@@ -75,40 +74,45 @@ public class ServiceIntegrationTests
     public async Task GetById()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
+        var useCase = new GetServiceByIdUseCase(repo, Mock.Of<ILogger<GetServiceByIdUseCase>>());
 
         var entity = MockService();
 
         context.Services.Add(entity);
         await context.SaveChangesAsync();
 
-        var result = await service.GetServiceByIdAsync(entity.Id);
+        var result = await useCase.ExecuteAsync(entity.Id);
 
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(entity.Id);
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
+        result.Response!.Id.Should().Be(entity.Id);
     }
 
     [Fact]
     public async Task GetAll()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
+        var useCase = new GetAllServicesUseCase(repo);
 
         var entity = MockService();
 
         context.Services.Add(entity);
         await context.SaveChangesAsync();
 
-        var result = await service.GetAllServicesAsync();
+        var result = await useCase.ExecuteAsync(new NoInput());
 
-        result.Should().HaveCount(1);
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().HaveCount(1);
     }
 
     [Fact]
     public async Task UpdateService()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
+        var useCase = new UpdateServiceUseCase(repo, Mock.Of<ILogger<UpdateServiceUseCase>>());
 
         var entity = MockService();
 
@@ -122,9 +126,10 @@ public class ServiceIntegrationTests
             DefaultPrice = 200m
         };
 
-        var result = await service.UpdateServiceAsync(entity.Id, dto);
+        var result = await useCase.ExecuteAsync(new UpdateServiceRequest(entity.Id, dto));
 
-        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
 
         var updated = await context.Services.FirstAsync();
 
@@ -136,14 +141,16 @@ public class ServiceIntegrationTests
     public async Task DeleteService()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new ServiceRepository(context, Mock.Of<ILogger<ServiceRepository>>());
+        var useCase = new DeleteServiceUseCase(repo, Mock.Of<ILogger<DeleteServiceUseCase>>());
 
         var entity = MockService();
 
         context.Services.Add(entity);
         await context.SaveChangesAsync();
 
-        await service.DeleteServiceAsync(entity.Id);
+        var result = await useCase.ExecuteAsync(entity.Id);
+        result.IsSuccess.Should().BeTrue();
 
         var exists = await context.Services.AnyAsync();
 

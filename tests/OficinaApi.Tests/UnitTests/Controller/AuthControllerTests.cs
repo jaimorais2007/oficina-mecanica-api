@@ -1,39 +1,27 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.Application.Services;
-using OficinaApi.Controllers;
+using OficinaApi.Presentation.Controllers;
 using Xunit;
 
 namespace Unit.Tests;
 
 public class AuthControllerTests
 {
-    private readonly Mock<IUserService> _userServiceMock;
-    private readonly TokenService _tokenService;
+    private readonly Mock<IUseCase<AuthenticateUserRequest, UserDto?>> _authMock;
+    private readonly Mock<IUseCase<GenerateTokenRequest, string>> _tokenMock;
     private readonly AuthController _controller;
 
     public AuthControllerTests()
     {
-        _userServiceMock = new Mock<IUserService>();
-
-        var config = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Jwt:Secret"]           = "chave-de-teste-minimo-32-caracteres!!",
-                ["Jwt:Issuer"]           = "oficina-api",
-                ["Jwt:Audience"]         = "oficina-clientes",
-                ["Jwt:ExpiresInMinutes"] = "60"
-            })
-            .Build();
-
-        _tokenService = new TokenService(config);
-        _controller   = new AuthController(_tokenService, _userServiceMock.Object);
+        _authMock = new Mock<IUseCase<AuthenticateUserRequest, UserDto?>>();
+        _tokenMock = new Mock<IUseCase<GenerateTokenRequest, string>>();
+        _controller = new AuthController(_authMock.Object, _tokenMock.Object);
     }
 
     [Fact]
@@ -59,9 +47,9 @@ public class AuthControllerTests
     [Fact]
     public async Task Login_CredenciaisInvalidas_RetornaUnauthorized()
     {
-        _userServiceMock
-            .Setup(s => s.AuthenticateAsync(It.IsAny<string>(), It.IsAny<string>()))
-            .ReturnsAsync((UserDto?)null);
+        _authMock
+            .Setup(s => s.ExecuteAsync(It.IsAny<AuthenticateUserRequest>()))
+            .ReturnsAsync(UseCaseResponse<UserDto?>.Success(null));
 
         var dto = new LoginDto { Email = "user@email.com", Password = "senha_errada" };
 
@@ -81,9 +69,13 @@ public class AuthControllerTests
             Role  = "Admin"
         };
 
-        _userServiceMock
-            .Setup(s => s.AuthenticateAsync("admin@oficina.com", "senha123"))
-            .ReturnsAsync(userDto);
+        _authMock
+            .Setup(s => s.ExecuteAsync(It.Is<AuthenticateUserRequest>(r => r.Email == "admin@oficina.com" && r.Password == "senha123")))
+            .ReturnsAsync(UseCaseResponse<UserDto?>.Success(userDto));
+
+        _tokenMock
+            .Setup(s => s.ExecuteAsync(It.IsAny<GenerateTokenRequest>()))
+            .ReturnsAsync(UseCaseResponse<string>.Success("token-mock"));
 
         var dto = new LoginDto { Email = "admin@oficina.com", Password = "senha123" };
 

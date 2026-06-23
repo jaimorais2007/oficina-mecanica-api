@@ -6,20 +6,34 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.Controllers;
+using OficinaApi.Presentation.Controllers;
 using Xunit;
 
 namespace Unit.Tests;
 
 public class UsersControllerTests
 {
-    private readonly Mock<IUserService> _serviceMock;
+    private readonly Mock<IUseCase<NoInput, IEnumerable<UserDto>>> _getAllMock;
+    private readonly Mock<IUseCase<Guid, UserDto?>> _getByIdMock;
+    private readonly Mock<IUseCase<CreateUserDto, UserDto>> _createMock;
+    private readonly Mock<IUseCase<UpdateUserRequest, bool>> _updateMock;
+    private readonly Mock<IUseCase<Guid, bool>> _deleteMock;
     private readonly UsersController _controller;
 
     public UsersControllerTests()
     {
-        _serviceMock = new Mock<IUserService>();
-        _controller  = new UsersController(_serviceMock.Object);
+        _getAllMock = new Mock<IUseCase<NoInput, IEnumerable<UserDto>>>();
+        _getByIdMock = new Mock<IUseCase<Guid, UserDto?>>();
+        _createMock = new Mock<IUseCase<CreateUserDto, UserDto>>();
+        _updateMock = new Mock<IUseCase<UpdateUserRequest, bool>>();
+        _deleteMock = new Mock<IUseCase<Guid, bool>>();
+
+        _controller  = new UsersController(
+            _getAllMock.Object,
+            _getByIdMock.Object,
+            _createMock.Object,
+            _updateMock.Object,
+            _deleteMock.Object);
     }
 
     private static UserDto BuildUserDto() => new()
@@ -34,9 +48,9 @@ public class UsersControllerTests
     [Fact]
     public async Task GetAll_RetornaOkComLista()
     {
-        _serviceMock
-            .Setup(s => s.GetAllUsersAsync())
-            .ReturnsAsync(new List<UserDto> { BuildUserDto() });
+        _getAllMock
+            .Setup(s => s.ExecuteAsync(It.IsAny<NoInput>()))
+            .ReturnsAsync(UseCaseResponse<IEnumerable<UserDto>>.Success(new List<UserDto> { BuildUserDto() }));
 
         var result = await _controller.GetAll();
 
@@ -47,9 +61,9 @@ public class UsersControllerTests
     public async Task GetById_UsuarioExistente_RetornaOk()
     {
         var dto = BuildUserDto();
-        _serviceMock
-            .Setup(s => s.GetUserByIdAsync(dto.Id))
-            .ReturnsAsync(dto);
+        _getByIdMock
+            .Setup(s => s.ExecuteAsync(dto.Id))
+            .ReturnsAsync(UseCaseResponse<UserDto?>.Success(dto));
 
         var result = await _controller.GetById(dto.Id);
 
@@ -59,9 +73,9 @@ public class UsersControllerTests
     [Fact]
     public async Task GetById_UsuarioInexistente_RetornaNotFound()
     {
-        _serviceMock
-            .Setup(s => s.GetUserByIdAsync(It.IsAny<Guid>()))
-            .ReturnsAsync((UserDto?)null);
+        _getByIdMock
+            .Setup(s => s.ExecuteAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(UseCaseResponse<UserDto?>.Success(null));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -80,9 +94,9 @@ public class UsersControllerTests
         };
         var created = BuildUserDto();
 
-        _serviceMock
-            .Setup(s => s.CreateUserAsync(createDto))
-            .ReturnsAsync(created);
+        _createMock
+            .Setup(s => s.ExecuteAsync(createDto))
+            .ReturnsAsync(UseCaseResponse<UserDto>.Success(created));
 
         var result = await _controller.Create(createDto);
 
@@ -100,9 +114,9 @@ public class UsersControllerTests
             Role     = "User"
         };
 
-        _serviceMock
-            .Setup(s => s.CreateUserAsync(It.IsAny<CreateUserDto>()))
-            .ThrowsAsync(new Exception("E-mail já cadastrado."));
+        _createMock
+            .Setup(s => s.ExecuteAsync(It.IsAny<CreateUserDto>()))
+            .ReturnsAsync(UseCaseResponse<UserDto>.Failure("E-mail já cadastrado."));
 
         var result = await _controller.Create(createDto);
 
@@ -114,9 +128,9 @@ public class UsersControllerTests
     {
         var updateDto = new UpdateUserDto { Name = "Novo Nome", Role = "User" };
 
-        _serviceMock
-            .Setup(s => s.UpdateUserAsync(It.IsAny<Guid>(), updateDto))
-            .Returns(Task.CompletedTask);
+        _updateMock
+            .Setup(s => s.ExecuteAsync(It.IsAny<UpdateUserRequest>()))
+            .ReturnsAsync(UseCaseResponse<bool>.Success(true));
 
         var result = await _controller.Update(Guid.NewGuid(), updateDto);
 
@@ -128,9 +142,9 @@ public class UsersControllerTests
     {
         var updateDto = new UpdateUserDto { Name = "Nome", Role = "User" };
 
-        _serviceMock
-            .Setup(s => s.UpdateUserAsync(It.IsAny<Guid>(), It.IsAny<UpdateUserDto>()))
-            .ThrowsAsync(new Exception("Usuário não encontrado."));
+        _updateMock
+            .Setup(s => s.ExecuteAsync(It.IsAny<UpdateUserRequest>()))
+            .ReturnsAsync(UseCaseResponse<bool>.Failure("Usuário não encontrado."));
 
         var result = await _controller.Update(Guid.NewGuid(), updateDto);
 
@@ -140,9 +154,9 @@ public class UsersControllerTests
     [Fact]
     public async Task Delete_RetornaNoContent()
     {
-        _serviceMock
-            .Setup(s => s.DeleteUserAsync(It.IsAny<Guid>()))
-            .Returns(Task.CompletedTask);
+        _deleteMock
+            .Setup(s => s.ExecuteAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(UseCaseResponse<bool>.Success(true));
 
         var result = await _controller.Delete(Guid.NewGuid());
 

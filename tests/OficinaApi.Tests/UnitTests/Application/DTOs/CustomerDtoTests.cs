@@ -1,7 +1,6 @@
 using OficinaApi.Application.DTOs;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
-using Org.BouncyCastle.Crypto.Macs;
 
 namespace OficinaApi.Tests.UnitTests.Application.DTOs;
 

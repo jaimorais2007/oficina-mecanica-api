@@ -1,29 +1,47 @@
-﻿using Xunit;
+using Xunit;
 using Moq;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
-using OficinaApi.Controllers;
+using OficinaApi.Presentation.Controllers;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Tests.UnitTests.Application.DTOs;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+
 namespace Unit.Tests;
 
 public class CustomerControllerTests
 {
-    private readonly Mock<ICustomerService> _serviceMock;
+    private readonly Mock<IUseCase<NoInput, IEnumerable<CustomerDto>>> _getAllMock;
+    private readonly Mock<IUseCase<Guid, CustomerDto?>> _getByIdMock;
+    private readonly Mock<IUseCase<CreateCustomerDto, CustomerDto>> _createMock;
+    private readonly Mock<IUseCase<UpdateCustomerRequest, CustomerDto>> _updateMock;
+    private readonly Mock<IUseCase<Guid, bool>> _deleteMock;
     private readonly CustomerController _controller;
 
     public CustomerControllerTests()
     {
-        _serviceMock = new Mock<ICustomerService>();
-        _controller = new CustomerController(_serviceMock.Object);
+        _getAllMock = new Mock<IUseCase<NoInput, IEnumerable<CustomerDto>>>();
+        _getByIdMock = new Mock<IUseCase<Guid, CustomerDto?>>();
+        _createMock = new Mock<IUseCase<CreateCustomerDto, CustomerDto>>();
+        _updateMock = new Mock<IUseCase<UpdateCustomerRequest, CustomerDto>>();
+        _deleteMock = new Mock<IUseCase<Guid, bool>>();
+
+        _controller = new CustomerController(
+            _getAllMock.Object,
+            _getByIdMock.Object,
+            _createMock.Object,
+            _updateMock.Object,
+            _deleteMock.Object);
     }
 
     [Fact]
     public async Task GetAllCustomers()
     {
-        _serviceMock.Setup(s => s.GetAllCustomersAsync())
-            .ReturnsAsync(new List<CustomerDto>());
+        _getAllMock.Setup(s => s.ExecuteAsync(It.IsAny<NoInput>()))
+            .ReturnsAsync(UseCaseResponse<IEnumerable<CustomerDto>>.Success(new List<CustomerDto>()));
 
         var result = await _controller.GetAll();
 
@@ -35,8 +53,8 @@ public class CustomerControllerTests
     {
         var dto = CustomerDtoTests.CreateValid();
 
-        _serviceMock.Setup(s => s.GetCustomerByIdAsync(It.IsAny<Guid>()))
-            .ReturnsAsync(dto);
+        _getByIdMock.Setup(s => s.ExecuteAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(UseCaseResponse<CustomerDto?>.Success(dto));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -46,8 +64,8 @@ public class CustomerControllerTests
     [Fact]
     public async Task GetById()
     {
-        _serviceMock.Setup(s => s.GetCustomerByIdAsync(It.IsAny<Guid>()))
-            .ReturnsAsync((CustomerDto)null);
+        _getByIdMock.Setup(s => s.ExecuteAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(UseCaseResponse<CustomerDto?>.Success(null));
 
         var result = await _controller.GetById(Guid.NewGuid());
 
@@ -60,8 +78,8 @@ public class CustomerControllerTests
         var dto = CustomerDtoTests.CreateDto();
         var created = CustomerDtoTests.CreateValid();
 
-        _serviceMock.Setup(s => s.CreateCustomerAsync(dto))
-            .ReturnsAsync(created);
+        _createMock.Setup(s => s.ExecuteAsync(dto))
+            .ReturnsAsync(UseCaseResponse<CustomerDto>.Success(created));
 
         var result = await _controller.Create(dto);
 
@@ -74,8 +92,8 @@ public class CustomerControllerTests
         var dto = CustomerDtoTests.UpdateDto();
         var updated = CustomerDtoTests.CreateValid();
 
-        _serviceMock.Setup(s => s.UpdateCustomerAsync(It.IsAny<Guid>(), dto))
-            .ReturnsAsync(updated);
+        _updateMock.Setup(s => s.ExecuteAsync(It.IsAny<UpdateCustomerRequest>()))
+            .ReturnsAsync(UseCaseResponse<CustomerDto>.Success(updated));
 
         var result = await _controller.Update(Guid.NewGuid(), dto);
 
@@ -85,6 +103,9 @@ public class CustomerControllerTests
     [Fact]
     public async Task DeleteCustomer()
     {
+        _deleteMock.Setup(s => s.ExecuteAsync(It.IsAny<Guid>()))
+            .ReturnsAsync(UseCaseResponse<bool>.Success(true));
+
         var result = await _controller.Delete(Guid.NewGuid());
 
         result.Should().BeOfType<NoContentResult>();
