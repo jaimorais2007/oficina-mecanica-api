@@ -11,6 +11,7 @@ using OficinaApi.Domain.Enums;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Unit.Tests;
 
@@ -75,7 +76,7 @@ public class ServiceOrderRepositoryTests
         // Arrange
         using var db = CreateDbContext();
         var (context, connection) = db;
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetAllAsync();
@@ -99,7 +100,7 @@ public class ServiceOrderRepositoryTests
         context.ServiceOrders.Add(CreateServiceOrder(customer, vehicle, service));
         await context.SaveChangesAsync();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetAllAsync();
@@ -114,7 +115,7 @@ public class ServiceOrderRepositoryTests
         // Arrange
         using var db = CreateDbContext();
         var (context, connection) = db;
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetByIdAsync(Guid.NewGuid());
@@ -137,7 +138,7 @@ public class ServiceOrderRepositoryTests
         context.ServiceOrders.Add(serviceOrder);
         await context.SaveChangesAsync();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetByIdAsync(serviceOrder.Id);
@@ -163,7 +164,7 @@ public class ServiceOrderRepositoryTests
         await SeedBaseEntitiesAsync(context, customer, vehicle, service);
 
         var serviceOrder = CreateServiceOrder(customer, vehicle, service);
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         await sut.AddAsync(serviceOrder);
@@ -185,7 +186,7 @@ public class ServiceOrderRepositoryTests
         await SeedBaseEntitiesAsync(context, customer, vehicle, service);
 
         var serviceOrder = CreateServiceOrder(customer, vehicle, service);
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         await sut.AddAsync(serviceOrder);
@@ -203,7 +204,7 @@ public class ServiceOrderRepositoryTests
         // Arrange
         using var db = CreateDbContext();
         var (context, connection) = db;
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetByIdWithPartsDetailsAsync(Guid.NewGuid());
@@ -230,7 +231,7 @@ public class ServiceOrderRepositoryTests
         context.ServiceOrders.Add(serviceOrder);
         await context.SaveChangesAsync();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetByIdWithPartsDetailsAsync(serviceOrder.Id);
@@ -250,7 +251,7 @@ public class ServiceOrderRepositoryTests
         // Arrange
         using var db = CreateDbContext();
         var (context, connection) = db;
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetByIdForUpdateAsync(Guid.NewGuid());
@@ -274,7 +275,7 @@ public class ServiceOrderRepositoryTests
         context.ServiceOrders.Add(serviceOrder);
         await context.SaveChangesAsync();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetByIdForUpdateAsync(serviceOrder.Id);
@@ -293,7 +294,7 @@ public class ServiceOrderRepositoryTests
         // Arrange
         using var db = CreateDbContext();
         var (context, connection) = db;
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetServiceOrderByIdToGetPeddingStocksAsync(Guid.NewGuid());
@@ -320,7 +321,7 @@ public class ServiceOrderRepositoryTests
         context.ServiceOrders.Add(serviceOrder);
         await context.SaveChangesAsync();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetServiceOrderByIdToGetPeddingStocksAsync(serviceOrder.Id);
@@ -348,7 +349,7 @@ public class ServiceOrderRepositoryTests
 
         serviceOrder.StartDiagnostics();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         await sut.SaveChangesAsync(serviceOrder);
@@ -379,7 +380,7 @@ public class ServiceOrderRepositoryTests
 
         serviceOrder.AddPart(part, 3);
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         await sut.SaveChangesAsync(serviceOrder);
@@ -410,7 +411,7 @@ public class ServiceOrderRepositoryTests
         context.ServiceOrders.Add(serviceOrder);
         await context.SaveChangesAsync();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = (await sut.GetAllAsync()).ToList();
@@ -441,7 +442,7 @@ public class ServiceOrderRepositoryTests
         context.ServiceOrders.Add(serviceOrder);
         await context.SaveChangesAsync();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetByIdWithPartsDetailsAsync(serviceOrder.Id);
@@ -469,7 +470,7 @@ public class ServiceOrderRepositoryTests
         context.ServiceOrders.Add(serviceOrder);
         await context.SaveChangesAsync();
 
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         var result = await sut.GetByIdForUpdateAsync(serviceOrder.Id);
@@ -493,7 +494,7 @@ public class ServiceOrderRepositoryTests
         await SeedBaseEntitiesAsync(context, customer, vehicle, service);
 
         var serviceOrder = CreateServiceOrder(customer, vehicle, service);
-        var sut = new ServiceOrderRepository(context);
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
 
         // Act
         await sut.AddAsync(serviceOrder);

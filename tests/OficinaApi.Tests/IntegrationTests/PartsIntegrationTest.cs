@@ -1,13 +1,18 @@
-﻿using FluentAssertions;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.Application.Services;
+using OficinaApi.Application.UseCases.Parts;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Xunit;
+using Microsoft.Extensions.Logging;
 
 namespace Integration.Tests;
 
@@ -24,14 +29,7 @@ public class PartIntegrationTests
         return new OficinaDbContext(options, dispatcherMock.Object);
     }
 
-    private PartService CreateService(OficinaDbContext context)
-    {
-        var repo = new PartRepository(context);
-        return new PartService(repo);
-    }
-
     #region Mocks
-
     private CreatePartDto CreateDto() => new()
     {
         Name = "Filtro de óleo",
@@ -39,20 +37,21 @@ public class PartIntegrationTests
         InitialQuantity = 10,
         Price = 50m
     };
-
     #endregion
 
     [Fact]
     public async Task CreatePart()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new CreatePartUseCase(repo);
 
         var dto = CreateDto();
 
-        var result = await service.CreatePartAsync(dto);
+        var result = await useCase.ExecuteAsync(dto);
 
-        result.Should().NotBeNull();
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
 
         var entity = await context.Parts.FirstOrDefaultAsync();
 
@@ -65,44 +64,50 @@ public class PartIntegrationTests
     public async Task GetById()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new GetPartByIdUseCase(repo, Mock.Of<ILogger<GetPartByIdUseCase>>());
 
         var part = new Part("Filtro", "F1", 5, 30m);
         context.Parts.Add(part);
         await context.SaveChangesAsync();
 
-        var result = await service.GetPartByIdAsync(part.Id);
+        var result = await useCase.ExecuteAsync(part.Id);
 
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(part.Id);
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().NotBeNull();
+        result.Response!.Id.Should().Be(part.Id);
     }
 
     [Fact]
     public async Task GetAll()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new GetAllPartsUseCase(repo);
 
         context.Parts.Add(new Part("P1", "C1", 5, 10m));
         context.Parts.Add(new Part("P2", "C2", 10, 20m));
         await context.SaveChangesAsync();
 
-        var result = await service.GetAllPartsAsync();
+        var result = await useCase.ExecuteAsync(new NoInput());
 
-        result.Should().HaveCount(2);
+        result.IsSuccess.Should().BeTrue();
+        result.Response.Should().HaveCount(2);
     }
 
     [Fact]
     public async Task AddStock()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new AddStockUseCase(repo, Mock.Of<ILogger<AddStockUseCase>>());
 
         var part = new Part("Filtro", "F1", 10, 30m);
         context.Parts.Add(part);
         await context.SaveChangesAsync();
 
-        await service.AddStockAsync(part.Id, 5);
+        var result = await useCase.ExecuteAsync(new AddStockRequest(part.Id, 5));
+        result.IsSuccess.Should().BeTrue();
 
         var updated = await context.Parts.FirstAsync();
 
@@ -113,13 +118,15 @@ public class PartIntegrationTests
     public async Task RemoveStock()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new RemoveStockUseCase(repo, Mock.Of<ILogger<RemoveStockUseCase>>());
 
         var part = new Part("Filtro", "F1", 10, 30m);
         context.Parts.Add(part);
         await context.SaveChangesAsync();
 
-        await service.RemoveStockAsync(part.Id, 3);
+        var result = await useCase.ExecuteAsync(new RemoveStockRequest(part.Id, 3));
+        result.IsSuccess.Should().BeTrue();
 
         var updated = await context.Parts.FirstAsync();
 
@@ -130,39 +137,45 @@ public class PartIntegrationTests
     public async Task RemoveStockWhenInsufficientStock()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new RemoveStockUseCase(repo, Mock.Of<ILogger<RemoveStockUseCase>>());
 
         var part = new Part("Filtro", "F1", 2, 30m);
         context.Parts.Add(part);
         await context.SaveChangesAsync();
 
-        Func<Task> act = async () => await service.RemoveStockAsync(part.Id, 5);
+        var result = await useCase.ExecuteAsync(new RemoveStockRequest(part.Id, 5));
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        result.IsSuccess.Should().BeFalse();
+        result.Messages.Should().ContainMatch("*Estoque insuficiente*");
     }
 
     [Fact]
     public async Task AddStockWhenPartNotFound()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new AddStockUseCase(repo, Mock.Of<ILogger<AddStockUseCase>>());
 
-        Func<Task> act = async () => await service.AddStockAsync(Guid.NewGuid(), 5);
+        var result = await useCase.ExecuteAsync(new AddStockRequest(Guid.NewGuid(), 5));
 
-        await act.Should().ThrowAsync<KeyNotFoundException>();
+        result.IsSuccess.Should().BeFalse();
+        result.Messages.Should().ContainMatch("*não encontrada*");
     }
 
     [Fact]
     public async Task Delete()
     {
         var context = CreateContext();
-        var service = CreateService(context);
+        var repo = new PartRepository(context, Mock.Of<ILogger<PartRepository>>());
+        var useCase = new DeletePartUseCase(repo, Mock.Of<ILogger<DeletePartUseCase>>());
 
         var part = new Part("Filtro", "F1", 10, 30m);
         context.Parts.Add(part);
         await context.SaveChangesAsync();
 
-        await service.DeletePartAsync(part.Id);
+        var result = await useCase.ExecuteAsync(part.Id);
+        result.IsSuccess.Should().BeTrue();
 
         var exists = await context.Parts.AnyAsync();
 

@@ -1,7 +1,7 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
 
@@ -10,8 +10,8 @@
 
   <ItemGroup>
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageReference Include="Moq" Version="4.20.70" />
     <PackageReference Include="xunit" Version="2.6.5" />
@@ -19,7 +19,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\OficinaApi\OficinaApi.csproj" />
+    <ProjectReference Include="..\..\src\OficinaApi.Domain\OficinaApi.Domain.csproj" />
+    <ProjectReference Include="..\..\src\OficinaApi.Application\OficinaApi.Application.csproj" />
+    <ProjectReference Include="..\..\src\OficinaApi.Infrastructure\OficinaApi.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\src\OficinaApi.Presentation\OficinaApi.Presentation.csproj" />
   </ItemGroup>
 
 </Project>
