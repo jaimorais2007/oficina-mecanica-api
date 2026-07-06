@@ -13,6 +13,7 @@ namespace OficinaApi.Domain.Entities
         public string Email { get; private set; }
         public ICollection<ServiceOrder> ServiceOrders { get; private set; } = [];
         public ICollection<Vehicle> Vehicles { get; private set; } = [];
+        public bool Inactive { get; private set; } = false;
 
         protected Customer() {}
 
@@ -50,6 +51,11 @@ namespace OficinaApi.Domain.Entities
 
             DateOfBirth = dateOfBirth.GetValueOrDefault();
             Email = email;
+        }
+
+        public void SetInactive(bool inactive)
+        {
+            Inactive = inactive;
         }
     }
 }

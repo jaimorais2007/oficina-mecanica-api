@@ -38,6 +38,7 @@ public class OficinaDbContext : DbContext
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Code).IsRequired().HasMaxLength(50);
             entity.Property(e => e.Price).HasColumnType("decimal(18,2)");
+            entity.Property(e => e.Inactive);
             entity.Ignore(e => e.DomainEvents);
         });
 
@@ -46,6 +47,7 @@ public class OficinaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Email).HasMaxLength(80);
+            entity.Property(e => e.Inactive);
             entity.OwnsOne(e => e.Document, doc =>
             {
                 doc.Property(d => d.Value)
@@ -69,6 +71,7 @@ public class OficinaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Brand).IsRequired().HasMaxLength(80);
             entity.Property(e => e.Model).IsRequired().HasMaxLength(80);
+            entity.Property(e => e.Inactive);
             entity.Property(e => e.Year).IsRequired();
             entity.OwnsOne(e => e.Plate, plate =>
             {
@@ -91,6 +94,7 @@ public class OficinaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.CustomerId).IsRequired().HasMaxLength(14);
             entity.Property(e => e.VehicleId).IsRequired().HasMaxLength(14);
+            entity.Property(e => e.Inactive);
             entity.Property(e => e.Budget).HasColumnType("decimal(18,2)");
             entity.HasMany(so => so.StatusHistory)
                   .WithOne(sos => sos.ServiceOrder)
@@ -116,6 +120,7 @@ public class OficinaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(150);
             entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.Inactive);
             entity.Property(e => e.DefaultPrice).HasColumnType("decimal(18,2)").IsRequired();
             entity.Ignore(e => e.DomainEvents);
         });
@@ -125,6 +130,7 @@ public class OficinaDbContext : DbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.CreatedAt).HasColumnType("timestamp with time zone").IsRequired();
             entity.Property(e => e.Status).HasConversion<string>().IsRequired();
+            entity.Property(e => e.Inactive);
             entity.HasOne(sos => sos.ServiceOrder)
                   .WithMany(so => so.StatusHistory)
                   .HasForeignKey(sos => sos.ServiceOrderId);
@@ -134,6 +140,7 @@ public class OficinaDbContext : DbContext
         modelBuilder.Entity<ServiceOrderService>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Inactive);
             entity.HasOne(sos => sos.ServiceOrder)
                   .WithMany(so => so.ServicesUsed)
                   .HasForeignKey(sos => sos.ServiceOrderId);
@@ -146,6 +153,7 @@ public class OficinaDbContext : DbContext
         modelBuilder.Entity<ServiceOrderPart>(entity =>
         {
             entity.HasKey(e => e.Id);
+            entity.Property(e => e.Inactive);
             entity.HasOne(sop => sop.ServiceOrder)
                   .WithMany(so => so.PartsUsed)
                   .HasForeignKey(sop => sop.ServiceOrderId);

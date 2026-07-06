@@ -7,5 +7,6 @@ public enum OrderStatus
     WaitingApproval = 2,
     Executing = 3,
     Finished = 4,
-    Delivered = 5
+    Delivered = 5,
+    Refused = 6
 }

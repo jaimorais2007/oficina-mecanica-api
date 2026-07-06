@@ -41,6 +41,8 @@ public static class DependencyInjectionConfiguration
         services.AddScoped<IUseCase<CreateCustomerDto, CustomerDto>, CreateCustomerUseCase>();
         services.AddScoped<IUseCase<UpdateCustomerRequest, CustomerDto>, UpdateCustomerUseCase>();
         services.AddScoped<IUseCase<Guid, bool>, DeleteCustomerUseCase>();
+        services.AddScoped<IUseCase<Guid, NoInput>, LogicalDeletionCustomerUseCase>();
+
 
         services.AddScoped<IUseCase<NoInput, IEnumerable<PartDto>>, GetAllPartsUseCase>();
         services.AddScoped<IUseCase<Guid, PartDto?>, GetPartByIdUseCase>();
@@ -49,15 +51,19 @@ public static class DependencyInjectionConfiguration
         services.AddScoped<IUseCase<RemoveStockRequest, bool>, RemoveStockUseCase>();
         services.AddScoped<IUseCase<Guid, bool>, DeletePartUseCase>();
         services.AddScoped<IUseCase<PartStockAddedEvent, bool>, PartStockAddedUseCase>();
+        services.AddScoped<IUseCase<Guid, NoInput>, LogicalDeletionPartsUseCase>();
 
         services.AddScoped<IUseCase<NoInput, IEnumerable<ServiceDto>>, GetAllServicesUseCase>();
         services.AddScoped<IUseCase<Guid, ServiceDto?>, GetServiceByIdUseCase>();
         services.AddScoped<IUseCase<CreateServiceDto, ServiceDto>, CreateServiceUseCase>();
         services.AddScoped<IUseCase<UpdateServiceRequest, ServiceDto>, UpdateServiceUseCase>();
         services.AddScoped<IUseCase<Guid, bool>, DeleteServiceUseCase>();
+        services.AddScoped<IUseCase<Guid, NoInput>, LogicalDeletionServiceUseCase>();     
 
         services.AddScoped<IUseCase<NoInput, IEnumerable<ServiceOrderDto>>, GetAllServiceOrdersUseCase>();
         services.AddScoped<IUseCase<Guid, ServiceOrderDto?>, GetServiceOrderByIdUseCase>();
+        services.AddScoped<IUseCase<Guid, ServiceOrderStatusDto?>, GetServiceOrderByStatusUseCase>();
+        
         services.AddScoped<IUseCase<CreateServiceOrderDto, ServiceOrderDto>, CreateServiceOrderUseCase>();
         services.AddScoped<IUseCase<StartDiagnosticsRequest, ServiceOrderDto>, StartDiagnosticsUseCase>();
         services.AddScoped<IUseCase<FinishAnalysisRequest, ServiceOrderDto>, FinishAnalysisUseCase>();
@@ -66,6 +72,8 @@ public static class DependencyInjectionConfiguration
         services.AddScoped<IUseCase<ApproveServiceOrderRequest, ServiceOrderDto>, ApproveServiceOrderUseCase>();
         services.AddScoped<IUseCase<FinishExecutionRequest, ServiceOrderDto>, FinishExecutionUseCase>();
         services.AddScoped<IUseCase<DeliverServiceOrderRequest, ServiceOrderDto>, DeliverServiceOrderUseCase>();
+        services.AddScoped<IUseCase<RefuseServiceOrderRequest, ServiceOrderDto>, RefuseServiceOrderUseCase>();
+
         services.AddScoped<IUseCase<Guid, IEnumerable<ServiceOrderPeddingStockDto>>, GetServiceOrderPendingStocksUseCase>();
         services.AddScoped<IUseCase<NoInput, double>, GetAverageDurationUseCase>();
         services.AddScoped<IUseCase<ServiceOrderApprovedEvent, bool>, ServiceOrderApprovedUseCase>();
@@ -77,12 +85,14 @@ public static class DependencyInjectionConfiguration
         services.AddScoped<IUseCase<Guid, bool>, DeleteUserUseCase>();
         services.AddScoped<IUseCase<AuthenticateUserRequest, UserDto?>, AuthenticateUserUseCase>();
         services.AddScoped<IUseCase<GenerateTokenRequest, string>, GenerateTokenUseCase>();
+        services.AddScoped<IUseCase<Guid, NoInput>, LogicalDeletionUserUseCase>();
 
         services.AddScoped<IUseCase<NoInput, IEnumerable<VehicleDto?>>, GetAllVehiclesUseCase>();
         services.AddScoped<IUseCase<Guid, VehicleDto?>, GetVehicleByIdUseCase>();
         services.AddScoped<IUseCase<CreateVehicleDto, VehicleDto>, CreateVehicleUseCase>();
         services.AddScoped<IUseCase<UpdateVehicleRequest, VehicleDto>, UpdateVehicleUseCase>();
         services.AddScoped<IUseCase<Guid, bool>, DeleteVehicleUseCase>();
+        services.AddScoped<IUseCase<Guid, NoInput>, LogicalDeletionVehicleUseCase>();
 
         services.AddScoped<IEmailService, EmailService>();
 
@@ -92,6 +102,7 @@ public static class DependencyInjectionConfiguration
 
         // Register Domain Event Handlers
         services.AddScoped<IDomainEventHandler<ServiceOrderApprovedEvent>, ServiceOrderApprovedEventHandler>();
+        services.AddScoped<IDomainEventHandler<ServiceOrderStatusChangedEvent>, ServiceOrderMailEventHandler>();
         services.AddScoped<IDomainEventHandler<PartStockAddedEvent>, PartStockAddedEventHandler>();
 
         return services;

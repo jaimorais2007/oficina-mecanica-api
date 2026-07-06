@@ -8,6 +8,7 @@ public class ServiceOrderService : BaseEntity
     public Guid ServiceId { get; private set; }
     public ServiceOrder ServiceOrder { get; private set; }
     public Service Service { get; private set; }
+    public bool Inactive { get; private set; } = false;
 
     protected ServiceOrderService() { }
 

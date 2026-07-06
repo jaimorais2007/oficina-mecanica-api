@@ -3,10 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OficinaApi.Presentation.Controllers
 {
@@ -20,19 +16,23 @@ namespace OficinaApi.Presentation.Controllers
         private readonly IUseCase<CreateVehicleDto, VehicleDto> _createVehicleUseCase;
         private readonly IUseCase<UpdateVehicleRequest, VehicleDto> _updateVehicleUseCase;
         private readonly IUseCase<Guid, bool> _deleteVehicleUseCase;
+        private readonly IUseCase<Guid, NoInput> _logicalDeletionVehicleUseCase;
+
 
         public VehicleController(
             IUseCase<NoInput, IEnumerable<VehicleDto?>> getAllVehiclesUseCase,
             IUseCase<Guid, VehicleDto?> getVehicleByIdUseCase,
             IUseCase<CreateVehicleDto, VehicleDto> createVehicleUseCase,
             IUseCase<UpdateVehicleRequest, VehicleDto> updateVehicleUseCase,
-            IUseCase<Guid, bool> deleteVehicleUseCase)
+            IUseCase<Guid, bool> deleteVehicleUseCase,
+            IUseCase<Guid, NoInput> logicalDeletionVehicleUseCase)
         {
             _getAllVehiclesUseCase = getAllVehiclesUseCase;
             _getVehicleByIdUseCase = getVehicleByIdUseCase;
             _createVehicleUseCase = createVehicleUseCase;
             _updateVehicleUseCase = updateVehicleUseCase;
             _deleteVehicleUseCase = deleteVehicleUseCase;
+            _logicalDeletionVehicleUseCase = logicalDeletionVehicleUseCase;
         }
 
         [SwaggerOperation(Summary = "Lista todos os veículos cadastrados",
@@ -78,6 +78,16 @@ namespace OficinaApi.Presentation.Controllers
                     return NotFound(new { Message = string.Join(", ", result.Messages) });
                 return BadRequest(new { Message = string.Join(", ", result.Messages) });
             }
+            return Ok(result.Response);
+        }
+
+        [SwaggerOperation(Summary = "Inativa/Ativa o veículo",
+                  Description = "Inativa ou ativa um veículo existente a partir do identificador único.")]
+        [HttpPut("{id}/LogicalDeletion")]
+        public async Task<IActionResult> LogicalDeletion([FromRoute] Guid id)
+        {
+            var result = await _logicalDeletionVehicleUseCase.ExecuteAsync(id);
+
             return Ok(result.Response);
         }
 

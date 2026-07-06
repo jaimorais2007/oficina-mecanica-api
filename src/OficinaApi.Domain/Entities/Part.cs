@@ -11,6 +11,7 @@ public class Part : BaseEntity
     public decimal Price { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public ICollection<ServiceOrderPart> ServiceOrdersParts { get; set; } = [];
+    public bool Inactive { get; private set; } = false;
 
     // For EF Core
     protected Part() 
@@ -57,5 +58,10 @@ public class Part : BaseEntity
         Name = name;
         Code = code;
         Price = price;
+    }
+
+    public void SetInactive(bool inactive)
+    {
+        Inactive = inactive;
     }
 }

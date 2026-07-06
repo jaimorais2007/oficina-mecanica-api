@@ -1,12 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Application.UseCases.Vehicles;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OficinaApi.Presentation.Controllers;
 
@@ -20,19 +21,23 @@ public class UsersController : ControllerBase
     private readonly IUseCase<CreateUserDto, UserDto> _createUserUseCase;
     private readonly IUseCase<UpdateUserRequest, bool> _updateUserUseCase;
     private readonly IUseCase<Guid, bool> _deleteUserUseCase;
+    private readonly IUseCase<Guid, NoInput> _logicalDeletionUserUseCase;
+
 
     public UsersController(
         IUseCase<NoInput, IEnumerable<UserDto>> getAllUsersUseCase,
         IUseCase<Guid, UserDto?> getUserByIdUseCase,
         IUseCase<CreateUserDto, UserDto> createUserUseCase,
         IUseCase<UpdateUserRequest, bool> updateUserUseCase,
-        IUseCase<Guid, bool> deleteUserUseCase)
+        IUseCase<Guid, bool> deleteUserUseCase,
+        IUseCase<Guid, NoInput> logicalDeletionUserUseCase)
     {
         _getAllUsersUseCase = getAllUsersUseCase;
         _getUserByIdUseCase = getUserByIdUseCase;
         _createUserUseCase = createUserUseCase;
         _updateUserUseCase = updateUserUseCase;
         _deleteUserUseCase = deleteUserUseCase;
+        _logicalDeletionUserUseCase = logicalDeletionUserUseCase;
     }
 
     [SwaggerOperation(Summary = "Lista todos os usuários", 
@@ -76,6 +81,16 @@ public class UsersController : ControllerBase
         var result = await _updateUserUseCase.ExecuteAsync(new UpdateUserRequest(id, dto));
         if (!result.IsSuccess) return BadRequest(new { Message = string.Join(", ", result.Messages) });
         return NoContent();
+    }
+
+    [SwaggerOperation(Summary = "Inativa/Ativa o usuário",
+          Description = "Inativa ou ativa um usário existente a partir do identificador único.")]
+    [HttpPut("{id}/LogicalDeletion")]
+    public async Task<IActionResult> LogicalDeletion([FromRoute] Guid id)
+    {
+        var result = await _logicalDeletionUserUseCase.ExecuteAsync(id);
+
+        return Ok(result.Response);
     }
 
     [SwaggerOperation(Summary = "Remove um usuário", 

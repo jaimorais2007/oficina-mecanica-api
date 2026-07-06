@@ -10,6 +10,7 @@ public class User
     public string PasswordHash { get; private set; } = string.Empty;
     public string Role { get; private set; } = string.Empty;
     public DateTime CreatedAt { get; private set; }
+    public bool Inactive { get; private set; } = false;
 
     protected User() { }
 
@@ -36,5 +37,10 @@ public class User
     public void UpdateRole(string role)
     {
         Role = role;
+    }
+
+    public void SetInactive(bool inactive)
+    {
+        Inactive = inactive;
     }
 }

@@ -1,12 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Application.UseCases.Vehicles;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OficinaApi.Presentation.Controllers
 {
@@ -20,19 +21,23 @@ namespace OficinaApi.Presentation.Controllers
         private readonly IUseCase<CreateServiceDto, ServiceDto> _createServiceUseCase;
         private readonly IUseCase<UpdateServiceRequest, ServiceDto> _updateServiceUseCase;
         private readonly IUseCase<Guid, bool> _deleteServiceUseCase;
+        private readonly IUseCase<Guid, NoInput> _logicalDeletionServiceUseCase;
+
 
         public ServiceController(
             IUseCase<NoInput, IEnumerable<ServiceDto>> getAllServicesUseCase,
             IUseCase<Guid, ServiceDto?> getServiceByIdUseCase,
             IUseCase<CreateServiceDto, ServiceDto> createServiceUseCase,
             IUseCase<UpdateServiceRequest, ServiceDto> updateServiceUseCase,
-            IUseCase<Guid, bool> deleteServiceUseCase)
+            IUseCase<Guid, bool> deleteServiceUseCase,
+            IUseCase<Guid, NoInput> logicalDeletionServiceUseCase)
         {
             _getAllServicesUseCase = getAllServicesUseCase;
             _getServiceByIdUseCase = getServiceByIdUseCase;
             _createServiceUseCase = createServiceUseCase;
             _updateServiceUseCase = updateServiceUseCase;
             _deleteServiceUseCase = deleteServiceUseCase;
+            _logicalDeletionServiceUseCase = logicalDeletionServiceUseCase;
         }
 
         [SwaggerOperation(Summary = "Lista todos os serviços cadastrados",
@@ -78,6 +83,16 @@ namespace OficinaApi.Presentation.Controllers
                     return NotFound(new { Message = string.Join(", ", result.Messages) });
                 return BadRequest(new { Message = string.Join(", ", result.Messages) });
             }
+            return Ok(result.Response);
+        }
+
+        [SwaggerOperation(Summary = "Inativa/Ativa o serviço",
+          Description = "Inativa ou ativa um serviço existente a partir do identificador único.")]
+        [HttpPut("{id}/LogicalDeletion")]
+        public async Task<IActionResult> LogicalDeletion([FromRoute] Guid id)
+        {
+            var result = await _logicalDeletionServiceUseCase.ExecuteAsync(id);
+
             return Ok(result.Response);
         }
 

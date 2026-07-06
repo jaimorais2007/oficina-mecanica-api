@@ -13,6 +13,7 @@ public class Vehicle : BaseEntity
     public Customer Customer { get; set; }
     public Guid CustomerId { get; set; }
     public ICollection<ServiceOrder> ServiceOrders { get; private set; } = [];
+    public bool Inactive { get; private set; } = false;
 
     protected Vehicle() { }
 
@@ -50,5 +51,10 @@ public class Vehicle : BaseEntity
 
         if (Year < 1900 || Year > DateTime.UtcNow.Year + 1)
             throw new ArgumentException("Ano inválido.");
+    }
+
+    public void SetInactive(bool inactive)
+    {
+        Inactive = inactive;
     }
 }

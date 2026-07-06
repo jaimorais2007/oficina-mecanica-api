@@ -11,6 +11,7 @@ public class ServiceOrderPart : BaseEntity
     public Guid PartId { get; private set; }
     public int Quantity { get; private set; } = default;
     public bool StockQuantityWasEnsured { get; private set; }
+    public bool Inactive { get; private set; } = false;
 
     // For EF Core
     protected ServiceOrderPart() { }

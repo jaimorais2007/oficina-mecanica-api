@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Application.UseCases.Vehicles;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.Collections.Generic;
@@ -20,19 +21,23 @@ namespace OficinaApi.Presentation.Controllers
         private readonly IUseCase<CreateCustomerDto, CustomerDto> _createCustomerUseCase;
         private readonly IUseCase<UpdateCustomerRequest, CustomerDto> _updateCustomerUseCase;
         private readonly IUseCase<Guid, bool> _deleteCustomerUseCase;
+        private readonly IUseCase<Guid, NoInput> _logicalDeletionCustomerUseCase;
+
 
         public CustomerController(
             IUseCase<NoInput, IEnumerable<CustomerDto>> getAllCustomersUseCase,
             IUseCase<Guid, CustomerDto?> getCustomerByIdUseCase,
             IUseCase<CreateCustomerDto, CustomerDto> createCustomerUseCase,
             IUseCase<UpdateCustomerRequest, CustomerDto> updateCustomerUseCase,
-            IUseCase<Guid, bool> deleteCustomerUseCase)
+            IUseCase<Guid, bool> deleteCustomerUseCase,
+            IUseCase<Guid, NoInput> logicalDeletionCustomerUseCase)
         {
             _getAllCustomersUseCase = getAllCustomersUseCase;
             _getCustomerByIdUseCase = getCustomerByIdUseCase;
             _createCustomerUseCase = createCustomerUseCase;
             _updateCustomerUseCase = updateCustomerUseCase;
             _deleteCustomerUseCase = deleteCustomerUseCase;
+            _logicalDeletionCustomerUseCase = logicalDeletionCustomerUseCase;
         }
 
         [SwaggerOperation(Summary = "Lista todos os clientes cadastrados",
@@ -78,6 +83,16 @@ namespace OficinaApi.Presentation.Controllers
                     return NotFound(new { Message = string.Join(", ", result.Messages) });
                 return BadRequest(new { Message = string.Join(", ", result.Messages) });
             }
+            return Ok(result.Response);
+        }
+
+        [SwaggerOperation(Summary = "Inativa/Ativa o cliente",
+          Description = "Inativa ou ativa um cliente existente a partir do identificador único.")]
+        [HttpPut("{id}/LogicalDeletion")]
+        public async Task<IActionResult> LogicalDeletion([FromRoute] Guid id)
+        {
+            var result = await _logicalDeletionCustomerUseCase.ExecuteAsync(id);
+
             return Ok(result.Response);
         }
 
