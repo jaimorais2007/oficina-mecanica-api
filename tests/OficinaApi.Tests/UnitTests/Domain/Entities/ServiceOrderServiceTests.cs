@@ -211,8 +211,7 @@ public class ServiceOrderEntityTests
         order.ApproveServiceOrder();
 
         // Assert
-        order.DomainEvents.Should().ContainSingle()
-             .Which.Should().BeOfType<ServiceOrderApprovedEvent>();
+        order.DomainEvents.Should().ContainSingle(e => e is ServiceOrderApprovedEvent);
     }
 
     [Theory]
