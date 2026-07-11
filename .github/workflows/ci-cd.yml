@@ -12,9 +12,7 @@ on:
 
 env:
   DOCKER_IMAGE_NAME: meurepositorio/oficina-mecanica-api
-  AWS_REGION: us-east-1
-  EKS_CLUSTER_NAME: oficina-mecanica-cluster
-  TERRAFORM_DIR: terraform/
+  TERRAFORM_DIR: infra
 
 jobs:
   build-and-test:
@@ -64,34 +62,39 @@ jobs:
           tags: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}, ${{ env.DOCKER_IMAGE_NAME }}:latest
 
   kubernetes-deploy:
-    name: Apply K8S Manifests
-    runs-on: ubuntu-latest
+    name: Provision infra & apply K8S Manifests (self-hosted / local k3s)
+    runs-on: self-hosted
     needs: docker-build-push
     if: github.event_name == 'push'
+    env:
+      KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        
-      - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.AWS_REGION }}
-          
-      - name: Update kubeconfig
-        run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
-        
-      # Substitui a imagem no deployment para a recém buildada
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      # Cluster k3s local + banco (docker-compose) - roda inteiramente neste servidor,
+      # sem nenhum recurso de nuvem (ver infra/README.md)
+      - name: Terraform apply (cluster local + banco)
+        working-directory: ${{ env.TERRAFORM_DIR }}
+        run: |
+          terraform init -input=false
+          terraform apply -auto-approve -input=false
+
+      - name: Gerar/atualizar Secret a partir do .env local
+        run: ./scripts/generate-k8s-secret.sh
+
+      # Substitui a imagem no deployment para a recém publicada no Docker Hub
       - name: Update Image in K8s Manifest
         run: |
           sed -i 's|image: .*|image: ${{ env.DOCKER_IMAGE_NAME }}:${{ github.sha }}|g' k8s/deployment.yaml
           sed -i 's|imagePullPolicy: Never|imagePullPolicy: Always|g' k8s/deployment.yaml
-          
+
       - name: Apply Kubernetes Manifests
         run: |
           kubectl apply -f k8s/configmap.yaml
-          # kubectl apply -f k8s/secrets.yaml (Como mencionado, não versionado)
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
           kubectl apply -f k8s/hpa.yaml

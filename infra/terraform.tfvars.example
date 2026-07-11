@@ -1,14 +1,4 @@
-aws_region      = "us-east-1"
-project_name    = "oficina-mecanica"
-environment     = "dev"
-cluster_name    = "oficina-mecanica-cluster"
-cluster_version = "1.31"
-
-node_instance_type = "t3.medium"
-node_desired_size  = 2
-node_min_size      = 1
-node_max_size      = 3
-
-db_name           = "oficina_db"
-db_username       = "oficina_admin"
-db_instance_class = "db.t3.micro"
+kubeconfig_path = "/etc/rancher/k3s/k3s.yaml"
+k8s_namespace   = "default"
+repo_root       = ".."
+db_port         = 5432

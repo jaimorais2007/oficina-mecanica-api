@@ -1,45 +1,19 @@
-output "cluster_name" {
-  value = module.eks.cluster_name
+output "kubeconfig_path" {
+  description = "Caminho do kubeconfig para usar com kubectl"
+  value       = var.kubeconfig_path
 }
 
-output "cluster_endpoint" {
-  value = module.eks.cluster_endpoint
+output "host_ip" {
+  description = "IP do host usado para expor o Postgres dentro do cluster"
+  value       = data.external.host_ip.result.ip
 }
 
-output "kubeconfig_command" {
-  description = "Rode este comando para configurar o kubectl apos o apply"
-  value       = "aws eks update-kubeconfig --region ${var.aws_region} --name ${module.eks.cluster_name}"
+output "postgres_in_cluster_dns" {
+  description = "Nome DNS para a aplicacao (rodando nos pods) se conectar ao Postgres do docker-compose"
+  value       = "postgres-external.${var.k8s_namespace}.svc.cluster.local"
 }
 
-output "rds_endpoint" {
-  value = aws_db_instance.this.address
-}
-
-output "rds_port" {
-  value = aws_db_instance.this.port
-}
-
-output "db_name" {
-  value = var.db_name
-}
-
-output "db_username" {
-  value = var.db_username
-}
-
-output "db_password" {
-  value     = random_password.db.result
-  sensitive = true
-}
-
-output "db_connection_string" {
-  description = "Connection string no formato usado pelo Npgsql (appsettings)"
-  value       = "Host=${aws_db_instance.this.address};Port=${aws_db_instance.this.port};Database=${var.db_name};Username=${var.db_username};Password=${random_password.db.result}"
-  sensitive   = true
-}
-
-output "create_k8s_secret_command" {
-  description = "Cria o Secret com as variaveis sensiveis no cluster (nao versionado no git)"
-  value       = "kubectl create secret generic oficina-mecanica-api-secret --from-literal=ConnectionStrings__DefaultConnection=\"Host=${aws_db_instance.this.address};Port=${aws_db_instance.this.port};Database=${var.db_name};Username=${var.db_username};Password=${random_password.db.result}\" --from-literal=Jwt__Secret=\"<definir>\" --from-literal=EmailSettings__Password=\"<definir>\""
-  sensitive   = true
+output "generate_secret_command" {
+  description = "Gera/atualiza o Secret com as variaveis sensiveis a partir do .env local (nao versionado no git)"
+  value       = "${var.repo_root}/scripts/generate-k8s-secret.sh"
 }

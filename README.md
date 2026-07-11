@@ -15,9 +15,13 @@ serviço (OS). Nesta Fase 2, a aplicação evoluiu para suportar maior demanda e
 - **Notificação por e-mail** a cada mudança de status da OS.
 - **Conteinerização** via Docker/Docker Compose para desenvolvimento local.
 - **Orquestração via Kubernetes** (Deployment, Service, ConfigMap, Secret, HPA) — veja [Deploy em Kubernetes](#deploy-em-kubernetes).
-- **Infraestrutura como código** via Terraform, provisionando o cluster EKS e o banco RDS na AWS
-  — veja [Provisionamento com Terraform](#provisionamento-com-terraform).
-- **Pipeline de CI/CD** via GitHub Actions — veja [CI/CD](#cicd).
+- **Infraestrutura como código** via Terraform, provisionando o cluster Kubernetes **local (k3s)**
+  e conectando-o ao banco do docker-compose — veja [Provisionamento com Terraform](#provisionamento-com-terraform).
+- **Pipeline de CI/CD** via GitHub Actions, com um **self-hosted runner** rodando neste mesmo
+  servidor para aplicar o Terraform e os manifestos no cluster local — veja [CI/CD](#cicd).
+
+> Por que tudo local? Este servidor é um laboratório de pós-graduação — o desafio permite
+> explicitamente cluster "local ou cloud", e local evita qualquer custo de nuvem (AWS, etc.).
 
 ---
 
@@ -75,38 +79,46 @@ graph TD
     end
 ```
 
-### Arquitetura em nuvem (Kubernetes / AWS)
+### Arquitetura Kubernetes (cluster local — k3s)
 
 ```mermaid
 graph TD
     Dev(["👤 Desenvolvedor"]) -->|"git push"| GH["GitHub"]
-    GH -->|"dispara"| CI["GitHub Actions\nbuild → test → docker build/push"]
-    CI -->|"docker push"| Hub[("Docker Hub")]
-    CI -->|"kubectl apply"| EKS
+    GH -->|"dispara"| CIcloud["GitHub Actions (nuvem)\nbuild → test → docker build/push"]
+    CIcloud -->|"docker push"| Hub[("Docker Hub")]
+    GH -->|"dispara"| Runner
 
-    subgraph AWS["AWS (provisionado via Terraform — /infra)"]
-        subgraph EKS["Cluster EKS"]
+    subgraph Servidor["Este servidor (laboratório — zero custo de nuvem)"]
+        Runner["Self-hosted runner\nterraform apply + kubectl apply"]
+        DBCompose[("Postgres\ndocker-compose")]
+
+        subgraph K3s["Cluster k3s"]
             Pod1["Pod\noficina-mecanica-api"]
             Pod2["Pod\noficina-mecanica-api"]
             HPA["HorizontalPodAutoscaler\nmin 1 / max 3\ncpu 80% · mem 75%"]
-            Svc["Service\nLoadBalancer"]
+            Svc["Service\nLoadBalancer (NodePort)"]
+            PgSvc["Service postgres-external\n(Endpoints -> IP do host)"]
             HPA -.->|"escala"| Pod1
             HPA -.->|"escala"| Pod2
             Svc --> Pod1
             Svc --> Pod2
+            Pod1 --> PgSvc
+            Pod2 --> PgSvc
         end
-        RDS[("RDS PostgreSQL 16")]
-        Pod1 --> RDS
-        Pod2 --> RDS
+
+        Runner -.->|"docker pull + import"| K3s
+        PgSvc -.->|"host:5432"| DBCompose
     end
 
-    Usuario(["👤 Usuário / Professor"]) -->|"HTTP"| Svc
+    Usuario(["👤 Usuário / Professor"]) -->|"HTTP :30697"| Svc
 ```
 
-Fluxo de deploy: push no `main` → CI builda e testa a aplicação → imagem Docker é publicada →
-pipeline aplica os manifestos em `/k8s` no cluster EKS (provisionado previamente via Terraform em
-`/infra`) → o `Service` do tipo `LoadBalancer` expõe a API publicamente, com o `HorizontalPodAutoscaler`
-escalando os pods conforme o consumo de CPU/memória.
+Fluxo de deploy: push no `main` → job em nuvem builda, testa e publica a imagem no Docker Hub →
+o **self-hosted runner** (rodando neste servidor) roda `terraform apply` (garante o k3s e o
+Postgres do docker-compose no ar, e cria o Service `postgres-external` que faz a ponte entre os
+dois — ver [Provisionamento com Terraform](#provisionamento-com-terraform)) → aplica os manifestos
+de `/k8s` no cluster → o `HorizontalPodAutoscaler` escala os pods conforme o consumo de CPU/memória.
+Nenhum recurso é criado em nuvem paga — tudo roda neste servidor.
 
 ---
 
@@ -261,33 +273,30 @@ docker compose up -d
 
 ## Deploy em Kubernetes
 
-Os manifestos estão em [`/k8s`](k8s): `configmap.yaml`, `deployment.yaml`, `service.yaml` e
+O cluster é um **k3s local**, rodando neste próprio servidor (zero custo de nuvem). Os manifestos
+da aplicação estão em [`/k8s`](k8s): `configmap.yaml`, `deployment.yaml`, `service.yaml` e
 `hpa.yaml` (HorizontalPodAutoscaler, escalando de 1 a 3 réplicas por CPU/memória).
 
-Pré-requisito: o cluster (EKS) precisa já existir — veja [Provisionamento com Terraform](#provisionamento-com-terraform).
+Pré-requisito: o cluster e o banco precisam estar provisionados — veja [Provisionamento com Terraform](#provisionamento-com-terraform).
 
 ```bash
-# 1. Aponta o kubectl para o cluster provisionado pelo Terraform
-$(terraform -chdir=infra output -raw kubeconfig_command)
+export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
-# 2. Cria o Secret com as variáveis sensíveis (não versionado no git)
-cp k8s/secrets.yaml.example k8s/secrets.yaml
-# edite k8s/secrets.yaml com os valores reais (a connection string pode ser obtida via
-# `terraform -chdir=infra output -raw db_connection_string`)
-kubectl apply -f k8s/secrets.yaml
+# 1. Gera/atualiza o Secret com as variaveis sensiveis a partir do .env local (nao versionado)
+./scripts/generate-k8s-secret.sh
 
-# 3. Aplica o restante dos manifestos
+# 2. Aplica os manifestos da aplicacao
 kubectl apply -f k8s/configmap.yaml
 kubectl apply -f k8s/deployment.yaml
 kubectl apply -f k8s/service.yaml
 kubectl apply -f k8s/hpa.yaml
 
-# 4. Obtém o endereço público exposto pelo Service (LoadBalancer)
+# 3. Endereco de acesso (Service tipo LoadBalancer -> NodePort no k3s)
 kubectl get service oficina-mecanica-api-svc
 ```
 
-Esses mesmos passos (exceto a criação do Secret, que não é automatizada por segurança) são
-executados automaticamente pelo job `kubernetes-deploy` do CI/CD a cada push em `main` — veja [CI/CD](#cicd).
+Esses mesmos passos são executados automaticamente pelo job `kubernetes-deploy` do CI/CD a cada
+push em `main`, rodando em um **self-hosted runner** neste servidor — veja [CI/CD](#cicd).
 
 Para acompanhar o autoscaling em ação:
 
@@ -299,9 +308,17 @@ kubectl get hpa oficina-mecanica-api-hpa --watch
 
 ## Provisionamento com Terraform
 
-A infraestrutura de nuvem (VPC, cluster EKS com node group gerenciado, e RDS PostgreSQL) é
-provisionada via Terraform em [`/infra`](infra). O guia completo — pré-requisitos, variáveis,
-passo a passo de `apply`/`destroy` e estimativa de custo — está em [`infra/README.md`](infra/README.md).
+O Terraform em [`/infra`](infra) garante, **inteiramente neste servidor e sem nenhum custo de
+nuvem**:
+
+- que o cluster **k3s** esteja instalado e ativo;
+- que o **Postgres do docker-compose** esteja no ar;
+- a ponte de rede entre os dois (`Service`/`Endpoints` `postgres-external`), já que o Postgres
+  roda no `dockerd` e o k3s roda seu próprio `containerd` — runtimes de container separados no
+  mesmo host.
+
+Guia completo (pré-requisitos, variáveis, o motivo de não usarmos EKS/RDS) em
+[`infra/README.md`](infra/README.md).
 
 Resumo rápido:
 
@@ -312,26 +329,25 @@ terraform init
 terraform apply
 ```
 
-> A infraestrutura cobra por hora enquanto estiver de pé. Recomendado: suba antes de gravar o
-> vídeo demonstrativo e rode `terraform destroy` logo depois.
-
 ---
 
 ## CI/CD
 
 O pipeline (`.github/workflows/ci-cd.yml`, GitHub Actions) roda a cada push/PR em `main`/`develop`:
 
-1. **build-and-test** — restaura, builda e executa a suíte de testes automatizados.
-2. **docker-build-push** — builda a imagem Docker e publica no Docker Hub.
-3. **kubernetes-deploy** *(apenas em push)* — autentica na AWS, aponta o `kubectl` para o cluster
-   EKS e aplica os manifestos de `/k8s` com a imagem recém-publicada.
+1. **build-and-test** *(nuvem — GitHub-hosted runner)* — restaura, builda e executa a suíte de
+   testes automatizados.
+2. **docker-build-push** *(nuvem)* — builda a imagem Docker e publica no Docker Hub.
+3. **kubernetes-deploy** *(apenas em push, roda no **self-hosted runner** deste servidor)* —
+   `terraform apply` (garante cluster k3s + banco), gera o Secret a partir do `.env` local e
+   aplica os manifestos de `/k8s` com a imagem recém-publicada.
+
+O job de deploy precisa de um self-hosted runner porque o cluster é local — um runner hospedado
+pelo GitHub não tem como alcançar um k3s sem IP público. O runner roda como um agente neste
+servidor (Settings → Actions → Runners no GitHub) e não expõe nada à internet.
 
 Secrets necessários no GitHub (Settings → Secrets and variables → Actions):
-`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
-
-> O provisionamento da infraestrutura (Terraform) é feito manualmente antes do primeiro deploy —
-> veja [Provisionamento com Terraform](#provisionamento-com-terraform). O pipeline assume que o
-> cluster já existe e apenas aplica os manifestos da aplicação.
+`DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`. Nenhuma credencial de nuvem é necessária.
 
 ---
 
