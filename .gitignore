@@ -11,6 +11,17 @@
 *.sln.docstates
 *.env
 
+# Terraform
+infra/.terraform/
+infra/terraform.tfstate
+infra/terraform.tfstate.backup
+infra/terraform.tfvars
+infra/*.tfplan
+infra/crash.log
+
+# Kubernetes secrets (nao versionar valores reais)
+k8s/secrets.yaml
+
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
 
