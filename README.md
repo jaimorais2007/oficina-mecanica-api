@@ -1,6 +1,23 @@
 # Oficina Mecânica API
 
-API RESTful para gerenciamento de uma oficina mecânica, desenvolvida com .NET 8, PostgreSQL e Docker.
+API RESTful para gerenciamento de uma oficina mecânica, desenvolvida com .NET 10, PostgreSQL e Docker.
+
+## Fase 2 — Objetivos desta evolução
+
+Na Fase 1 o sistema cobriu o CRUD básico de clientes, veículos, serviços, peças e ordens de
+serviço (OS). Nesta Fase 2, a aplicação evoluiu para suportar maior demanda e disponibilidade:
+
+- **Refatoração** para Clean Architecture (camadas `Domain` / `Application` / `Infrastructure` /
+  `Presentation`), com testes automatizados cobrindo os fluxos críticos.
+- **Novas regras de negócio na OS**: recusa de orçamento pelo cliente, consulta dedicada de
+  status, listagem priorizada por status (Em Execução > Aguardando Aprovação > Diagnóstico >
+  Recebida, mais antigas primeiro) e exclusão lógica das OS Finalizadas/Entregues dessa listagem.
+- **Notificação por e-mail** a cada mudança de status da OS.
+- **Conteinerização** via Docker/Docker Compose para desenvolvimento local.
+- **Orquestração via Kubernetes** (Deployment, Service, ConfigMap, Secret, HPA) — veja [Deploy em Kubernetes](#deploy-em-kubernetes).
+- **Infraestrutura como código** via Terraform, provisionando o cluster EKS e o banco RDS na AWS
+  — veja [Provisionamento com Terraform](#provisionamento-com-terraform).
+- **Pipeline de CI/CD** via GitHub Actions — veja [CI/CD](#cicd).
 
 ---
 
@@ -12,14 +29,18 @@ API RESTful para gerenciamento de uma oficina mecânica, desenvolvida com .NET 8
 - [Fluxo de autenticação](#fluxo-de-autenticação)
 - [Fluxo principal — Ordem de Serviço](#fluxo-principal--ordem-de-serviço)
 - [Configuração do ambiente](#configuração-do-ambiente)
-- [Subindo a aplicação](#subindo-a-aplicação)
+- [Subindo a aplicação (execução local)](#subindo-a-aplicação-execução-local)
 - [Banco de dados e migrations](#banco-de-dados-e-migrations)
+- [Deploy em Kubernetes](#deploy-em-kubernetes)
+- [Provisionamento com Terraform](#provisionamento-com-terraform)
+- [CI/CD](#cicd)
 - [Autenticação JWT](#autenticação-jwt)
 - [Documentação Swagger](#documentação-swagger)
 - [Endpoints disponíveis](#endpoints-disponíveis)
 - [Exemplos de requisição](#exemplos-de-requisição)
 - [Testes](#testes)
 - [Análise de segurança do código](#análise-de-segurança-do-código)
+- [Vídeo demonstrativo](#vídeo-demonstrativo)
 
 ---
 
@@ -32,11 +53,13 @@ API RESTful para gerenciamento de uma oficina mecânica, desenvolvida com .NET 8
 
 ## Arquitetura
 
+### Arquitetura local (Docker Compose)
+
 ```mermaid
 graph TD
     Cliente(["👤 Cliente / Professor"])
     Swagger["Swagger UI\n:8080/swagger"]
-    API["OficinaApi\n.NET 8\n:8080"]
+    API["OficinaApi\n.NET 10\n:8080"]
     DB[("PostgreSQL 16\n:5432")]
     JWT["jwt.io\nGeração do token"]
 
@@ -51,6 +74,39 @@ graph TD
         DB
     end
 ```
+
+### Arquitetura em nuvem (Kubernetes / AWS)
+
+```mermaid
+graph TD
+    Dev(["👤 Desenvolvedor"]) -->|"git push"| GH["GitHub"]
+    GH -->|"dispara"| CI["GitHub Actions\nbuild → test → docker build/push"]
+    CI -->|"docker push"| Hub[("Docker Hub")]
+    CI -->|"kubectl apply"| EKS
+
+    subgraph AWS["AWS (provisionado via Terraform — /infra)"]
+        subgraph EKS["Cluster EKS"]
+            Pod1["Pod\noficina-mecanica-api"]
+            Pod2["Pod\noficina-mecanica-api"]
+            HPA["HorizontalPodAutoscaler\nmin 1 / max 3\ncpu 80% · mem 75%"]
+            Svc["Service\nLoadBalancer"]
+            HPA -.->|"escala"| Pod1
+            HPA -.->|"escala"| Pod2
+            Svc --> Pod1
+            Svc --> Pod2
+        end
+        RDS[("RDS PostgreSQL 16")]
+        Pod1 --> RDS
+        Pod2 --> RDS
+    end
+
+    Usuario(["👤 Usuário / Professor"]) -->|"HTTP"| Svc
+```
+
+Fluxo de deploy: push no `main` → CI builda e testa a aplicação → imagem Docker é publicada →
+pipeline aplica os manifestos em `/k8s` no cluster EKS (provisionado previamente via Terraform em
+`/infra`) → o `Service` do tipo `LoadBalancer` expõe a API publicamente, com o `HorizontalPodAutoscaler`
+escalando os pods conforme o consumo de CPU/memória.
 
 ---
 
@@ -133,9 +189,13 @@ flowchart TD
     D --> E[Criar Peça e adicionar estoque\nPOST /api/Parts\nPOST /api/Parts/id/add-stock]
     E --> F[Criar Ordem de Serviço\nPOST /api/ServiceOrders]
     F --> G[Estoque debitado automaticamente]
-    G --> H[Consultar OS\nGET /api/ServiceOrders/id]
-    H --> I[Acompanhar progresso público\nGET /api/external/orders/id/progress]
-    I --> Z([Fim])
+    G --> H[Consultar OS completa\nGET /api/ServiceOrders/id]
+    H --> I[Consultar apenas o status\nGET /api/ServiceOrders/id/status]
+    I --> J{Cliente aprova\no orçamento?}
+    J -->|Sim| K[POST /api/ServiceOrders/id/approve]
+    J -->|Não| L[POST /api/ServiceOrders/id/refuse]
+    K --> Z([Fim])
+    L --> Z
 ```
 
 ---
@@ -161,7 +221,7 @@ JWT_AUDIENCE=oficina-clientes
 
 ---
 
-## Subindo a aplicação
+## Subindo a aplicação (execução local)
 
 ```bash
 # Primeira vez ou após alterações no código
@@ -196,6 +256,82 @@ Se precisar recriar o banco do zero:
 docker compose down -v   # remove os volumes
 docker compose up -d
 ```
+
+---
+
+## Deploy em Kubernetes
+
+Os manifestos estão em [`/k8s`](k8s): `configmap.yaml`, `deployment.yaml`, `service.yaml` e
+`hpa.yaml` (HorizontalPodAutoscaler, escalando de 1 a 3 réplicas por CPU/memória).
+
+Pré-requisito: o cluster (EKS) precisa já existir — veja [Provisionamento com Terraform](#provisionamento-com-terraform).
+
+```bash
+# 1. Aponta o kubectl para o cluster provisionado pelo Terraform
+$(terraform -chdir=infra output -raw kubeconfig_command)
+
+# 2. Cria o Secret com as variáveis sensíveis (não versionado no git)
+cp k8s/secrets.yaml.example k8s/secrets.yaml
+# edite k8s/secrets.yaml com os valores reais (a connection string pode ser obtida via
+# `terraform -chdir=infra output -raw db_connection_string`)
+kubectl apply -f k8s/secrets.yaml
+
+# 3. Aplica o restante dos manifestos
+kubectl apply -f k8s/configmap.yaml
+kubectl apply -f k8s/deployment.yaml
+kubectl apply -f k8s/service.yaml
+kubectl apply -f k8s/hpa.yaml
+
+# 4. Obtém o endereço público exposto pelo Service (LoadBalancer)
+kubectl get service oficina-mecanica-api-svc
+```
+
+Esses mesmos passos (exceto a criação do Secret, que não é automatizada por segurança) são
+executados automaticamente pelo job `kubernetes-deploy` do CI/CD a cada push em `main` — veja [CI/CD](#cicd).
+
+Para acompanhar o autoscaling em ação:
+
+```bash
+kubectl get hpa oficina-mecanica-api-hpa --watch
+```
+
+---
+
+## Provisionamento com Terraform
+
+A infraestrutura de nuvem (VPC, cluster EKS com node group gerenciado, e RDS PostgreSQL) é
+provisionada via Terraform em [`/infra`](infra). O guia completo — pré-requisitos, variáveis,
+passo a passo de `apply`/`destroy` e estimativa de custo — está em [`infra/README.md`](infra/README.md).
+
+Resumo rápido:
+
+```bash
+cd infra
+cp terraform.tfvars.example terraform.tfvars
+terraform init
+terraform apply
+```
+
+> A infraestrutura cobra por hora enquanto estiver de pé. Recomendado: suba antes de gravar o
+> vídeo demonstrativo e rode `terraform destroy` logo depois.
+
+---
+
+## CI/CD
+
+O pipeline (`.github/workflows/ci-cd.yml`, GitHub Actions) roda a cada push/PR em `main`/`develop`:
+
+1. **build-and-test** — restaura, builda e executa a suíte de testes automatizados.
+2. **docker-build-push** — builda a imagem Docker e publica no Docker Hub.
+3. **kubernetes-deploy** *(apenas em push)* — autentica na AWS, aponta o `kubectl` para o cluster
+   EKS e aplica os manifestos de `/k8s` com a imagem recém-publicada.
+
+Secrets necessários no GitHub (Settings → Secrets and variables → Actions):
+`AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`.
+
+> O provisionamento da infraestrutura (Terraform) é feito manualmente antes do primeiro deploy —
+> veja [Provisionamento com Terraform](#provisionamento-com-terraform). O pipeline assume que o
+> cluster já existe e apenas aplica os manifestos da aplicação.
 
 ---
 
@@ -255,6 +391,14 @@ Acesse a documentação interativa da API:
 http://localhost:8080/swagger
 ```
 
+### Coleção completa da API
+
+O Swagger expõe a especificação OpenAPI completa em `http://localhost:8080/swagger/v1/swagger.json`
+(troque `localhost` pelo endereço do `Service` do Kubernetes quando aplicável). Esse arquivo pode
+ser importado diretamente no Postman (**Import → Link**) ou em qualquer outra ferramenta compatível
+com OpenAPI/Swagger, servindo como a coleção completa das rotas documentadas na seção
+[Endpoints disponíveis](#endpoints-disponíveis).
+
 ---
 
 ## Endpoints disponíveis
@@ -299,16 +443,25 @@ http://localhost:8080/swagger
 ### ServiceOrders — Ordens de Serviço
 | Método | Rota | Descrição | Auth |
 |--------|------|-----------|------|
-| GET | `/api/ServiceOrders/{id}` | Busca OS por ID | ✅ |
-| POST | `/api/ServiceOrders` | Cria nova OS | ✅ |
+| GET | `/api/ServiceOrders` | Lista as OS não finalizadas/entregues, ordenadas por status (Em Execução > Aguardando Aprovação > Diagnóstico > Recebida) e mais antigas primeiro | ✅ |
+| GET | `/api/ServiceOrders/{id}` | Busca OS completa por ID | ✅ |
+| GET | `/api/ServiceOrders/{id}/status` | Consulta apenas o status atual da OS | ✅ |
+| POST | `/api/ServiceOrders` | Abre uma nova OS | ✅ |
+| POST | `/api/ServiceOrders/{id}/start-analysis` | Move a OS para diagnóstico técnico | ✅ |
+| POST | `/api/ServiceOrders/{id}/finish-analysis` | Finaliza o diagnóstico e calcula o orçamento (envia e-mail ao cliente) | ✅ |
+| POST | `/api/ServiceOrders/{id}/parts` | Adiciona uma peça à OS | ✅ |
+| POST | `/api/ServiceOrders/{id}/services` | Adiciona um serviço à OS | ✅ |
+| POST | `/api/ServiceOrders/{id}/approve` | Aprova o orçamento e inicia a execução | ✅ |
+| POST | `/api/ServiceOrders/{id}/refuse` | Recusa o orçamento (só a partir de "Aguardando Aprovação") | ✅ |
+| POST | `/api/ServiceOrders/{id}/finish-execution` | Finaliza a execução | ✅ |
+| POST | `/api/ServiceOrders/{id}/deliver` | Marca a OS como entregue ao cliente | ✅ |
+| GET | `/api/ServiceOrders/{id}/pending-stocks` | Lista peças com estoque pendente de confirmação | ✅ |
+| GET | `/api/ServiceOrders/average-duration` | Duração média (em dias) das OS finalizadas | ✅ |
 
-### ExternalQuery — Consulta Pública
-| Método | Rota | Descrição | Auth |
-|--------|------|-----------|------|
-| GET | `/api/external/orders/{id}/progress` | Acompanha progresso da OS | ❌ |
-| GET | `/api/external/metrics/average-execution-time` | Tempo médio de execução | ❌ |
+> ✅ Requer token JWT
 
-> ✅ Requer token JWT &nbsp;&nbsp; ❌ Rota pública
+A cada transição de status (Recebida → Diagnóstico → Aguardando Aprovação → Execução → Finalizada
+→ Entregue, ou Recusada), o cliente recebe um e-mail automático com a atualização.
 
 ---
 
@@ -355,17 +508,20 @@ curl -X POST http://localhost:8080/api/ServiceOrders \
   }'
 ```
 
-### Consultar progresso de uma OS (pública)
+### Consultar apenas o status de uma OS
 
 ```bash
-curl http://localhost:8080/api/external/orders/<id_da_os>/progress
+curl http://localhost:8080/api/ServiceOrders/<id_da_os>/status \
+  -H "Authorization: Bearer <seu_token>"
 ```
 
 ---
 
 ## Testes
 
-O projeto conta com uma suíte de **257 testes automatizados** (0 falhas), cobrindo os principais fluxos de domínio.
+O projeto conta com uma suíte de mais de 230 testes automatizados (unitários e de integração),
+cobrindo os principais fluxos de domínio. A suíte roda automaticamente no job `build-and-test`
+do CI/CD a cada push/PR.
 
 ### Executar os testes
 
@@ -402,3 +558,12 @@ O relatório completo de análise estática do código está disponível em:
 | Segurança do contêiner Docker | Nenhum | ✅ OK |
 | Credenciais expostas | Baixo (intencional — contexto acadêmico) | Aceito |
 | Validação de entrada nos DTOs | Médio | ⚠️ Recomendação documentada |
+
+---
+
+## Vídeo demonstrativo
+
+📺 `<link do vídeo — YouTube ou Vimeo, público ou não listado, até 15 minutos>`
+
+O vídeo demonstra: deploy da aplicação (Terraform + Kubernetes), execução do pipeline de CI/CD,
+consumo das APIs pelo Swagger e a escalabilidade automática via HPA sob carga simulada.
