@@ -19,7 +19,10 @@ public class CustomerControllerTests
     private readonly Mock<IUseCase<CreateCustomerDto, CustomerDto>> _createMock;
     private readonly Mock<IUseCase<UpdateCustomerRequest, CustomerDto>> _updateMock;
     private readonly Mock<IUseCase<Guid, bool>> _deleteMock;
+    private readonly Mock<IUseCase<Guid, NoInput>> _logicalDeletion;
+
     private readonly CustomerController _controller;
+
 
     public CustomerControllerTests()
     {
@@ -28,13 +31,16 @@ public class CustomerControllerTests
         _createMock = new Mock<IUseCase<CreateCustomerDto, CustomerDto>>();
         _updateMock = new Mock<IUseCase<UpdateCustomerRequest, CustomerDto>>();
         _deleteMock = new Mock<IUseCase<Guid, bool>>();
+        _logicalDeletion = new Mock<IUseCase<Guid, NoInput>>();
+
 
         _controller = new CustomerController(
             _getAllMock.Object,
             _getByIdMock.Object,
             _createMock.Object,
             _updateMock.Object,
-            _deleteMock.Object);
+            _deleteMock.Object,
+            _logicalDeletion.Object);
     }
 
     [Fact]

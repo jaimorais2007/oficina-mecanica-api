@@ -15,4 +15,5 @@ public interface IServiceOrderRepository
     Task SaveChangesAsync(ServiceOrder order);
     Task<double> GetAverageDurationInDaysAsync();
     Task<ServiceOrder?> GetServiceOrderByIdToGetPeddingStocksAsync(Guid id);
+    Task<ServiceOrder?> GetByStatus(Guid id);
 }

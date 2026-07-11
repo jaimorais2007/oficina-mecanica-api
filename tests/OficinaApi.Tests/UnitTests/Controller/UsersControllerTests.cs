@@ -18,6 +18,8 @@ public class UsersControllerTests
     private readonly Mock<IUseCase<CreateUserDto, UserDto>> _createMock;
     private readonly Mock<IUseCase<UpdateUserRequest, bool>> _updateMock;
     private readonly Mock<IUseCase<Guid, bool>> _deleteMock;
+    private readonly Mock<IUseCase<Guid, NoInput>> _logicalDeletion;
+
     private readonly UsersController _controller;
 
     public UsersControllerTests()
@@ -27,13 +29,16 @@ public class UsersControllerTests
         _createMock = new Mock<IUseCase<CreateUserDto, UserDto>>();
         _updateMock = new Mock<IUseCase<UpdateUserRequest, bool>>();
         _deleteMock = new Mock<IUseCase<Guid, bool>>();
+        _logicalDeletion = new Mock<IUseCase<Guid, NoInput>>();
 
-        _controller  = new UsersController(
+
+        _controller = new UsersController(
             _getAllMock.Object,
             _getByIdMock.Object,
             _createMock.Object,
             _updateMock.Object,
-            _deleteMock.Object);
+            _deleteMock.Object,
+            _logicalDeletion.Object);
     }
 
     private static UserDto BuildUserDto() => new()

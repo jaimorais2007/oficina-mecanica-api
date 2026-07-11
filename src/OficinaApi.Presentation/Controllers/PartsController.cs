@@ -1,12 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Application.UseCases.Vehicles;
 using Swashbuckle.AspNetCore.Annotations;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace OficinaApi.Presentation.Controllers;
 
@@ -21,6 +22,8 @@ public class PartsController : ControllerBase
     private readonly IUseCase<AddStockRequest, bool> _addStockUseCase;
     private readonly IUseCase<RemoveStockRequest, bool> _removeStockUseCase;
     private readonly IUseCase<Guid, bool> _deletePartUseCase;
+    private readonly IUseCase<Guid, NoInput> _logicalDeletionPartsUseCase;
+
 
     public PartsController(
         IUseCase<NoInput, IEnumerable<PartDto>> getAllPartsUseCase,
@@ -28,7 +31,8 @@ public class PartsController : ControllerBase
         IUseCase<CreatePartDto, PartDto> createPartUseCase,
         IUseCase<AddStockRequest, bool> addStockUseCase,
         IUseCase<RemoveStockRequest, bool> removeStockUseCase,
-        IUseCase<Guid, bool> deletePartUseCase)
+        IUseCase<Guid, bool> deletePartUseCase,
+        IUseCase<Guid, NoInput> logicalDeletionPartsUseCase)
     {
         _getAllPartsUseCase = getAllPartsUseCase;
         _getPartByIdUseCase = getPartByIdUseCase;
@@ -36,6 +40,7 @@ public class PartsController : ControllerBase
         _addStockUseCase = addStockUseCase;
         _removeStockUseCase = removeStockUseCase;
         _deletePartUseCase = deletePartUseCase;
+        _logicalDeletionPartsUseCase = logicalDeletionPartsUseCase;
     }
 
     [SwaggerOperation(Summary = "Lista todas as peças cadastradas",
@@ -97,6 +102,16 @@ public class PartsController : ControllerBase
             return BadRequest(new { Message = string.Join(", ", result.Messages) });
         }
         return NoContent();
+    }
+
+    [SwaggerOperation(Summary = "Inativa/Ativa uma peça",
+          Description = "Inativa ou ativa uma peça existente a partir do identificador único.")]
+    [HttpPut("{id}/LogicalDeletion")]
+    public async Task<IActionResult> LogicalDeletion([FromRoute] Guid id)
+    {
+        var result = await _logicalDeletionPartsUseCase.ExecuteAsync(id);
+
+        return Ok(result.Response);
     }
 
     [SwaggerOperation(Summary = "Remove uma peça",

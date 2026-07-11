@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using OficinaApi.Application.DTOs;
 using OficinaApi.Domain.Entities;
+using OficinaApi.Domain.Enums;
 using OficinaApi.Domain.Interfaces;
 using OficinaApi.Infrastructure.Data;
 
@@ -23,8 +25,19 @@ public class ServiceOrderRepository : IServiceOrderRepository
             .Include(so => so.StatusHistory)
             .Include(so => so.Customer)
             .Include(so => so.Vehicle)
-            .Include(so => so.ServicesUsed).ThenInclude(s => s.Service)
-            .Include(so => so.PartsUsed).ThenInclude(p => p.Part)
+            .Include(so => so.ServicesUsed)
+                .ThenInclude(s => s.Service)
+            .Include(so => so.PartsUsed)
+                .ThenInclude(p => p.Part)
+            .OrderBy(so =>
+                so.StatusHistory
+                    .OrderByDescending(sh => sh.CreatedAt)
+                    .Select(sh => sh.Status == OrderStatus.Executing ? 0 :
+                                  sh.Status == OrderStatus.WaitingApproval ? 1 :
+                                  sh.Status == OrderStatus.InDiagnostics ? 2 :
+                                  sh.Status == OrderStatus.Received ? 3 : 4)
+                    .First())
+            .ThenBy(so => so.CreatedAt)
             .AsSplitQuery()
             .ToListAsync();
     }
@@ -45,6 +58,15 @@ public class ServiceOrderRepository : IServiceOrderRepository
             .Include(so => so.ServicesUsed).ThenInclude(s => s.Service)
             .Include(so => so.PartsUsed).ThenInclude(p => p.Part)
             .AsSplitQuery()
+            .FirstOrDefaultAsync(so => so.Id == id);
+    }
+
+    public async Task<ServiceOrder?> GetByStatus(Guid id)
+    {
+        _logger.LogInformation("Getting ServiceOrder by ID: {Id}", id);
+
+        return await _context.ServiceOrders
+            .Include(so => so.StatusHistory)
             .FirstOrDefaultAsync(so => so.Id == id);
     }
 

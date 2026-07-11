@@ -16,6 +16,7 @@ public class ServiceOrder : BaseEntity
     public ICollection<ServiceOrderService> ServicesUsed { get; private set; } = [];
     public ICollection<ServiceOrderPart> PartsUsed { get; private set; } = [];
     public decimal Budget { get; private set; }
+    public bool Inactive { get; private set; } = false;
 
     // For EF Core
     protected ServiceOrder() { }
@@ -29,6 +30,7 @@ public class ServiceOrder : BaseEntity
         VehicleId = vehicle.Id;
         ServicesUsed = servicesUserd.Select(s => new ServiceOrderService(this, s)).ToList();
         StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Received));
+        AddDomainEvent(new ServiceOrderStatusChangedEvent(this));
         CreatedAt = DateTime.UtcNow;
     }
 
@@ -42,7 +44,7 @@ public class ServiceOrder : BaseEntity
         var lastStatus = GetLastStatusHistory();
         if (lastStatus.Status != OrderStatus.Received)
             throw new InvalidOperationException("A ordem de serviço deve estar no status 'Recebida' para iniciar a análise técnica.");
-        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.InDiagnostics));
+        ChangeStatus(OrderStatus.InDiagnostics);
     }
 
     public void FinishAnalysis()
@@ -50,7 +52,7 @@ public class ServiceOrder : BaseEntity
         var lastStatus = GetLastStatusHistory();
         if (lastStatus.Status != OrderStatus.InDiagnostics)
             throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Análise' para finalizar a análise técnica.");
-        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.WaitingApproval));
+        ChangeStatus(OrderStatus.WaitingApproval);
         CalculateBudget();
     }
 
@@ -59,7 +61,8 @@ public class ServiceOrder : BaseEntity
         var lastStatus = GetLastStatusHistory();
         if (lastStatus.Status != OrderStatus.WaitingApproval)
             throw new InvalidOperationException("A ordem de serviço deve estar no status 'Aguardando Aprovação' para ser aprovada.");
-        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Executing));
+       
+        ChangeStatus(OrderStatus.Executing);
         AddDomainEvent(new ServiceOrderApprovedEvent(Id));
     }
 
@@ -72,8 +75,8 @@ public class ServiceOrder : BaseEntity
         var pendingStocks = GetPendingStocks();
         if(pendingStocks.Any())
             throw new InvalidOperationException($"Não é possível finalizar a execução de uma ordem de serviço que possui peças pendentes. Por favor verifique as peças: {string.Join(", ", pendingStocks.Select(p => p.Part.Name))}");
-
-        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Finished));
+        
+        ChangeStatus(OrderStatus.Finished);
     }
 
     public void Deliver()
@@ -81,7 +84,14 @@ public class ServiceOrder : BaseEntity
         var lastStatus = GetLastStatusHistory();
         if(lastStatus.Status != OrderStatus.Finished)
             throw new InvalidOperationException("A ordem de serviço deve estar no status 'Finalizada' para ser entregue.");
-        StatusHistory.Add(new ServiceOrderStatus(this, OrderStatus.Delivered));
+        
+        ChangeStatus(OrderStatus.Delivered);
+
+    }
+
+    public void Refuse()
+    {
+        ChangeStatus(OrderStatus.Refused);
     }
 
     public void AddPart(Part part, int quantity)
@@ -122,5 +132,10 @@ public class ServiceOrder : BaseEntity
         if (GetLastStatusHistory().Status != OrderStatus.Executing)
             throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Execução' para verificar os estoques pendentes.");
         return PartsUsed.Where(p => !p.StockQuantityWasEnsured).ToList();
+    }
+    private void ChangeStatus(OrderStatus status)
+    {
+        StatusHistory.Add(new ServiceOrderStatus(this, status));
+        AddDomainEvent(new ServiceOrderStatusChangedEvent(this));
     }
 }

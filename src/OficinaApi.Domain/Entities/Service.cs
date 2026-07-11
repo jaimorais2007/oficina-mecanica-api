@@ -9,6 +9,7 @@ public class Service : BaseEntity
     public decimal DefaultPrice { get; private set; } = default;
     public DateTime CreatedAt { get; private set; } = default;
     public ICollection<ServiceOrderService> ServiceOrdersServices { get; set; } = [];
+    public bool Inactive { get; private set; } = false;
 
     protected Service() { }
 
@@ -39,5 +40,10 @@ public class Service : BaseEntity
 
         if (DefaultPrice < 0)
             throw new ArgumentException("Preço informado é inválido.");
+    }
+
+    public void SetInactive(bool inactive)
+    {
+        Inactive = inactive;
     }
 }

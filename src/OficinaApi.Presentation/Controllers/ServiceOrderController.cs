@@ -17,6 +17,7 @@ public class ServiceOrdersController : ControllerBase
 {
     private readonly IUseCase<NoInput, IEnumerable<ServiceOrderDto>> _getAllServiceOrdersUseCase;
     private readonly IUseCase<Guid, ServiceOrderDto?> _getServiceOrderByIdUseCase;
+    private readonly IUseCase<Guid, ServiceOrderStatusDto?> _getServiceOrderByStatusUseCase;
     private readonly IUseCase<CreateServiceOrderDto, ServiceOrderDto> _createServiceOrderUseCase;
     private readonly IUseCase<StartDiagnosticsRequest, ServiceOrderDto> _startDiagnosticsUseCase;
     private readonly IUseCase<FinishAnalysisRequest, ServiceOrderDto> _finishAnalysisUseCase;
@@ -25,6 +26,7 @@ public class ServiceOrdersController : ControllerBase
     private readonly IUseCase<ApproveServiceOrderRequest, ServiceOrderDto> _approveServiceOrderUseCase;
     private readonly IUseCase<FinishExecutionRequest, ServiceOrderDto> _finishExecutionUseCase;
     private readonly IUseCase<DeliverServiceOrderRequest, ServiceOrderDto> _deliverServiceOrderUseCase;
+    private readonly IUseCase<RefuseServiceOrderRequest, ServiceOrderDto> _refuseServiceOrderUseCase;
     private readonly IUseCase<Guid, IEnumerable<ServiceOrderPeddingStockDto>> _getServiceOrderPendingStocksUseCase;
     private readonly IUseCase<NoInput, double> _getAverageDurationUseCase;
 
@@ -40,7 +42,8 @@ public class ServiceOrdersController : ControllerBase
         IUseCase<FinishExecutionRequest, ServiceOrderDto> finishExecutionUseCase,
         IUseCase<DeliverServiceOrderRequest, ServiceOrderDto> deliverServiceOrderUseCase,
         IUseCase<Guid, IEnumerable<ServiceOrderPeddingStockDto>> getServiceOrderPendingStocksUseCase,
-        IUseCase<NoInput, double> getAverageDurationUseCase)
+        IUseCase<NoInput, double> getAverageDurationUseCase,
+        IUseCase<RefuseServiceOrderRequest, ServiceOrderDto> refuseServiceOrderUseCase)
     {
         _getAllServiceOrdersUseCase = getAllServiceOrdersUseCase;
         _getServiceOrderByIdUseCase = getServiceOrderByIdUseCase;
@@ -54,6 +57,7 @@ public class ServiceOrdersController : ControllerBase
         _deliverServiceOrderUseCase = deliverServiceOrderUseCase;
         _getServiceOrderPendingStocksUseCase = getServiceOrderPendingStocksUseCase;
         _getAverageDurationUseCase = getAverageDurationUseCase;
+        _refuseServiceOrderUseCase = refuseServiceOrderUseCase;
     }
 
     [SwaggerOperation(Summary = "Lista todas as ordens de serviço",
@@ -79,9 +83,24 @@ public class ServiceOrdersController : ControllerBase
             return BadRequest(new { message = string.Join(", ", result.Messages) });
         }
         return Ok(result.Response);
-    } 
+    }
 
-    [SwaggerOperation(Summary = "Cria  uma nova ordem de serviço",
+    [SwaggerOperation(Summary = "Busca ordem de serviço por ID",
+                  Description = "Retorna o id e status da ordem de serviço.")]
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetByIdForStatus(Guid id)
+    {
+        var result = await _getServiceOrderByStatusUseCase.ExecuteAsync(id);
+        if (!result.IsSuccess)
+        {
+            if (result.Messages.Any(m => m.Contains("não encontrada")))
+                return NotFound(new { message = string.Join(", ", result.Messages) });
+            return BadRequest(new { message = string.Join(", ", result.Messages) });
+        }
+        return Ok(result.Response);
+    }
+
+    [SwaggerOperation(Summary = "Cria uma nova ordem de serviço",
                       Description = "Abre uma nova OS no sistema. É possível informar o veículo, os serviços a utilizar.")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] CreateServiceOrderDto dto)
@@ -165,6 +184,18 @@ public class ServiceOrdersController : ControllerBase
         if (!result.IsSuccess) return BadRequest(new { message = string.Join(", ", result.Messages) });
         return Ok(result.Response);
     }
+
+
+    [SwaggerOperation(Summary = "Recusa uma ordem de serviço",
+                  Description = "Altera uma ordem de serviço para o status de recusado, indicando que foi recusado pelo cliente.")]
+    [HttpPost("{id}/refuse")]
+    public async Task<IActionResult> RefuseServiceOrder(Guid id)
+    {
+        var result = await _refuseServiceOrderUseCase.ExecuteAsync(new RefuseServiceOrderRequest(id));
+        if (!result.IsSuccess) return BadRequest(new { message = string.Join(", ", result.Messages) });
+        return Ok(result.Response);
+    }
+
 
     [SwaggerOperation(Summary = "Lista os estoques pendentes da ordem de serviço",
                       Description = "Retorna uma lista de estoques pendentes relacionados a uma ordem de serviço.")]

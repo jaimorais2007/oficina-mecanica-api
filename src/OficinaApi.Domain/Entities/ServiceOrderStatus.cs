@@ -8,6 +8,7 @@ public class ServiceOrderStatus : BaseEntity
     public DateTime CreatedAt { get; private set; }
     public ServiceOrder ServiceOrder { get; private set; }
     public Guid ServiceOrderId { get; private set; }
+    public bool Inactive { get; private set; } = false;
 
 
     // For EF Core

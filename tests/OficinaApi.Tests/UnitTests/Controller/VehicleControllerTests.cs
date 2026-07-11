@@ -19,6 +19,7 @@ public class VehicleControllerTests
     private readonly Mock<IUseCase<CreateVehicleDto, VehicleDto>> _createMock;
     private readonly Mock<IUseCase<UpdateVehicleRequest, VehicleDto>> _updateMock;
     private readonly Mock<IUseCase<Guid, bool>> _deleteMock;
+    private readonly Mock<IUseCase<Guid, NoInput>> _logicalDeletion;
     private readonly VehicleController _controller;
 
     public VehicleControllerTests()
@@ -28,13 +29,15 @@ public class VehicleControllerTests
         _createMock = new Mock<IUseCase<CreateVehicleDto, VehicleDto>>();
         _updateMock = new Mock<IUseCase<UpdateVehicleRequest, VehicleDto>>();
         _deleteMock = new Mock<IUseCase<Guid, bool>>();
+        _logicalDeletion = new Mock<IUseCase<Guid, NoInput>>();
 
         _controller = new VehicleController(
             _getAllMock.Object,
             _getByIdMock.Object,
             _createMock.Object,
             _updateMock.Object,
-            _deleteMock.Object);
+            _deleteMock.Object,
+            _logicalDeletion.Object);
     }
 
     [Fact]
