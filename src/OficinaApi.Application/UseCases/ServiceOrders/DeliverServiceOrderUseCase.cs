@@ -10,16 +10,13 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
     public class DeliverServiceOrderUseCase : IUseCase<DeliverServiceOrderRequest, ServiceOrderDto>
     {
         private readonly IServiceOrderRepository _serviceOrderRepository;
-        private readonly IEmailService _emailService;
         private readonly ILogger<DeliverServiceOrderUseCase> _logger;
 
         public DeliverServiceOrderUseCase(
             IServiceOrderRepository serviceOrderRepository,
-            IEmailService emailService,
             ILogger<DeliverServiceOrderUseCase> logger)
         {
             _serviceOrderRepository = serviceOrderRepository;
-            _emailService = emailService;
             _logger = logger;
         }
 
@@ -36,15 +33,6 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
 
                 serviceOrder.Deliver();
                 await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
-
-                if (!string.IsNullOrWhiteSpace(serviceOrder.Customer.Email))
-                {
-                    _logger.LogInformation("Sending delivery email to customer: {Email}", serviceOrder.Customer.Email);
-                    await _emailService.SendAsync(
-                        serviceOrder.Customer.Email,
-                        "Ordem de Serviço Finalizada",
-                        $"Olá, sua ordem de serviço {serviceOrder.Id} foi concluída e está pronta para retirada.");
-                }
 
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }

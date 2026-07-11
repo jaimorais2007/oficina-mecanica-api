@@ -91,6 +91,10 @@ public class ServiceOrder : BaseEntity
 
     public void Refuse()
     {
+        var lastStatus = GetLastStatusHistory();
+        if (lastStatus.Status != OrderStatus.WaitingApproval)
+            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Aguardando Aprovação' para ser recusada.");
+
         ChangeStatus(OrderStatus.Refused);
     }
 

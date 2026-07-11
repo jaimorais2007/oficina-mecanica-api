@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Interfaces;
@@ -8,14 +8,11 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
     public class RefuseServiceOrderUseCase : IUseCase<RefuseServiceOrderRequest, ServiceOrderDto>
     {
         private readonly IServiceOrderRepository _serviceOrderRepository;
-        private readonly IEmailService _emailService;
-        private readonly ILogger<DeliverServiceOrderUseCase> _logger;
+        private readonly ILogger<RefuseServiceOrderUseCase> _logger;
 
-
-        public RefuseServiceOrderUseCase(IServiceOrderRepository serviceOrderRepository,IEmailService emailService,ILogger<DeliverServiceOrderUseCase> logger)
+        public RefuseServiceOrderUseCase(IServiceOrderRepository serviceOrderRepository, ILogger<RefuseServiceOrderUseCase> logger)
         {
             _serviceOrderRepository = serviceOrderRepository;
-            _emailService = emailService;
             _logger = logger;
         }
 
@@ -26,27 +23,18 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 var serviceOrder = await _serviceOrderRepository.GetByIdAsync(input.Id);
                 if (serviceOrder == null)
                 {
-                    _logger.LogInformation("Service Order not found for delivery. Id: {Id}", input.Id);
+                    _logger.LogInformation("Service Order not found for refusal. Id: {Id}", input.Id);
                     throw new ArgumentException("Ordem de serviço não encontrada.");
                 }
 
                 serviceOrder.Refuse();
                 await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
-                if (!string.IsNullOrWhiteSpace(serviceOrder.Customer.Email))
-                {
-                    _logger.LogInformation("Sending delivery email to customer: {Email}", serviceOrder.Customer.Email);
-                    await _emailService.SendAsync(
-                        serviceOrder.Customer.Email,
-                        "Ordem de Serviço Finalizada",
-                        $"Olá, sua ordem de serviço {serviceOrder.Id} foi concluída e está pronta para retirada.");
-                }
-
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error delivering service order");
+                _logger.LogError(ex, "Error refusing service order");
                 return UseCaseResponse<ServiceOrderDto>.Failure(ex.Message);
             }
         }

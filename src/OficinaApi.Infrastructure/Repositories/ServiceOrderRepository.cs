@@ -29,6 +29,15 @@ public class ServiceOrderRepository : IServiceOrderRepository
                 .ThenInclude(s => s.Service)
             .Include(so => so.PartsUsed)
                 .ThenInclude(p => p.Part)
+            .Where(so =>
+                so.StatusHistory
+                    .OrderByDescending(sh => sh.CreatedAt)
+                    .Select(sh => sh.Status)
+                    .First() != OrderStatus.Finished &&
+                so.StatusHistory
+                    .OrderByDescending(sh => sh.CreatedAt)
+                    .Select(sh => sh.Status)
+                    .First() != OrderStatus.Delivered)
             .OrderBy(so =>
                 so.StatusHistory
                     .OrderByDescending(sh => sh.CreatedAt)

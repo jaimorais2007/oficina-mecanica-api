@@ -85,9 +85,9 @@ public class ServiceOrdersController : ControllerBase
         return Ok(result.Response);
     }
 
-    [SwaggerOperation(Summary = "Busca ordem de serviço por ID",
-                  Description = "Retorna o id e status da ordem de serviço.")]
-    [HttpGet("{id}")]
+    [SwaggerOperation(Summary = "Consulta o status da ordem de serviço",
+                  Description = "Retorna o id e o status atual da ordem de serviço.")]
+    [HttpGet("{id}/status")]
     public async Task<IActionResult> GetByIdForStatus(Guid id)
     {
         var result = await _getServiceOrderByStatusUseCase.ExecuteAsync(id);

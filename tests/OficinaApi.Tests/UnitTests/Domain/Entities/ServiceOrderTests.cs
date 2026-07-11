@@ -247,6 +247,35 @@ public class ServiceOrderTests
     }
 
     [Fact]
+    public void Refuse_ShouldTransitionToRefused_WhenStatusIsWaitingApproval()
+    {
+        // Arrange
+        var order = CreateServiceOrder();
+        order.StartDiagnostics();
+        order.FinishAnalysis();
+
+        // Act
+        order.Refuse();
+
+        // Assert
+        order.GetLastStatusHistory().Status.Should().Be(OrderStatus.Refused);
+    }
+
+    [Fact]
+    public void Refuse_ShouldThrow_WhenStatusIsNotWaitingApproval()
+    {
+        // Arrange
+        var order = CreateServiceOrder(); // Received
+
+        // Act
+        Action act = () => order.Refuse();
+
+        // Assert
+        act.Should().Throw<InvalidOperationException>()
+            .WithMessage("*'Aguardando Aprovação'*");
+    }
+
+    [Fact]
     public void AddPart_ShouldAddPartToOrder_WhenStatusAllows()
     {
         // Arrange

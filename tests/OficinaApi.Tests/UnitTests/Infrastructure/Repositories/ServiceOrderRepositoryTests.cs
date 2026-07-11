@@ -483,6 +483,58 @@ public class ServiceOrderRepositoryTests
     }
 
     [Fact]
+    public async Task GetAllAsync_ShouldExcludeFinishedAndDeliveredOrders_AndOrderRemainingByStatusThenAge()
+    {
+        // Arrange
+        using var db = CreateDbContext();
+        var (context, connection) = db;
+        var customer = CreateCustomer();
+        var vehicle = CreateVehicle(customer);
+        var service = CreateService();
+        await SeedBaseEntitiesAsync(context, customer, vehicle, service);
+
+        var received = CreateServiceOrder(customer, vehicle, service);
+
+        var inDiagnostics = CreateServiceOrder(customer, vehicle, service);
+        inDiagnostics.StartDiagnostics();
+
+        var waitingApproval = CreateServiceOrder(customer, vehicle, service);
+        waitingApproval.StartDiagnostics();
+        waitingApproval.FinishAnalysis();
+
+        var executing = CreateServiceOrder(customer, vehicle, service);
+        executing.StartDiagnostics();
+        executing.FinishAnalysis();
+        executing.ApproveServiceOrder();
+
+        var finished = CreateServiceOrder(customer, vehicle, service);
+        finished.StartDiagnostics();
+        finished.FinishAnalysis();
+        finished.ApproveServiceOrder();
+        finished.FinishExecution();
+
+        var delivered = CreateServiceOrder(customer, vehicle, service);
+        delivered.StartDiagnostics();
+        delivered.FinishAnalysis();
+        delivered.ApproveServiceOrder();
+        delivered.FinishExecution();
+        delivered.Deliver();
+
+        context.ServiceOrders.AddRange(received, inDiagnostics, waitingApproval, executing, finished, delivered);
+        await context.SaveChangesAsync();
+
+        var sut = new ServiceOrderRepository(context, Mock.Of<ILogger<ServiceOrderRepository>>());
+
+        // Act
+        var result = (await sut.GetAllAsync()).ToList();
+
+        // Assert
+        result.Select(so => so.Id).Should().NotContain(finished.Id);
+        result.Select(so => so.Id).Should().NotContain(delivered.Id);
+        result.Select(so => so.Id).Should().ContainInOrder(executing.Id, waitingApproval.Id, inDiagnostics.Id, received.Id);
+    }
+
+    [Fact]
     public async Task AddAsync_ShouldPersistServicesUsed_WhenOrderHasServices()
     {
         // Arrange
