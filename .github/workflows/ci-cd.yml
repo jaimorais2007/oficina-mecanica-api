@@ -12,7 +12,7 @@ on:
   workflow_dispatch:
 
 env:
-  DOCKER_IMAGE_NAME: jaimorais2007/oficina-mecanica-api
+  DOCKER_IMAGE_NAME: mikionagayama/oficina-mecanica-api
   TERRAFORM_DIR: infra
 
 jobs:
