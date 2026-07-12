@@ -83,6 +83,8 @@ jobs:
       - name: Terraform apply (cluster local + banco)
         working-directory: ${{ env.TERRAFORM_DIR }}
         run: |
+          kubectl delete service postgres-external --ignore-not-found -n default
+          kubectl delete endpoints postgres-external --ignore-not-found -n default
           terraform init -input=false
           terraform apply -auto-approve -input=false
 
