@@ -75,6 +75,8 @@ jobs:
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_wrapper: false
 
       # Cluster k3s local + banco (docker-compose) - roda inteiramente neste servidor,
       # sem nenhum recurso de nuvem (ver infra/README.md)
