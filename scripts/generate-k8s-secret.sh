@@ -7,33 +7,24 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 ENV_FILE="$REPO_ROOT/.env"
 
-DB_NAME="${DB_NAME:-}"
-DB_USER="${DB_USER:-}"
-DB_PASSWORD="${DB_PASSWORD:-}"
-JWT_SECRET="${JWT_SECRET:-}"
-EMAIL_PASSWORD="${EMAIL_PASSWORD:-}"
-
-if [ -f "$ENV_FILE" ]; then
-  echo "==> Lendo configurações do arquivo .env..."
-  declare -A envmap
-  while IFS='=' read -r key value; do
-    [[ -z "$key" || "$key" == \#* ]] && continue
-    envmap["$key"]="$value"
-  done < "$ENV_FILE"
-
-  DB_NAME="${DB_NAME:-${envmap[DB_NAME]:-}}"
-  DB_USER="${DB_USER:-${envmap[DB_USER]:-}}"
-  DB_PASSWORD="${DB_PASSWORD:-${envmap[DB_PASSWORD]:-}}"
-  JWT_SECRET="${JWT_SECRET:-${envmap[JWT_SECRET]:-}}"
-  EMAIL_PASSWORD="${EMAIL_PASSWORD:-${envmap[EMAIL_PASSWORD]:-}}"
-else
-  echo "==> Arquivo .env não encontrado. Usando variáveis de ambiente."
+if [ ! -f "$ENV_FILE" ]; then
+  echo "==> Arquivo .env não encontrado em $ENV_FILE. Pulando a criação do Secret Kubernetes (assumindo que já existe no cluster)."
+  exit 0
 fi
 
-if [ -z "$DB_NAME" ] || [ -z "$DB_USER" ] || [ -z "$DB_PASSWORD" ] || [ -z "$JWT_SECRET" ] || [ -z "$EMAIL_PASSWORD" ]; then
-  echo "Erro: Algumas variáveis obrigatórias estão ausentes (DB_NAME, DB_USER, DB_PASSWORD, JWT_SECRET, EMAIL_PASSWORD)." >&2
-  exit 1
-fi
+# Le o .env manualmente (sem "source") para nao expandir "$" presentes nos valores
+# (ex: senhas como "@Postech$2026" seriam corrompidas por uma expansao de shell).
+declare -A envmap
+while IFS='=' read -r key value; do
+  [[ -z "$key" || "$key" == \#* ]] && continue
+  envmap["$key"]="$value"
+done < "$ENV_FILE"
+
+DB_NAME="${envmap[DB_NAME]:-}"
+DB_USER="${envmap[DB_USER]:-}"
+DB_PASSWORD="${envmap[DB_PASSWORD]:-}"
+JWT_SECRET="${envmap[JWT_SECRET]:-}"
+EMAIL_PASSWORD="${envmap[EMAIL_PASSWORD]:-}"
 
 CONNECTION_STRING="Host=postgres-external;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
 
