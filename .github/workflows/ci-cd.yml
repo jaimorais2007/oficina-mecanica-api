@@ -66,7 +66,7 @@ jobs:
     name: Provision infra & apply K8S Manifests (self-hosted / local k3s)
     runs-on: self-hosted
     needs: docker-build-push
-    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'push'
     env:
       KUBECONFIG: /etc/rancher/k3s/k3s.yaml
     steps:
@@ -84,8 +84,14 @@ jobs:
           terraform init -input=false
           terraform apply -auto-approve -input=false
 
-      - name: Gerar/atualizar Secret a partir do .env local
+      - name: Gerar/atualizar Secret a partir do env ou .env local
         run: ./scripts/generate-k8s-secret.sh
+        env:
+          DB_NAME: "oficina_db"
+          DB_USER: "postgres"
+          DB_PASSWORD: "${{ secrets.DB_PASSWORD }}"
+          JWT_SECRET: "${{ secrets.JWT_SECRET }}"
+          EMAIL_PASSWORD: "${{ secrets.EMAIL_PASSWORD }}"
 
       # Substitui a imagem no deployment para a recém publicada no Docker Hub
       - name: Update Image in K8s Manifest
