@@ -176,7 +176,7 @@ sequenceDiagram
     participant Swagger as Swagger UI
     participant API as OficinaApi
 
-    Prof->>JwtIo: Informa payload + secret (@Postech$2026)
+    Prof->>JwtIo: Informa payload + secret (valor de JWT_SECRET no .env)
     JwtIo-->>Prof: Retorna Bearer token
 
     Prof->>Swagger: Clica em Authorize
@@ -223,8 +223,8 @@ DB_PASSWORD=@Postech$2026
 DB_NAME=oficina_db
 DB_CONNECTION_STRING=Host=db;Port=5432;Database=oficina_db;Username=postgres;Password=@Postech$2026
 
-# JWT
-JWT_SECRET=@Postech$2026
+# JWT (mínimo 32 caracteres — chaves curtas são rejeitadas na validação HMAC-SHA256)
+JWT_SECRET=pwekACv4uoWGP7b79USREutfzSDi3sXXHIvXM2Bt99Q
 JWT_ISSUER=oficina-api
 JWT_AUDIENCE=oficina-clientes
 ```
@@ -355,6 +355,11 @@ Secrets necessários no GitHub (Settings → Secrets and variables → Actions):
 
 A maioria dos endpoints é protegida por JWT. Para testá-los você precisa gerar um token.
 
+> `JWT_SECRET` precisa ter pelo menos 32 caracteres (256 bits). Chaves mais curtas passam
+> despercebidas na configuração mas são silenciosamente rejeitadas pelo
+> `Microsoft.IdentityModel.Tokens` na validação HMAC-SHA256 — todo token dá 401 com
+> `error_description="The signature key was not found"`, sem nenhum erro claro no startup.
+
 ### Gerando o token via [jwt.io](https://jwt.io)
 
 1. Acesse [https://jwt.io](https://jwt.io)
@@ -380,9 +385,9 @@ A maioria dos endpoints é protegida por JWT. Para testá-los você precisa gera
 }
 ```
 
-3. No campo **Verify Signature**, cole a secret abaixo:
+3. No campo **Verify Signature**, cole a secret abaixo (mesmo valor de `JWT_SECRET` no `.env`):
 ```
-@Postech$2026
+pwekACv4uoWGP7b79USREutfzSDi3sXXHIvXM2Bt99Q
 ```
 4. Copie o token gerado no painel esquerdo
 
