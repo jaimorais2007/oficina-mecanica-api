@@ -224,12 +224,14 @@ DB_NAME=oficina_db
 DB_CONNECTION_STRING=Host=db;Port=5432;Database=oficina_db;Username=postgres;Password=@Postech$2026
 
 # JWT (mínimo 32 caracteres — chaves curtas são rejeitadas na validação HMAC-SHA256)
-JWT_SECRET=pwekACv4uoWGP7b79USREutfzSDi3sXXHIvXM2Bt99Q
+JWT_SECRET=<gere um valor aleatorio de 32+ caracteres, ex: openssl rand -base64 32>
 JWT_ISSUER=oficina-api
 JWT_AUDIENCE=oficina-clientes
 ```
 
-> Esses valores já estão configurados para o ambiente de testes. Não é necessário alterar nada para subir e testar a aplicação.
+> O valor de `JWT_SECRET` não é publicado aqui (segredo real não deve ir para o git/README —
+> o GitHub bloqueia/alerta automaticamente quando detecta isso). Gere o seu com
+> `openssl rand -base64 32` e use o mesmo valor ao gerar o token em jwt.io na seção abaixo.
 
 ---
 
@@ -385,10 +387,7 @@ A maioria dos endpoints é protegida por JWT. Para testá-los você precisa gera
 }
 ```
 
-3. No campo **Verify Signature**, cole a secret abaixo (mesmo valor de `JWT_SECRET` no `.env`):
-```
-pwekACv4uoWGP7b79USREutfzSDi3sXXHIvXM2Bt99Q
-```
+3. No campo **Verify Signature**, cole o mesmo valor de `JWT_SECRET` do seu `.env`
 4. Copie o token gerado no painel esquerdo
 
 ### Usando o token no Swagger
