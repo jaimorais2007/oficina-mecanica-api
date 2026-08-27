@@ -33,6 +33,7 @@ public class ServiceOrdersController : ControllerBase
     public ServiceOrdersController(
         IUseCase<NoInput, IEnumerable<ServiceOrderDto>> getAllServiceOrdersUseCase,
         IUseCase<Guid, ServiceOrderDto?> getServiceOrderByIdUseCase,
+        IUseCase<Guid, ServiceOrderStatusDto?> getServiceOrderByStatusUseCase,
         IUseCase<CreateServiceOrderDto, ServiceOrderDto> createServiceOrderUseCase,
         IUseCase<StartDiagnosticsRequest, ServiceOrderDto> startDiagnosticsUseCase,
         IUseCase<FinishAnalysisRequest, ServiceOrderDto> finishAnalysisUseCase,
@@ -47,6 +48,7 @@ public class ServiceOrdersController : ControllerBase
     {
         _getAllServiceOrdersUseCase = getAllServiceOrdersUseCase;
         _getServiceOrderByIdUseCase = getServiceOrderByIdUseCase;
+        _getServiceOrderByStatusUseCase = getServiceOrderByStatusUseCase;
         _createServiceOrderUseCase = createServiceOrderUseCase;
         _startDiagnosticsUseCase = startDiagnosticsUseCase;
         _finishAnalysisUseCase = finishAnalysisUseCase;

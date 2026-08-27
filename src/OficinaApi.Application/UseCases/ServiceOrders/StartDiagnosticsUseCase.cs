@@ -10,14 +10,18 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
     public class StartDiagnosticsUseCase : IUseCase<StartDiagnosticsRequest, ServiceOrderDto>
     {
         private readonly IServiceOrderRepository _serviceOrderRepository;
+        private readonly IApplicationMetrics _applicationMetrics;
+
         private readonly ILogger<StartDiagnosticsUseCase> _logger;
 
         public StartDiagnosticsUseCase(
             IServiceOrderRepository serviceOrderRepository,
-            ILogger<StartDiagnosticsUseCase> logger)
+            ILogger<StartDiagnosticsUseCase> logger,
+            IApplicationMetrics applicationMetrics)
         {
             _serviceOrderRepository = serviceOrderRepository;
             _logger = logger;
+            _applicationMetrics = applicationMetrics;
         }
 
         public async Task<UseCaseResponse<ServiceOrderDto>> ExecuteAsync(StartDiagnosticsRequest input)
@@ -34,6 +38,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 serviceOrder.StartDiagnostics();
                 await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
+                _applicationMetrics.CalculateServiceOrderStatusMeanTimeMetric(serviceOrder);
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
             catch (Exception ex)

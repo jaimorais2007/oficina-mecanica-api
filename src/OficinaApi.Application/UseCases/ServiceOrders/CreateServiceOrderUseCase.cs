@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
@@ -72,6 +68,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 var serviceOrder = new ServiceOrder(existingCustomer, existingVehicle, servicesFounds);
                 await _serviceOrderRepository.AddAsync(serviceOrder);
 
+                _logger.LogInformation("Service Order successfully created. Id: {ServiceOrder}", serviceOrder.Id);
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
             catch (Exception ex)

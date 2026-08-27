@@ -8,6 +8,7 @@ builder.Logging.AddOTelLogging();
 builder.Services.AddAutenticationConfiguration(builder.Configuration);
 builder.Services.AddDependencyInjectionConfiguration(builder.Configuration);
 builder.Services.AddSwaggerConfiguration();
+builder.Services.AddHealthChecks();
 
 builder.Services.AddControllers(options =>
 {
@@ -19,6 +20,7 @@ var app = builder.Build();
 app.UseSwaggerConfiguration();
 app.UseAutenticationConfiguration();
 
+app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
 
 await app.UseAdminUserConfiguration();

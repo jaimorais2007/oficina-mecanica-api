@@ -9,11 +9,17 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
     {
         private readonly IServiceOrderRepository _serviceOrderRepository;
         private readonly ILogger<RefuseServiceOrderUseCase> _logger;
+        private readonly IApplicationMetrics _applicationMetrics;
 
-        public RefuseServiceOrderUseCase(IServiceOrderRepository serviceOrderRepository, ILogger<RefuseServiceOrderUseCase> logger)
+
+        public RefuseServiceOrderUseCase(
+            IServiceOrderRepository serviceOrderRepository, 
+            ILogger<RefuseServiceOrderUseCase> logger,
+            IApplicationMetrics applicationMetrics)
         {
             _serviceOrderRepository = serviceOrderRepository;
             _logger = logger;
+            _applicationMetrics = applicationMetrics;
         }
 
         public async Task<UseCaseResponse<ServiceOrderDto>> ExecuteAsync(RefuseServiceOrderRequest input)
@@ -30,6 +36,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 serviceOrder.Refuse();
                 await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
+                _applicationMetrics.CalculateServiceOrderStatusMeanTimeMetric(serviceOrder);            
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
             catch (Exception ex)

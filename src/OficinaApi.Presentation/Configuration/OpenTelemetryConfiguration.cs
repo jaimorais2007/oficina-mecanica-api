@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.Metrics;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
+using OficinaApi.Infrastructure.Metrics;
 using OpenTelemetry;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Metrics;
@@ -45,7 +39,9 @@ public static class OpenTelemetryConfiguration
                         return instrument.GetType().GetGenericTypeDefinition() == typeof(Histogram<>)
                             ? new Base2ExponentialBucketHistogramConfiguration()
                             : null;
-                    });
+                    })
+                    .AddMeter(ApplicationMetrics.ServiceOrderStatusMeanTime.Name)
+                    .AddOtlpExporter();
             });
 
         return services;

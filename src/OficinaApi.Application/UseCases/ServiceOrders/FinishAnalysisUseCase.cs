@@ -10,14 +10,17 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
     public class FinishAnalysisUseCase : IUseCase<FinishAnalysisRequest, ServiceOrderDto>
     {
         private readonly IServiceOrderRepository _serviceOrderRepository;
+        private readonly IApplicationMetrics _applicationMetrics;
         private readonly ILogger<FinishAnalysisUseCase> _logger;
 
         public FinishAnalysisUseCase(
             IServiceOrderRepository serviceOrderRepository,
-            ILogger<FinishAnalysisUseCase> logger)
+            ILogger<FinishAnalysisUseCase> logger,
+            IApplicationMetrics applicationMetrics)
         {
             _serviceOrderRepository = serviceOrderRepository;
             _logger = logger;
+            _applicationMetrics = applicationMetrics;
         }
 
         public async Task<UseCaseResponse<ServiceOrderDto>> ExecuteAsync(FinishAnalysisRequest input)
@@ -34,6 +37,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 serviceOrder.FinishAnalysis();
                 await _serviceOrderRepository.SaveChangesAsync(serviceOrder);
 
+                _applicationMetrics.CalculateServiceOrderStatusMeanTimeMetric(serviceOrder);
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
             catch (Exception ex)
