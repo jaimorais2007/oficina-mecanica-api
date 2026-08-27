@@ -3,10 +3,11 @@ using OficinaApi.Presentation.ExceptionFilters;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.AddOTelConfiguration(builder.Configuration);
+builder.Logging.AddOTelLogging();
 builder.Services.AddAutenticationConfiguration(builder.Configuration);
 builder.Services.AddDependencyInjectionConfiguration(builder.Configuration);
 builder.Services.AddSwaggerConfiguration();
-builder.Services.AddLoggingConfiguration();
 
 builder.Services.AddControllers(options =>
 {
