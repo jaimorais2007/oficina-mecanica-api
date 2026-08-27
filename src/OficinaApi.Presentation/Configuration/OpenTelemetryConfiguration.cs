@@ -18,7 +18,7 @@ public static class OpenTelemetryConfiguration
 {
     public static IServiceCollection AddOTelConfiguration(this IServiceCollection services, IConfiguration configuration)
     {
-        var serviceName = nameof(OficinaApi);
+        var serviceName = configuration["OTEL_SERVICE_NAME"] ?? nameof(OficinaApi);
 
         services.AddOpenTelemetry()
             .UseOtlpExporter()
