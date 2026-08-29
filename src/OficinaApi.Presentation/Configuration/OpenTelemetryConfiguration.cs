@@ -26,7 +26,13 @@ public static class OpenTelemetryConfiguration
             {
                 tracerProviderBuilder
                     .AddSource(serviceName)
-                    .AddAspNetCoreInstrumentation();
+                    .AddAspNetCoreInstrumentation(options =>
+                        {
+                            options.Filter = httpContext =>
+                                !httpContext.Request.Path.StartsWithSegments("/health");
+                            options.RecordException = true;
+                        }
+                    );
             })
             .WithMetrics(meterProviderBuilder =>
             {
@@ -40,8 +46,7 @@ public static class OpenTelemetryConfiguration
                             ? new Base2ExponentialBucketHistogramConfiguration()
                             : null;
                     })
-                    .AddMeter(ApplicationMetrics.ServiceOrderStatusMeanTime.Name)
-                    .AddOtlpExporter();
+                    .AddMeter(ApplicationMetrics.ServiceOrderStatusMeanTime.Name);
             });
 
         return services;

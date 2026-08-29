@@ -17,6 +17,7 @@ builder.Services.AddControllers(options =>
 
 var app = builder.Build();
 
+app.UseHttpsRedirection();
 app.UseSwaggerConfiguration();
 app.UseAutenticationConfiguration();
 

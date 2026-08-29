@@ -24,14 +24,15 @@ ENV ConnectionStrings__DefaultConnection=$DB_CONNECTION_STRING
 ENV ASPNETCORE_ENVIRONMENT=$DOTNET_ENVIRONMENT
 ENV ASPNETCORE_HTTP_PORTS=$PORT
 
-# OpenTelemetry/ New Relic. A chave deve ser injetada somente em runtime.
+ARG OTEL_EXPORTER_OTLP_HEADERS
+
 ENV OTEL_SERVICE_NAME=oficina-mecanica \
     OTEL_EXPORTER_OTLP_ENDPOINT=https://otlp.nr-data.net \
     OTEL_ATTRIBUTE_VALUE_LENGTH_LIMIT=4095 \
     OTEL_EXPORTER_OTLP_COMPRESSION=gzip \
     OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
     OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=delta \
-    OTEL_EXPORTER_OTLP_HEADERS=
+    OTEL_EXPORTER_OTLP_HEADERS=$OTEL_EXPORTER_OTLP_HEADERS
 
 RUN addgroup --system appgroup \
  && adduser --system --ingroup appgroup appuser
