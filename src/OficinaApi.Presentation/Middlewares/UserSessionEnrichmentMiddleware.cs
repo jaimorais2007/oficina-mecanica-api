@@ -1,13 +1,8 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 
 namespace OficinaApi.Presentation.Middlewares;
 
