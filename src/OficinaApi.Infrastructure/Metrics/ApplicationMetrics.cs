@@ -10,14 +10,13 @@ using OficinaApi.Domain.Entities;
 namespace OficinaApi.Infrastructure.Metrics;
 
 public class ApplicationMetrics(
-    TimeProvider timeProvider,
     ILogger<ApplicationMetrics> logger
 ) : IApplicationMetrics
 {
 
     public static readonly Meter ServiceOrderStatusMeanTime = new("ServiceOrder.StatusMeanTime", "1.0.0");
     public static readonly Histogram<double> ServiceOrderStatusMeanTimeHistogram = ServiceOrderStatusMeanTime.CreateHistogram<double>(
-        name: "service_order_status_mean_time_in_days",
+        name: "service_order_status_mean_time_in_hours",
         unit: "d",
         description: "Tempo médio em que uma ordem de serviço permaneceu em um estado");
 
@@ -27,18 +26,18 @@ public class ApplicationMetrics(
         {            
             var status = serviceOrder.StatusHistory;
 
-            if(status.Count <= 0)
+            if(status.Count <= 1)
             {
                 logger.LogWarning("Metric {MetricName} could not be collected. Insufficient Status in service order", ServiceOrderStatusMeanTime.Name);
                 return;
             }
-            var lastStatus = status.OrderDescending().Skip(1).First();
+            var lastStatus = status.OrderByDescending(p => p.Status).Skip(1).First();
+            var actualStatus = status.OrderByDescending(p => p.Status).First();
 
-            var durationInDays = (timeProvider.GetUtcNow() - lastStatus.CreatedAt).TotalDays;
+            var durationInHours = (actualStatus.CreatedAt - lastStatus.CreatedAt).TotalHours;
 
             ServiceOrderStatusMeanTimeHistogram.Record(
-                durationInDays,
-                new KeyValuePair<string, object?>("id", serviceOrder.Id.ToString()),
+                durationInHours,
                 new KeyValuePair<string, object?>("status", lastStatus.Status.ToString()),
                 new KeyValuePair<string, object?>("entity_type", nameof(ServiceOrder))
             );

@@ -1,5 +1,6 @@
 using OficinaApi.Presentation.Configuration;
 using OficinaApi.Presentation.ExceptionFilters;
+using OficinaApi.Presentation.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +21,8 @@ var app = builder.Build();
 app.UseHttpsRedirection();
 app.UseSwaggerConfiguration();
 app.UseAutenticationConfiguration();
+
+app.UseMiddleware<UserSessionEnrichmentMiddleware>();
 
 app.MapHealthChecks("/health").AllowAnonymous();
 app.MapControllers();
