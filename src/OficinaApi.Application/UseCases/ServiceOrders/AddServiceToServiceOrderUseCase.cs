@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Entities;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.ServiceOrders
@@ -32,14 +33,14 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 if (serviceOrder == null)
                 {
                     _logger.LogInformation("Service Order not found. Id: {Id}", input.Id);
-                    throw new ArgumentException("Ordem de serviço não encontrada.");
+                    throw new DomainException("Ordem de serviço não encontrada.");
                 }
 
                 Service? service = await _serviceRepository.GetByIdAsync(input.Dto.ServiceId);
                 if (service == null)
                 {
                     _logger.LogInformation("Service not found. ServiceId: {ServiceId}", input.Dto.ServiceId);
-                    throw new ArgumentException("Serviço não encontrado.");
+                    throw new DomainException("Serviço não encontrado.");
                 }
 
                 serviceOrder.AddService(service);
@@ -47,7 +48,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
 
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error adding service to service order");
                 return UseCaseResponse<ServiceOrderDto>.Failure(ex.Message);

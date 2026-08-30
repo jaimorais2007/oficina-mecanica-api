@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.Customers
@@ -42,7 +43,7 @@ namespace OficinaApi.Application.UseCases.Customers
 
                 return UseCaseResponse<CustomerDto>.Success(new CustomerDto(customer));
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "An error occurred while updating customer with ID {Id}", input.Id);
                 return UseCaseResponse<CustomerDto>.Failure(ex.Message);

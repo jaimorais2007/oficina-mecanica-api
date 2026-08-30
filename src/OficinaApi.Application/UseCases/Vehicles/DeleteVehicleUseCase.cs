@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.Vehicles
@@ -25,7 +26,7 @@ namespace OficinaApi.Application.UseCases.Vehicles
                 await _vehicleRepository.DeleteAsync(input);
                 return UseCaseResponse<bool>.Success(true);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "An error occurred while deleting vehicle with ID {VehicleId}.", input);
                 return UseCaseResponse<bool>.Failure(ex.Message);

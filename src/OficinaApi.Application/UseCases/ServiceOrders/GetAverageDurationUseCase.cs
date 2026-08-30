@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.ServiceOrders
@@ -27,7 +28,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 var average = await _serviceOrderRepository.GetAverageDurationInDaysAsync();
                 return UseCaseResponse<double>.Success(average);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error getting average duration of service orders");
                 return UseCaseResponse<double>.Failure(ex.Message);

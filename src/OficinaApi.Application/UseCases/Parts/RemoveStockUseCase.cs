@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.Parts
@@ -26,7 +27,7 @@ namespace OficinaApi.Application.UseCases.Parts
                 if (part == null)
                 {
                     _logger.LogInformation("Falha na validação em RemoveStockUseCase: Peça com ID '{PartId}' não encontrada.", input.Id);
-                    throw new Exception("Peça não encontrada.");
+                    throw new DomainException("Peça não encontrada.");
                 }
 
                 part.RemoveStock(input.Quantity);
@@ -34,7 +35,7 @@ namespace OficinaApi.Application.UseCases.Parts
 
                 return UseCaseResponse<bool>.Success(true);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Erro inesperado em RemoveStockUseCase para a peça com ID '{PartId}'.", input.Id);
                 return UseCaseResponse<bool>.Failure(ex.Message);

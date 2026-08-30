@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -50,7 +51,7 @@ namespace OficinaApi.Application.UseCases.Users
                 _logger.LogInformation("User {Email} authenticated successfully.", input.Email);
                 return UseCaseResponse<UserDto?>.Success(dto);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error authenticating user {Email}.", input.Email);
                 return UseCaseResponse<UserDto?>.Failure(ex.Message);

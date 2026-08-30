@@ -7,6 +7,7 @@ using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Events;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.Parts;
@@ -51,7 +52,7 @@ public class PartStockAddedUseCase : IUseCase<PartStockAddedEvent, bool>
                 serviceOrderPart.EnsureStockQuantity();
                 ensured.Add(serviceOrderPart);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Erro ao garantir a quantidade de estoque para a peça com ID {PartId}.", domainEvent.PartId);
             }

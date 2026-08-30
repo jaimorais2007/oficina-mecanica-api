@@ -1,5 +1,6 @@
 using System;
 using OficinaApi.Domain.Enums;
+using OficinaApi.Domain.Exceptions;
 
 namespace OficinaApi.Domain.Entities;
 
@@ -29,7 +30,7 @@ public class ServiceOrderPart : BaseEntity
     public void EnsureStockQuantity()
     {
         if (StockQuantityWasEnsured)
-            throw new InvalidOperationException("A quantidade em estoque já foi garantida para esta peça nesta ordem de serviço.");
+            throw new DomainException("A quantidade em estoque já foi garantida para esta peça nesta ordem de serviço.");
 
         Part.RemoveStock(Quantity);
         StockQuantityWasEnsured = true;

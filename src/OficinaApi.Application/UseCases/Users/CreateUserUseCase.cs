@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Entities;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -27,7 +28,7 @@ namespace OficinaApi.Application.UseCases.Users
                 if (existingUser != null)
                 {
                     _logger.LogInformation("Creation failed: User with email {Email} already exists.", input.Email);
-                    throw new Exception("E-mail já cadastrado.");
+                    throw new DomainException("E-mail já cadastrado.");
                 }
 
                 string passwordHash = BCrypt.Net.BCrypt.HashPassword(input.Password);
@@ -48,7 +49,7 @@ namespace OficinaApi.Application.UseCases.Users
                 _logger.LogInformation("User {Email} created successfully.", input.Email);
                 return UseCaseResponse<UserDto>.Success(dto);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error creating user {Email}.", input.Email);
                 return UseCaseResponse<UserDto>.Failure(ex.Message);

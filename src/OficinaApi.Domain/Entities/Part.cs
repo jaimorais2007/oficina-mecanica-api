@@ -1,5 +1,6 @@
 using System;
 using OficinaApi.Domain.Events;
+using OficinaApi.Domain.Exceptions;
 
 namespace OficinaApi.Domain.Entities;
 
@@ -33,7 +34,7 @@ public class Part : BaseEntity
     public void AddStock(int quantity)
     {
         if (quantity <= 0)
-            throw new ArgumentException("A quantidade a adicionar deve ser maior que zero.");
+            throw new DomainException("A quantidade a adicionar deve ser maior que zero.");
             
         QuantityInStock += quantity;
         AddDomainEvent(new PartStockAddedEvent(Id));
@@ -42,18 +43,18 @@ public class Part : BaseEntity
     public void RemoveStock(int quantity)
     {
         if (quantity <= 0)
-            throw new ArgumentException("A quantidade a remover deve ser maior que zero.");
+            throw new DomainException("A quantidade a remover deve ser maior que zero.");
             
         if (QuantityInStock < quantity)
-            throw new InvalidOperationException("Estoque insuficiente para remover essa quantidade.");
+            throw new DomainException("Estoque insuficiente para remover essa quantidade.");
             
         QuantityInStock -= quantity;
     }
 
     public void UpdateDetails(string name, string code, decimal price)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Nome invalido.");
-        if (price < 0) throw new ArgumentException("Preco nao pode ser negativo.");
+        if (string.IsNullOrWhiteSpace(name)) throw new DomainException("Nome invalido.");
+        if (price < 0) throw new DomainException("Preco nao pode ser negativo.");
 
         Name = name;
         Code = code;

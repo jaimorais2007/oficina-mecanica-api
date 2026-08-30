@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using OficinaApi.Domain.Enums;
+using OficinaApi.Domain.Exceptions;
 
 namespace OficinaApi.Domain.ValueObjects
 {
@@ -16,23 +17,23 @@ namespace OficinaApi.Domain.ValueObjects
         public Document(string document, PersonType personType)
         {
             if (string.IsNullOrWhiteSpace(document))
-                throw new ArgumentException("Documento é obrigatório.");
+                throw new DomainException("Documento é obrigatório.");
 
             document = OnlyNumbers(document);
 
             if (personType == PersonType.Individual)
             {
                 if (!IsValidCpf(document))
-                    throw new ArgumentException("CPF inválido.");
+                    throw new DomainException("CPF inválido.");
             }
             else if (personType == PersonType.Company)
             {
                 if (!IsValidCnpj(document))
-                    throw new ArgumentException("CNPJ inválido.");
+                    throw new DomainException("CNPJ inválido.");
             }
             else
             {
-                throw new ArgumentException("Tipo de pessoa inválido.");
+                throw new DomainException("Tipo de pessoa inválido.");
             }
 
             Value = document;

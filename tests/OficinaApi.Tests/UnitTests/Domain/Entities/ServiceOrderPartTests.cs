@@ -1,6 +1,7 @@
 using FluentAssertions;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
+using OficinaApi.Domain.Exceptions;
 using Xunit;
 
 namespace Unit.Tests;
@@ -73,7 +74,7 @@ public class ServiceOrderPartTests
     }
 
     [Fact]
-    public void EnsureStockQuantity_QuandoJaFoiGarantido_DeveLancarInvalidOperationException()
+    public void EnsureStockQuantity_QuandoJaFoiGarantido_DeveLancarDomainException()
     {
         // Arrange
         var part = CreatePart(stock: 10);
@@ -85,12 +86,12 @@ public class ServiceOrderPartTests
         var act = () => sut.EnsureStockQuantity();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*já foi garantida*");
     }
 
     [Fact]
-    public void EnsureStockQuantity_QuandoEstoqueInsuficiente_DeveLancarInvalidOperationException()
+    public void EnsureStockQuantity_QuandoEstoqueInsuficiente_DeveLancarDomainException()
     {
         // Arrange
         var part = CreatePart(stock: 1);
@@ -101,7 +102,7 @@ public class ServiceOrderPartTests
         var act = () => sut.EnsureStockQuantity();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*Estoque insuficiente*");
     }
 

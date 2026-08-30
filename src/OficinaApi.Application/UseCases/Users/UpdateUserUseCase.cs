@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -26,7 +27,7 @@ namespace OficinaApi.Application.UseCases.Users
                 if (user == null)
                 {
                     _logger.LogInformation("Update failed: User with ID {Id} not found.", input.Id);
-                    throw new Exception("Usuário não encontrado.");
+                    throw new DomainException("Usuário não encontrado.");
                 }
 
                 user.UpdateName(input.Dto.Name);
@@ -37,7 +38,7 @@ namespace OficinaApi.Application.UseCases.Users
                 _logger.LogInformation("User {Id} updated successfully.", input.Id);
                 return UseCaseResponse<bool>.Success(true);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error updating user {Id}.", input.Id);
                 return UseCaseResponse<bool>.Failure(ex.Message);

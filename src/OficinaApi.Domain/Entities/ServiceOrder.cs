@@ -2,6 +2,7 @@ using System;
 using System.Reflection.Metadata;
 using OficinaApi.Domain.Enums;
 using OficinaApi.Domain.Events;
+using OficinaApi.Domain.Exceptions;
 
 namespace OficinaApi.Domain.Entities;
 
@@ -43,7 +44,7 @@ public class ServiceOrder : BaseEntity
     {
         var lastStatus = GetLastStatusHistory();
         if (lastStatus.Status != OrderStatus.Received)
-            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Recebida' para iniciar a análise técnica.");
+            throw new DomainException("A ordem de serviço deve estar no status 'Recebida' para iniciar a análise técnica.");
         ChangeStatus(OrderStatus.InDiagnostics);
     }
 
@@ -51,7 +52,7 @@ public class ServiceOrder : BaseEntity
     {
         var lastStatus = GetLastStatusHistory();
         if (lastStatus.Status != OrderStatus.InDiagnostics)
-            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Análise' para finalizar a análise técnica.");
+            throw new DomainException("A ordem de serviço deve estar no status 'Em Análise' para finalizar a análise técnica.");
         ChangeStatus(OrderStatus.WaitingApproval);
         CalculateBudget();
     }
@@ -60,7 +61,7 @@ public class ServiceOrder : BaseEntity
     {
         var lastStatus = GetLastStatusHistory();
         if (lastStatus.Status != OrderStatus.WaitingApproval)
-            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Aguardando Aprovação' para ser aprovada.");
+            throw new DomainException("A ordem de serviço deve estar no status 'Aguardando Aprovação' para ser aprovada.");
        
         ChangeStatus(OrderStatus.Executing);
         AddDomainEvent(new ServiceOrderApprovedEvent(Id));
@@ -70,11 +71,11 @@ public class ServiceOrder : BaseEntity
     {
         var lastStatus = GetLastStatusHistory();
         if(lastStatus.Status != OrderStatus.Executing)
-            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Execução' para finalizar a execução.");
+            throw new DomainException("A ordem de serviço deve estar no status 'Em Execução' para finalizar a execução.");
 
         var pendingStocks = GetPendingStocks();
         if(pendingStocks.Any())
-            throw new InvalidOperationException($"Não é possível finalizar a execução de uma ordem de serviço que possui peças pendentes. Por favor verifique as peças: {string.Join(", ", pendingStocks.Select(p => p.Part.Name))}");
+            throw new DomainException($"Não é possível finalizar a execução de uma ordem de serviço que possui peças pendentes. Por favor verifique as peças: {string.Join(", ", pendingStocks.Select(p => p.Part.Name))}");
         
         ChangeStatus(OrderStatus.Finished);
     }
@@ -83,7 +84,7 @@ public class ServiceOrder : BaseEntity
     {
         var lastStatus = GetLastStatusHistory();
         if(lastStatus.Status != OrderStatus.Finished)
-            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Finalizada' para ser entregue.");
+            throw new DomainException("A ordem de serviço deve estar no status 'Finalizada' para ser entregue.");
         
         ChangeStatus(OrderStatus.Delivered);
 
@@ -93,7 +94,7 @@ public class ServiceOrder : BaseEntity
     {
         var lastStatus = GetLastStatusHistory();
         if (lastStatus.Status != OrderStatus.WaitingApproval)
-            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Aguardando Aprovação' para ser recusada.");
+            throw new DomainException("A ordem de serviço deve estar no status 'Aguardando Aprovação' para ser recusada.");
 
         ChangeStatus(OrderStatus.Refused);
     }
@@ -101,10 +102,10 @@ public class ServiceOrder : BaseEntity
     public void AddPart(Part part, int quantity)
     {
         if (quantity <= 0)
-            throw new ArgumentException("A quantidade deve ser maior que zero.");
+            throw new DomainException("A quantidade deve ser maior que zero.");
 
         if (!HasPermissionToUpdatePartsAndServices())
-            throw new InvalidOperationException("Não é permitido adicionar peças neste status da ordem de serviço.");
+            throw new DomainException("Não é permitido adicionar peças neste status da ordem de serviço.");
 
         PartsUsed.Add(new ServiceOrderPart(this, part, quantity));
     }
@@ -112,7 +113,7 @@ public class ServiceOrder : BaseEntity
     public void AddService(Service service)
     {
         if (!HasPermissionToUpdatePartsAndServices())
-            throw new InvalidOperationException("Não é permitido adicionar serviços neste status da ordem de serviço.");
+            throw new DomainException("Não é permitido adicionar serviços neste status da ordem de serviço.");
             
         ServicesUsed.Add(new ServiceOrderService(this, service));
     }
@@ -128,13 +129,13 @@ public class ServiceOrder : BaseEntity
         return StatusHistory
             .OrderByDescending(s => s.CreatedAt)
             .FirstOrDefault()
-            ?? throw new InvalidOperationException($"Ordem de serviço {Id} não possui histórico de status.");
+            ?? throw new DomainException($"Ordem de serviço {Id} não possui histórico de status.");
     }
 
     public ICollection<ServiceOrderPart> GetPendingStocks()
     {
         if (GetLastStatusHistory().Status != OrderStatus.Executing)
-            throw new InvalidOperationException("A ordem de serviço deve estar no status 'Em Execução' para verificar os estoques pendentes.");
+            throw new DomainException("A ordem de serviço deve estar no status 'Em Execução' para verificar os estoques pendentes.");
         return PartsUsed.Where(p => !p.StockQuantityWasEnsured).ToList();
     }
     private void ChangeStatus(OrderStatus status)

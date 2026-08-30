@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.ServiceOrders
@@ -30,7 +31,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 if (serviceOrder == null)
                 {
                     _logger.LogInformation("Service Order not found for refusal. Id: {Id}", input.Id);
-                    throw new ArgumentException("Ordem de serviço não encontrada.");
+                    throw new DomainException("Ordem de serviço não encontrada.");
                 }
 
                 serviceOrder.Refuse();
@@ -39,7 +40,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 _applicationMetrics.CalculateServiceOrderStatusMeanTimeMetric(serviceOrder);            
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error refusing service order");
                 return UseCaseResponse<ServiceOrderDto>.Failure(ex.Message);

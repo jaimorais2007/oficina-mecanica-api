@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.Parts
@@ -27,7 +28,7 @@ namespace OficinaApi.Application.UseCases.Parts
                 if (part == null)
                 {
                     _logger.LogInformation("Falha na validação em AddStockUseCase: Peça com ID '{PartId}' não encontrada.", input.Id);
-                    throw new KeyNotFoundException($"Peça com ID '{input.Id}' não encontrada.");
+                    throw new DomainException($"Peça com ID '{input.Id}' não encontrada.");
                 }
 
                 part.AddStock(input.Quantity);
@@ -35,7 +36,7 @@ namespace OficinaApi.Application.UseCases.Parts
 
                 return UseCaseResponse<bool>.Success(true);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Erro inesperado em AddStockUseCase para a peça com ID '{PartId}'.", input.Id);
                 return UseCaseResponse<bool>.Failure(ex.Message);

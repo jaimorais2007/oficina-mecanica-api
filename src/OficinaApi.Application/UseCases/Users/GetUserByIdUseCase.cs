@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -41,7 +42,7 @@ namespace OficinaApi.Application.UseCases.Users
                 _logger.LogInformation("User {Id} retrieved successfully.", input);
                 return UseCaseResponse<UserDto?>.Success(dto);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error retrieving user {Id}.", input);
                 return UseCaseResponse<UserDto?>.Failure(ex.Message);

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.ServiceOrders
@@ -29,13 +30,13 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 var serviceOrder = await _serviceOrderRepository.GetServiceOrderByIdToGetPeddingStocksAsync(input);
                 if (serviceOrder == null)
                 {
-                    throw new ArgumentException("Ordem de serviço não encontrada.");
+                    throw new DomainException("Ordem de serviço não encontrada.");
                 }
 
                 var dtos = serviceOrder.GetPendingStocks().Select(a => new ServiceOrderPeddingStockDto(a));
                 return UseCaseResponse<IEnumerable<ServiceOrderPeddingStockDto>>.Success(dtos);
             }
-            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Service Order not found to get pending stocks. Id: {Id}", input);
                 return UseCaseResponse<IEnumerable<ServiceOrderPeddingStockDto>>.Failure(ex.Message);

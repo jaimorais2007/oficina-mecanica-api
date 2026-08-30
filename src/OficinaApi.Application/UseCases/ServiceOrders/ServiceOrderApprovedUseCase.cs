@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Events;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.ServiceOrders;
@@ -36,7 +37,7 @@ public class ServiceOrderApprovedUseCase : IUseCase<ServiceOrderApprovedEvent, b
             {
                 partUsed.EnsureStockQuantity();
             }
-            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error updating stock for part ID {PartId} used in service order ID {ServiceOrderId}.", partUsed.PartId, domainEvent.ServiceOrderId);
             }

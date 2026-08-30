@@ -1,6 +1,7 @@
 using FluentAssertions;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Events;
+using OficinaApi.Domain.Exceptions;
 using Xunit;
 
 namespace Unit.Tests;
@@ -78,7 +79,7 @@ public class PartTests
     }
 
     [Fact]
-    public void AddStock_WithZeroQuantity_ShouldThrowArgumentException()
+    public void AddStock_WithZeroQuantity_ShouldThrowDomainException()
     {
         // Arrange
         var part = new Part("Filtro de Óleo", "FO-001", 10, 29.90m);
@@ -87,12 +88,12 @@ public class PartTests
         var act = () => part.AddStock(0);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*maior que zero*");
     }
 
     [Fact]
-    public void AddStock_WithNegativeQuantity_ShouldThrowArgumentException()
+    public void AddStock_WithNegativeQuantity_ShouldThrowDomainException()
     {
         // Arrange
         var part = new Part("Filtro de Óleo", "FO-001", 10, 29.90m);
@@ -101,7 +102,7 @@ public class PartTests
         var act = () => part.AddStock(-3);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*maior que zero*");
     }
 
@@ -132,7 +133,7 @@ public class PartTests
     }
 
     [Fact]
-    public void RemoveStock_WithZeroQuantity_ShouldThrowArgumentException()
+    public void RemoveStock_WithZeroQuantity_ShouldThrowDomainException()
     {
         // Arrange
         var part = new Part("Filtro de Óleo", "FO-001", 10, 29.90m);
@@ -141,12 +142,12 @@ public class PartTests
         var act = () => part.RemoveStock(0);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*maior que zero*");
     }
 
     [Fact]
-    public void RemoveStock_WithNegativeQuantity_ShouldThrowArgumentException()
+    public void RemoveStock_WithNegativeQuantity_ShouldThrowDomainException()
     {
         // Arrange
         var part = new Part("Filtro de Óleo", "FO-001", 10, 29.90m);
@@ -155,12 +156,12 @@ public class PartTests
         var act = () => part.RemoveStock(-2);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*maior que zero*");
     }
 
     [Fact]
-    public void RemoveStock_WhenQuantityExceedsStock_ShouldThrowInvalidOperationException()
+    public void RemoveStock_WhenQuantityExceedsStock_ShouldThrowDomainException()
     {
         // Arrange
         var part = new Part("Filtro de Óleo", "FO-001", 3, 29.90m);
@@ -169,7 +170,7 @@ public class PartTests
         var act = () => part.RemoveStock(10);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*Estoque insuficiente*");
     }
 
@@ -202,7 +203,7 @@ public class PartTests
     }
 
     [Fact]
-    public void UpdateDetails_WithNullName_ShouldThrowArgumentException()
+    public void UpdateDetails_WithNullName_ShouldThrowDomainException()
     {
         // Arrange
         var part = new Part("Filtro", "F-001", 5, 10m);
@@ -211,12 +212,12 @@ public class PartTests
         var act = () => part.UpdateDetails(null!, "F-001", 10m);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*Nome invalido*");
     }
 
     [Fact]
-    public void UpdateDetails_WithWhitespaceName_ShouldThrowArgumentException()
+    public void UpdateDetails_WithWhitespaceName_ShouldThrowDomainException()
     {
         // Arrange
         var part = new Part("Filtro", "F-001", 5, 10m);
@@ -225,12 +226,12 @@ public class PartTests
         var act = () => part.UpdateDetails("   ", "F-001", 10m);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*Nome invalido*");
     }
 
     [Fact]
-    public void UpdateDetails_WithNegativePrice_ShouldThrowArgumentException()
+    public void UpdateDetails_WithNegativePrice_ShouldThrowDomainException()
     {
         // Arrange
         var part = new Part("Filtro", "F-001", 5, 10m);
@@ -239,7 +240,7 @@ public class PartTests
         var act = () => part.UpdateDetails("Filtro", "F-001", -1m);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*negativo*");
     }
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.Vehicles
@@ -27,7 +28,7 @@ namespace OficinaApi.Application.UseCases.Vehicles
                 if (vehicle == null)
                 {
                     _logger.LogInformation("Failed to update vehicle: Vehicle {VehicleId} not found.", input.Id);
-                    throw new ArgumentException("Veículo não encontrado.");
+                    throw new DomainException("Veículo não encontrado.");
                 }
 
                 vehicle.Update(
@@ -41,7 +42,7 @@ namespace OficinaApi.Application.UseCases.Vehicles
 
                 return UseCaseResponse<VehicleDto>.Success(new VehicleDto(vehicle));
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "An error occurred while updating vehicle with ID {VehicleId}.", input.Id);
                 return UseCaseResponse<VehicleDto>.Failure(ex.Message);

@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using OficinaApi.Domain.Exceptions;
 
 namespace OficinaApi.Domain.ValueObjects;
 
@@ -11,7 +12,7 @@ public class Plate
     public Plate(string value)
     {
         if (!IsValid(value))
-            throw new ArgumentException("Placa inválida");
+            throw new DomainException("Placa inválida");
 
         Value = value.ToUpper();
     }

@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using OficinaApi.Domain.Entities;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.Vehicles
@@ -29,7 +30,7 @@ namespace OficinaApi.Application.UseCases.Vehicles
                 if (customer == null)
                 {
                     _logger.LogInformation("Failed to create vehicle: Customer {CustomerId} not found.", input.CustomerId);
-                    throw new ArgumentException("Cliente não encontrado.");
+                    throw new DomainException("Cliente não encontrado.");
                 }
 
                 var vehicle = new Vehicle(customer, input.Plate, input.Brand, input.Model, input.Year);
@@ -38,7 +39,7 @@ namespace OficinaApi.Application.UseCases.Vehicles
 
                 return UseCaseResponse<VehicleDto>.Success(new VehicleDto(vehicle));
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "An error occurred while creating a new vehicle for customer {CustomerId}.", input.CustomerId);
                 return UseCaseResponse<VehicleDto>.Failure(ex.Message);

@@ -1,5 +1,6 @@
 using Xunit;
 using FluentAssertions;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.ValueObjects;
 
 namespace Unit.Tests;
@@ -59,7 +60,7 @@ public class PlateTests
     }
 
     [Fact]
-    public void Constructor_WhenPlateIsNull_ShouldThrowArgumentException()
+    public void Constructor_WhenPlateIsNull_ShouldThrowDomainException()
     {
         // Arrange
         string? nullPlate = null;
@@ -68,11 +69,11 @@ public class PlateTests
         var act = () => new Plate(nullPlate!);
 
         // Assert
-        Assert.Throws<ArgumentException>(act);
+        Assert.Throws<DomainException>(act);
     }
 
     [Fact]
-    public void Constructor_WhenPlateIsEmpty_ShouldThrowArgumentException()
+    public void Constructor_WhenPlateIsEmpty_ShouldThrowDomainException()
     {
         // Arrange
         var emptyPlate = string.Empty;
@@ -81,11 +82,11 @@ public class PlateTests
         var act = () => new Plate(emptyPlate);
 
         // Assert
-        Assert.Throws<ArgumentException>(act);
+        Assert.Throws<DomainException>(act);
     }
 
     [Fact]
-    public void Constructor_WhenPlateIsWhitespace_ShouldThrowArgumentException()
+    public void Constructor_WhenPlateIsWhitespace_ShouldThrowDomainException()
     {
         // Arrange
         var whitespacePlate = "   ";
@@ -94,7 +95,7 @@ public class PlateTests
         var act = () => new Plate(whitespacePlate);
 
         // Assert
-        Assert.Throws<ArgumentException>(act);
+        Assert.Throws<DomainException>(act);
     }
 
     [Theory]
@@ -106,7 +107,7 @@ public class PlateTests
     [InlineData("ABC-1234")]
     [InlineData("ABC 1234")]
     [InlineData("ABC1A234")]
-    public void Constructor_WhenPlateFormatIsInvalid_ShouldThrowArgumentException(string invalidPlate)
+    public void Constructor_WhenPlateFormatIsInvalid_ShouldThrowDomainException(string invalidPlate)
     {
         // Arrange - já feito via InlineData
 
@@ -114,7 +115,7 @@ public class PlateTests
         var act = () => new Plate(invalidPlate);
 
         // Assert
-        Assert.Throws<ArgumentException>(act);
+        Assert.Throws<DomainException>(act);
     }
 
     [Fact]
