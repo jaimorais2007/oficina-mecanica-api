@@ -27,7 +27,6 @@ public class UserSessionEnrichmentMiddleware
         var userId = GetUserId(context);
         var sessionId = GetSessionId(context);
 
-        // 1. Enriquecer Span / Atividade do OpenTelemetry
         var activity = Activity.Current;
         if (activity != null)
         {
@@ -42,7 +41,6 @@ public class UserSessionEnrichmentMiddleware
             }
         }
 
-        // 2. Enriquecer o escopo de logs do ILogger
         var scopeProperties = new Dictionary<string, object>();
         if (!string.IsNullOrEmpty(userId))
         {
