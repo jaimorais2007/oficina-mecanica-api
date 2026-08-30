@@ -20,29 +20,21 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
 
         public async Task<UseCaseResponse<ServiceOrderStatusDto?>> ExecuteAsync(Guid input)
         {
-            try
+            var serviceOrder = await _serviceOrderRepository.GetByStatus(input);
+
+            if (serviceOrder == null)
             {
-                var serviceOrder = await _serviceOrderRepository.GetByStatus(input);
-
-                if (serviceOrder == null)
-                {
-                    _logger.LogInformation("Service Order not found by id: {Id}", input);
-                    return UseCaseResponse<ServiceOrderStatusDto?>.Failure("Ordem de serviço não encontrada.");
-                }
-
-                var dto = new ServiceOrderStatusDto
-                {
-                    Id = serviceOrder.Id,
-                    Status = serviceOrder.GetLastStatusHistory().Status
-                };
-
-                return UseCaseResponse<ServiceOrderStatusDto?>.Success(dto);
+                _logger.LogInformation("Service Order not found by id: {Id}", input);
+                return UseCaseResponse<ServiceOrderStatusDto?>.Failure("Ordem de serviço não encontrada.");
             }
-            catch (Exception ex)
+
+            var dto = new ServiceOrderStatusDto
             {
-                _logger.LogError(ex, "Error getting service order status by id");
-                return UseCaseResponse<ServiceOrderStatusDto?>.Failure(ex.Message);
-            }
+                Id = serviceOrder.Id,
+                Status = serviceOrder.GetLastStatusHistory().Status
+            };
+
+            return UseCaseResponse<ServiceOrderStatusDto?>.Success(dto);
         }
     }
 }

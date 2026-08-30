@@ -71,7 +71,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 _logger.LogInformation("Service Order successfully created. Id: {ServiceOrder}", serviceOrder.Id);
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
             {
                 _logger.LogError(ex, "Error creating service order");
                 return UseCaseResponse<ServiceOrderDto>.Failure(ex.Message);

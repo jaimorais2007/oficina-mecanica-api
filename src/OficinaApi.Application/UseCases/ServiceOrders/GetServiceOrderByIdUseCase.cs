@@ -22,22 +22,14 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
 
         public async Task<UseCaseResponse<ServiceOrderDto?>> ExecuteAsync(Guid input)
         {
-            try
+            var serviceOrder = await _serviceOrderRepository.GetByIdAsync(input);
+            if (serviceOrder == null)
             {
-                var serviceOrder = await _serviceOrderRepository.GetByIdAsync(input);
-                if (serviceOrder == null)
-                {
-                    _logger.LogInformation("Service Order not found by id: {Id}", input);
-                    return UseCaseResponse<ServiceOrderDto?>.Failure("Ordem de serviço não encontrada.");
-                }
+                _logger.LogInformation("Service Order not found by id: {Id}", input);
+                return UseCaseResponse<ServiceOrderDto?>.Failure("Ordem de serviço não encontrada.");
+            }
 
-                return UseCaseResponse<ServiceOrderDto?>.Success(new ServiceOrderDto(serviceOrder));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error getting service order by id");
-                return UseCaseResponse<ServiceOrderDto?>.Failure(ex.Message);
-            }
+            return UseCaseResponse<ServiceOrderDto?>.Success(new ServiceOrderDto(serviceOrder));
         }
     }
 }

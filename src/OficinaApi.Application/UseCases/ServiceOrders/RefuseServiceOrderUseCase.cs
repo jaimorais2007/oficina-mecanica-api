@@ -39,7 +39,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
                 _applicationMetrics.CalculateServiceOrderStatusMeanTimeMetric(serviceOrder);            
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
             {
                 _logger.LogError(ex, "Error refusing service order");
                 return UseCaseResponse<ServiceOrderDto>.Failure(ex.Message);

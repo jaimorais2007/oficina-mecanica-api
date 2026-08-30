@@ -40,10 +40,6 @@ public class ServiceOrderApprovedUseCase : IUseCase<ServiceOrderApprovedEvent, b
             {
                 _logger.LogError(ex, "Error updating stock for part ID {PartId} used in service order ID {ServiceOrderId}.", partUsed.PartId, domainEvent.ServiceOrderId);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Unexpected error updating stock for part ID {PartId} used in service order ID {ServiceOrderId}.", partUsed.PartId, domainEvent.ServiceOrderId);
-            }
         }
 
         await _serviceOrderRepository.SaveChangesAsync(serviceOrder);

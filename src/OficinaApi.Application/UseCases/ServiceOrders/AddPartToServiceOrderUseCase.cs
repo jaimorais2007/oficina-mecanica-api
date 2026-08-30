@@ -53,7 +53,7 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
 
                 return UseCaseResponse<ServiceOrderDto>.Success(new ServiceOrderDto(serviceOrder));
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
             {
                 _logger.LogError(ex, "Error adding part to service order");
                 return UseCaseResponse<ServiceOrderDto>.Failure(ex.Message);

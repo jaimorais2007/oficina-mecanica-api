@@ -25,20 +25,19 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
         public async Task<UseCaseResponse<IEnumerable<ServiceOrderPeddingStockDto>>> ExecuteAsync(Guid input)
         {
             try
-            {
+            {                
                 var serviceOrder = await _serviceOrderRepository.GetServiceOrderByIdToGetPeddingStocksAsync(input);
                 if (serviceOrder == null)
                 {
-                    _logger.LogInformation("Service Order not found to get pending stocks. Id: {Id}", input);
                     throw new ArgumentException("Ordem de serviço não encontrada.");
                 }
 
                 var dtos = serviceOrder.GetPendingStocks().Select(a => new ServiceOrderPeddingStockDto(a));
                 return UseCaseResponse<IEnumerable<ServiceOrderPeddingStockDto>>.Success(dtos);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is ArgumentException || ex is InvalidOperationException)
             {
-                _logger.LogError(ex, "Error getting pending stocks for service order");
+                _logger.LogError(ex, "Service Order not found to get pending stocks. Id: {Id}", input);
                 return UseCaseResponse<IEnumerable<ServiceOrderPeddingStockDto>>.Failure(ex.Message);
             }
         }

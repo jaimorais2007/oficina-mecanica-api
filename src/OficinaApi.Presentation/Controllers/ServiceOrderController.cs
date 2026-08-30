@@ -2,19 +2,13 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
-using OficinaApi.Presentation.ExceptionFilters;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OficinaApi.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
 [Authorize]
-[ServiceOrderExceptionFilter]
 public class ServiceOrdersController : ControllerBase
 {
     private readonly IUseCase<NoInput, IEnumerable<ServiceOrderDto>> _getAllServiceOrdersUseCase;
