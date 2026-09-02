@@ -1,6 +1,7 @@
 using FluentAssertions;
 using Xunit;
 using OficinaApi.Domain.Entities;
+using OficinaApi.Domain.Exceptions;
 
 namespace Unit.Tests;
 
@@ -43,20 +44,20 @@ public class ServiceTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public void Constructor_WithInvalidName_ShouldThrowArgumentException(string? invalidName)
+    public void Constructor_WithInvalidName_ShouldThrowDomainException(string? invalidName)
     {
         var act = () => new Service(invalidName!, "Descrição", 100m);
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*Nome do serviço é obrigatório*");
     }
 
     [Fact]
-    public void Constructor_WithNegativePrice_ShouldThrowArgumentException()
+    public void Constructor_WithNegativePrice_ShouldThrowDomainException()
     {
         var act = () => new Service("Balanceamento", "Balanceamento de rodas", -1m);
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*Preço informado é inválido*");
     }
 
@@ -76,24 +77,24 @@ public class ServiceTests
     [InlineData("")]
     [InlineData("   ")]
     [InlineData(null)]
-    public void Update_WithInvalidName_ShouldThrowArgumentException(string? invalidName)
+    public void Update_WithInvalidName_ShouldThrowDomainException(string? invalidName)
     {
         var service = new Service("Troca de Óleo", "Descrição", 100m);
 
         var act = () => service.Update(invalidName!, "Descrição", 100m);
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*Nome do serviço é obrigatório*");
     }
 
     [Fact]
-    public void Update_WithNegativePrice_ShouldThrowArgumentException()
+    public void Update_WithNegativePrice_ShouldThrowDomainException()
     {
         var service = new Service("Troca de Óleo", "Descrição", 100m);
 
         var act = () => service.Update("Troca de Óleo", "Descrição", -50m);
 
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*Preço informado é inválido*");
     }
 

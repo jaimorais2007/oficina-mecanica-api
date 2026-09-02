@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 
 namespace OficinaApi.Application.UseCases.Users
@@ -53,7 +54,7 @@ namespace OficinaApi.Application.UseCases.Users
                 _logger.LogInformation("Token generated successfully for user {UserId} ({Email}).", input.UserId, input.Email);
                 return UseCaseResponse<string>.Success(tokenStr);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error generating token for user {UserId} ({Email}).", input.UserId, input.Email);
                 return UseCaseResponse<string>.Failure(ex.Message);

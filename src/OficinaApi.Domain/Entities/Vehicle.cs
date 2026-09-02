@@ -1,4 +1,5 @@
 using OficinaApi.Domain.Entities;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.ValueObjects;
 
 namespace OficinaApi.Domain.Entities;
@@ -44,13 +45,13 @@ public class Vehicle : BaseEntity
     private void Validate()
     {
         if (string.IsNullOrWhiteSpace(Brand))
-            throw new ArgumentException("Marca é obrigatória.");
+            throw new DomainException("Marca é obrigatória.");
 
         if (string.IsNullOrWhiteSpace(Model))
-            throw new ArgumentException("Modelo é obrigatório.");
+            throw new DomainException("Modelo é obrigatório.");
 
         if (Year < 1900 || Year > DateTime.UtcNow.Year + 1)
-            throw new ArgumentException("Ano inválido.");
+            throw new DomainException("Ano inválido.");
     }
 
     public void SetInactive(bool inactive)

@@ -13,6 +13,7 @@ using OficinaApi.Domain.Events;
 using OficinaApi.Domain.Interfaces;
 using OficinaApi.Infrastructure.Data;
 using OficinaApi.Infrastructure.Repositories;
+using OficinaApi.Infrastructure.Metrics;
 
 namespace OficinaApi.Presentation.Configuration;
 
@@ -104,6 +105,8 @@ public static class DependencyInjectionConfiguration
         services.AddScoped<IDomainEventHandler<ServiceOrderApprovedEvent>, ServiceOrderApprovedEventHandler>();
         services.AddScoped<IDomainEventHandler<ServiceOrderStatusChangedEvent>, ServiceOrderMailEventHandler>();
         services.AddScoped<IDomainEventHandler<PartStockAddedEvent>, PartStockAddedEventHandler>();
+
+        services.AddScoped<IApplicationMetrics, ApplicationMetrics>();
 
         return services;
     }

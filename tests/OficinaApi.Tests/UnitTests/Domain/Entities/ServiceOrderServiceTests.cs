@@ -2,6 +2,7 @@ using FluentAssertions;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
 using OficinaApi.Domain.Events;
+using OficinaApi.Domain.Exceptions;
 using Xunit;
 
 namespace Unit.Tests;
@@ -124,7 +125,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.StartDiagnostics();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*'Recebida'*");
     }
 
@@ -184,7 +185,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.FinishAnalysis();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*'Em Análise'*");
     }
 
@@ -227,7 +228,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.ApproveServiceOrder();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*'Aguardando Aprovação'*");
     }
 
@@ -259,7 +260,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.FinishExecution();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*peças pendentes*");
     }
 
@@ -276,7 +277,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.FinishExecution();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*'Em Execução'*");
     }
 
@@ -306,7 +307,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.Deliver();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*'Finalizada'*");
     }
 
@@ -339,7 +340,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.AddPart(part, quantity);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*quantidade deve ser maior que zero*");
     }
 
@@ -356,7 +357,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.AddPart(part, 1);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*Não é permitido adicionar peças*");
     }
 
@@ -390,7 +391,7 @@ public class ServiceOrderEntityTests
         Action act = () => order.AddService(newService);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
            .WithMessage("*Não é permitido adicionar serviços*");
     }
 

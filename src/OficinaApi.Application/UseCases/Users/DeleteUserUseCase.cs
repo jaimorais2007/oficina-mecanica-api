@@ -2,6 +2,7 @@ using System;
 using System.Threading.Tasks;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -26,7 +27,7 @@ namespace OficinaApi.Application.UseCases.Users
                 _logger.LogInformation("User {UserId} deleted successfully.", input);
                 return UseCaseResponse<bool>.Success(true);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error deleting user {UserId}.", input);
                 return UseCaseResponse<bool>.Failure(ex.Message);

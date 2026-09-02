@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 
 namespace OficinaApi.Application.UseCases.Services
@@ -40,7 +41,7 @@ namespace OficinaApi.Application.UseCases.Services
 
                 return UseCaseResponse<ServiceDto>.Success(new ServiceDto(service));
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error updating service with ID {ServiceId}", input.Id);
                 return UseCaseResponse<ServiceDto>.Failure(ex.Message);

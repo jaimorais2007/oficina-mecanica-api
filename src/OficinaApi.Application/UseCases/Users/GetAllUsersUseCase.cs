@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -36,7 +37,7 @@ namespace OficinaApi.Application.UseCases.Users
                 _logger.LogInformation("All users retrieved successfully.");
                 return UseCaseResponse<IEnumerable<UserDto>>.Success(dtos);
             }
-            catch (Exception ex)
+            catch (DomainException ex)
             {
                 _logger.LogError(ex, "Error retrieving all users.");
                 return UseCaseResponse<IEnumerable<UserDto>>.Failure(ex.Message);

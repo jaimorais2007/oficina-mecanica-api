@@ -4,6 +4,7 @@ using System.Linq;
 using FluentAssertions;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
+using OficinaApi.Domain.Exceptions;
 using Xunit;
 
 namespace Unit.Tests;
@@ -74,7 +75,7 @@ public class ServiceOrderTests
         Action act = () => order.StartDiagnostics();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*'Recebida'*");
     }
 
@@ -117,7 +118,7 @@ public class ServiceOrderTests
         Action act = () => order.FinishAnalysis();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*'Em Análise'*");
     }
 
@@ -162,7 +163,7 @@ public class ServiceOrderTests
         Action act = () => order.ApproveServiceOrder();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*'Aguardando Aprovação'*");
     }
 
@@ -192,7 +193,7 @@ public class ServiceOrderTests
         Action act = () => order.FinishExecution();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*'Em Execução'*");
     }
 
@@ -211,7 +212,7 @@ public class ServiceOrderTests
         Action act = () => order.FinishExecution();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*peças pendentes*");
     }
 
@@ -242,7 +243,7 @@ public class ServiceOrderTests
         Action act = () => order.Deliver();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*'Finalizada'*");
     }
 
@@ -271,7 +272,7 @@ public class ServiceOrderTests
         Action act = () => order.Refuse();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*'Aguardando Aprovação'*");
     }
 
@@ -301,7 +302,7 @@ public class ServiceOrderTests
         Action act = () => order.AddPart(part, 0);
 
         // Assert
-        act.Should().Throw<ArgumentException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*quantidade*");
     }
 
@@ -318,7 +319,7 @@ public class ServiceOrderTests
         Action act = () => order.AddPart(part, 1);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*adicionar peças*");
     }
 
@@ -349,7 +350,7 @@ public class ServiceOrderTests
         Action act = () => order.AddService(extraService);
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*adicionar serviços*");
     }
 
@@ -406,7 +407,7 @@ public class ServiceOrderTests
         Action act = () => order.GetPendingStocks();
 
         // Assert
-        act.Should().Throw<InvalidOperationException>()
+        act.Should().Throw<DomainException>()
             .WithMessage("*'Em Execução'*");
     }
 }

@@ -3,16 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
 using Swashbuckle.AspNetCore.Annotations;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace OficinaApi.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] 
+[Authorize]
 public class ServiceOrdersController : ControllerBase
 {
     private readonly IUseCase<NoInput, IEnumerable<ServiceOrderDto>> _getAllServiceOrdersUseCase;
@@ -33,6 +29,7 @@ public class ServiceOrdersController : ControllerBase
     public ServiceOrdersController(
         IUseCase<NoInput, IEnumerable<ServiceOrderDto>> getAllServiceOrdersUseCase,
         IUseCase<Guid, ServiceOrderDto?> getServiceOrderByIdUseCase,
+        IUseCase<Guid, ServiceOrderStatusDto?> getServiceOrderByStatusUseCase,
         IUseCase<CreateServiceOrderDto, ServiceOrderDto> createServiceOrderUseCase,
         IUseCase<StartDiagnosticsRequest, ServiceOrderDto> startDiagnosticsUseCase,
         IUseCase<FinishAnalysisRequest, ServiceOrderDto> finishAnalysisUseCase,
@@ -47,6 +44,7 @@ public class ServiceOrdersController : ControllerBase
     {
         _getAllServiceOrdersUseCase = getAllServiceOrdersUseCase;
         _getServiceOrderByIdUseCase = getServiceOrderByIdUseCase;
+        _getServiceOrderByStatusUseCase = getServiceOrderByStatusUseCase;
         _createServiceOrderUseCase = createServiceOrderUseCase;
         _startDiagnosticsUseCase = startDiagnosticsUseCase;
         _finishAnalysisUseCase = finishAnalysisUseCase;

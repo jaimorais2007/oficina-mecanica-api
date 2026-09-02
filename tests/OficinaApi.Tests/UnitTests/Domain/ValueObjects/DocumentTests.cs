@@ -1,5 +1,6 @@
 using FluentAssertions;
 using OficinaApi.Domain.Enums;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.ValueObjects;
 using Xunit;
 
@@ -36,7 +37,7 @@ public class DocumentTests
     }
 
     [Fact]
-    public void Constructor_WhenInvalidCpfWrongDigit_ShouldThrowArgumentException()
+    public void Constructor_WhenInvalidCpfWrongDigit_ShouldThrowDomainException()
     {
         // Arrange
         var invalidCpf = "11144477736"; // último dígito incorreto
@@ -45,11 +46,11 @@ public class DocumentTests
         var act = () => new Document(invalidCpf, PersonType.Individual);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("CPF inválido.");
+        act.Should().Throw<DomainException>().WithMessage("CPF inválido.");
     }
 
     [Fact]
-    public void Constructor_WhenCpfWithAllSameDigits_ShouldThrowArgumentException()
+    public void Constructor_WhenCpfWithAllSameDigits_ShouldThrowDomainException()
     {
         // Arrange
         var allSameCpf = "11111111111";
@@ -58,11 +59,11 @@ public class DocumentTests
         var act = () => new Document(allSameCpf, PersonType.Individual);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("CPF inválido.");
+        act.Should().Throw<DomainException>().WithMessage("CPF inválido.");
     }
 
     [Fact]
-    public void Constructor_WhenCpfWithWrongLength_ShouldThrowArgumentException()
+    public void Constructor_WhenCpfWithWrongLength_ShouldThrowDomainException()
     {
         // Arrange
         var shortCpf = "1234567890"; // 10 dígitos
@@ -71,7 +72,7 @@ public class DocumentTests
         var act = () => new Document(shortCpf, PersonType.Individual);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("CPF inválido.");
+        act.Should().Throw<DomainException>().WithMessage("CPF inválido.");
     }
 
 
@@ -102,7 +103,7 @@ public class DocumentTests
     }
 
     [Fact]
-    public void Constructor_WhenInvalidCnpjWrongDigit_ShouldThrowArgumentException()
+    public void Constructor_WhenInvalidCnpjWrongDigit_ShouldThrowDomainException()
     {
         // Arrange
         var invalidCnpj = "11222333000182"; // último dígito incorreto
@@ -111,11 +112,11 @@ public class DocumentTests
         var act = () => new Document(invalidCnpj, PersonType.Company);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("CNPJ inválido.");
+        act.Should().Throw<DomainException>().WithMessage("CNPJ inválido.");
     }
 
     [Fact]
-    public void Constructor_WhenCnpjWithAllSameDigits_ShouldThrowArgumentException()
+    public void Constructor_WhenCnpjWithAllSameDigits_ShouldThrowDomainException()
     {
         // Arrange
         var allSameCnpj = "11111111111111";
@@ -124,11 +125,11 @@ public class DocumentTests
         var act = () => new Document(allSameCnpj, PersonType.Company);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("CNPJ inválido.");
+        act.Should().Throw<DomainException>().WithMessage("CNPJ inválido.");
     }
 
     [Fact]
-    public void Constructor_WhenCnpjWithWrongLength_ShouldThrowArgumentException()
+    public void Constructor_WhenCnpjWithWrongLength_ShouldThrowDomainException()
     {
         // Arrange
         var shortCnpj = "1122233300018"; // 13 dígitos
@@ -137,7 +138,7 @@ public class DocumentTests
         var act = () => new Document(shortCnpj, PersonType.Company);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("CNPJ inválido.");
+        act.Should().Throw<DomainException>().WithMessage("CNPJ inválido.");
     }
 
 
@@ -145,17 +146,17 @@ public class DocumentTests
     [InlineData(null)]
     [InlineData("")]
     [InlineData("   ")]
-    public void Constructor_WhenDocumentIsNullOrWhiteSpace_ShouldThrowArgumentException(string? emptyDocument)
+    public void Constructor_WhenDocumentIsNullOrWhiteSpace_ShouldThrowDomainException(string? emptyDocument)
     {
         // Arrange & Act
         var act = () => new Document(emptyDocument!, PersonType.Individual);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("Documento é obrigatório.");
+        act.Should().Throw<DomainException>().WithMessage("Documento é obrigatório.");
     }
 
     [Fact]
-    public void Constructor_WhenPersonTypeIsInvalid_ShouldThrowArgumentException()
+    public void Constructor_WhenPersonTypeIsInvalid_ShouldThrowDomainException()
     {
         // Arrange
         var invalidPersonType = (PersonType)99;
@@ -164,7 +165,7 @@ public class DocumentTests
         var act = () => new Document(ValidCpf, invalidPersonType);
 
         // Assert
-        act.Should().Throw<ArgumentException>().WithMessage("Tipo de pessoa inválido.");
+        act.Should().Throw<DomainException>().WithMessage("Tipo de pessoa inválido.");
     }
 
 

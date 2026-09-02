@@ -23,17 +23,9 @@ namespace OficinaApi.Application.UseCases.ServiceOrders
 
         public async Task<UseCaseResponse<IEnumerable<ServiceOrderDto>>> ExecuteAsync(NoInput input)
         {
-            try
-            {
-                var serviceOrders = await _serviceOrderRepository.GetAllAsync();
-                var dtos = serviceOrders.Select(so => new ServiceOrderDto(so));
-                return UseCaseResponse<IEnumerable<ServiceOrderDto>>.Success(dtos);
-            }
-            catch (System.Exception ex)
-            {
-                _logger.LogError(ex, "Error getting all service orders");
-                return UseCaseResponse<IEnumerable<ServiceOrderDto>>.Failure(ex.Message);
-            }
+            var serviceOrders = await _serviceOrderRepository.GetAllAsync();
+            var dtos = serviceOrders.Select(so => new ServiceOrderDto(so));
+            return UseCaseResponse<IEnumerable<ServiceOrderDto>>.Success(dtos);
         }
     }
 }

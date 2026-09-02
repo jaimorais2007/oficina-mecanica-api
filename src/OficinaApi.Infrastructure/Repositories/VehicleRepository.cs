@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using OficinaApi.Domain.Entities;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.Interfaces;
 using OficinaApi.Domain.ValueObjects;
 using OficinaApi.Infrastructure.Data;
@@ -23,7 +24,7 @@ namespace OficinaApi.Infrastructure.Repositories
             if (await GetVehicleAsync(vehicle.Plate) is not null)
             {
                 _logger.LogInformation("Attempted to add a vehicle with an existing plate: {Plate}", vehicle.Plate.Value);
-                throw new Exception("Já existe um veículo cadastrado com essa placa.");
+                throw new DomainException("Já existe um veículo cadastrado com essa placa.");
             }
 
             await _context.Vehicles.AddAsync(vehicle);

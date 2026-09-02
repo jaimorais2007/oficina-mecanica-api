@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using FluentAssertions;
 using Moq;
 using OficinaApi.Application.DTOs;
+using OficinaApi.Application.Interfaces;
 using OficinaApi.Application.UseCases.ServiceOrders;
 using OficinaApi.Domain.Entities;
 using OficinaApi.Domain.Enums;
@@ -21,6 +22,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
         private readonly Mock<IServiceRepository> _serviceRepoMock;
         private readonly Mock<IPartRepository> _partRepoMock;
         private readonly Mock<ICustomerRepository> _customerRepoMock;
+        private readonly Mock<IApplicationMetrics> _applicationMetricsMock;
 
         public ServiceOrderUseCaseTests()
         {
@@ -29,6 +31,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
             _serviceRepoMock      = new Mock<IServiceRepository>();
             _partRepoMock         = new Mock<IPartRepository>();
             _customerRepoMock     = new Mock<ICustomerRepository>();
+            _applicationMetricsMock = new Mock<IApplicationMetrics>();
         }
 
         private static Customer CreateCustomer()
@@ -204,7 +207,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
         {
             var id = Guid.NewGuid();
             _serviceOrderRepoMock.Setup(r => r.GetByIdForUpdateAsync(id)).ReturnsAsync((ServiceOrder?)null);
-            var useCase = new StartDiagnosticsUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<StartDiagnosticsUseCase>>());
+            var useCase = new StartDiagnosticsUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<StartDiagnosticsUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new StartDiagnosticsRequest(id));
 
@@ -217,7 +220,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
         {
             var order = CreateServiceOrder();
             _serviceOrderRepoMock.Setup(r => r.GetByIdForUpdateAsync(order.Id)).ReturnsAsync(order);
-            var useCase = new StartDiagnosticsUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<StartDiagnosticsUseCase>>());
+            var useCase = new StartDiagnosticsUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<StartDiagnosticsUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new StartDiagnosticsRequest(order.Id));
 
@@ -337,7 +340,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
         {
             var id = Guid.NewGuid();
             _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((ServiceOrder?)null);
-            var useCase = new FinishAnalysisUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>());
+            var useCase = new FinishAnalysisUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new FinishAnalysisRequest(id));
 
@@ -351,7 +354,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
             var order = CreateServiceOrder();
             order.StartDiagnostics();
             _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(order.Id)).ReturnsAsync(order);
-            var useCase = new FinishAnalysisUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>());
+            var useCase = new FinishAnalysisUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<FinishAnalysisUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new FinishAnalysisRequest(order.Id));
 
@@ -365,7 +368,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
         {
             var id = Guid.NewGuid();
             _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((ServiceOrder?)null);
-            var useCase = new ApproveServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<ApproveServiceOrderUseCase>>());
+            var useCase = new ApproveServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<ApproveServiceOrderUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new ApproveServiceOrderRequest(id));
 
@@ -380,7 +383,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
             order.StartDiagnostics();
             order.FinishAnalysis();
             _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(order.Id)).ReturnsAsync(order);
-            var useCase = new ApproveServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<ApproveServiceOrderUseCase>>());
+            var useCase = new ApproveServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<ApproveServiceOrderUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new ApproveServiceOrderRequest(order.Id));
 
@@ -394,7 +397,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
         {
             var id = Guid.NewGuid();
             _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((ServiceOrder?)null);
-            var useCase = new FinishExecutionUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<FinishExecutionUseCase>>());
+            var useCase = new FinishExecutionUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<FinishExecutionUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new FinishExecutionRequest(id));
 
@@ -403,11 +406,29 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
         }
 
         [Fact]
+        public async Task FinishExecutionUseCase_ShouldTransitionToFinished_WhenOrderIsExecuting()
+        {
+            var order = CreateServiceOrder();
+            order.StartDiagnostics();
+            order.FinishAnalysis();
+            order.ApproveServiceOrder();
+            _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(order.Id)).ReturnsAsync(order);
+            var useCase = new FinishExecutionUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<FinishExecutionUseCase>>(), _applicationMetricsMock.Object);
+
+            var result = await useCase.ExecuteAsync(new FinishExecutionRequest(order.Id));
+
+            result.IsSuccess.Should().BeTrue();
+            order.GetLastStatusHistory().Status.Should().Be(OrderStatus.Finished);
+            _serviceOrderRepoMock.Verify(r => r.SaveChangesAsync(order), Times.Once);
+            _applicationMetricsMock.Verify(m => m.CalculateServiceOrderStatusMeanTimeMetric(order), Times.Once);
+        }
+
+        [Fact]
         public async Task DeliverServiceOrderUseCase_ShouldReturnFailure_WhenOrderNotFound()
         {
             var id = Guid.NewGuid();
             _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((ServiceOrder?)null);
-            var useCase = new DeliverServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<DeliverServiceOrderUseCase>>());
+            var useCase = new DeliverServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<DeliverServiceOrderUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new DeliverServiceOrderRequest(id));
 
@@ -416,11 +437,30 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
         }
 
         [Fact]
+        public async Task DeliverServiceOrderUseCase_ShouldTransitionToDelivered_WhenOrderIsFinished()
+        {
+            var order = CreateServiceOrder();
+            order.StartDiagnostics();
+            order.FinishAnalysis();
+            order.ApproveServiceOrder();
+            order.FinishExecution();
+            _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(order.Id)).ReturnsAsync(order);
+            var useCase = new DeliverServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<DeliverServiceOrderUseCase>>(), _applicationMetricsMock.Object);
+
+            var result = await useCase.ExecuteAsync(new DeliverServiceOrderRequest(order.Id));
+
+            result.IsSuccess.Should().BeTrue();
+            order.GetLastStatusHistory().Status.Should().Be(OrderStatus.Delivered);
+            _serviceOrderRepoMock.Verify(r => r.SaveChangesAsync(order), Times.Once);
+            _applicationMetricsMock.Verify(m => m.CalculateServiceOrderStatusMeanTimeMetric(order), Times.Once);
+        }
+
+        [Fact]
         public async Task RefuseServiceOrderUseCase_ShouldReturnFailure_WhenOrderNotFound()
         {
             var id = Guid.NewGuid();
             _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(id)).ReturnsAsync((ServiceOrder?)null);
-            var useCase = new RefuseServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<RefuseServiceOrderUseCase>>());
+            var useCase = new RefuseServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<RefuseServiceOrderUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new RefuseServiceOrderRequest(id));
 
@@ -435,7 +475,7 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
             order.StartDiagnostics();
             order.FinishAnalysis();
             _serviceOrderRepoMock.Setup(r => r.GetByIdAsync(order.Id)).ReturnsAsync(order);
-            var useCase = new RefuseServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<RefuseServiceOrderUseCase>>());
+            var useCase = new RefuseServiceOrderUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<RefuseServiceOrderUseCase>>(), _applicationMetricsMock.Object);
 
             var result = await useCase.ExecuteAsync(new RefuseServiceOrderRequest(order.Id));
 
@@ -456,6 +496,25 @@ namespace Unit.Tests.Application.UseCases.ServiceOrders
 
             result.IsSuccess.Should().BeFalse();
             result.Messages.Should().Contain(m => m.Contains("Ordem de serviço não encontrada"));
+        }
+
+        [Fact]
+        public async Task GetServiceOrderPendingStocksUseCase_ShouldReturnPendingStocks_WhenOrderFound()
+        {
+            var order = CreateServiceOrder();
+            var part = new Part("Filtro de óleo", "FO-001", 10, 50m);
+            order.AddPart(part, 2);
+            order.StartDiagnostics();
+            order.FinishAnalysis();
+            order.ApproveServiceOrder();
+            _serviceOrderRepoMock.Setup(r => r.GetServiceOrderByIdToGetPeddingStocksAsync(order.Id)).ReturnsAsync(order);
+            var useCase = new GetServiceOrderPendingStocksUseCase(_serviceOrderRepoMock.Object, Mock.Of<ILogger<GetServiceOrderPendingStocksUseCase>>());
+
+            var result = await useCase.ExecuteAsync(order.Id);
+
+            result.IsSuccess.Should().BeTrue();
+            result.Response.Should().NotBeNull();
+            result.Response.Should().HaveCount(1);
         }
 
         [Fact]

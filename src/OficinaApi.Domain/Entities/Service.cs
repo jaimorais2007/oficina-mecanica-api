@@ -1,4 +1,5 @@
 using OficinaApi.Domain.Entities;
+using OficinaApi.Domain.Exceptions;
 
 namespace OficinaApi.Domain.Entities;
 
@@ -36,10 +37,10 @@ public class Service : BaseEntity
     private void Validate()
     {
         if (string.IsNullOrWhiteSpace(Name))
-            throw new ArgumentException("Nome do serviço é obrigatório.");
+            throw new DomainException("Nome do serviço é obrigatório.");
 
         if (DefaultPrice < 0)
-            throw new ArgumentException("Preço informado é inválido.");
+            throw new DomainException("Preço informado é inválido.");
     }
 
     public void SetInactive(bool inactive)

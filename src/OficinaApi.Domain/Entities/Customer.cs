@@ -1,4 +1,5 @@
 using OficinaApi.Domain.Enums;
+using OficinaApi.Domain.Exceptions;
 using OficinaApi.Domain.ValueObjects;
 
 namespace OficinaApi.Domain.Entities
@@ -33,16 +34,16 @@ namespace OficinaApi.Domain.Entities
         private void ApplyChanges(string name, PersonType personType, string document, DateTime? dateOfBirth, string email)
         {
             if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Nome é obrigatório.");
+                throw new DomainException("Nome é obrigatório.");
 
             if (string.IsNullOrWhiteSpace(email))
-                throw new ArgumentException("E-mail é obrigatório.");
+                throw new DomainException("E-mail é obrigatório.");
 
             if (!Enum.IsDefined(typeof(PersonType), personType))
-                throw new ArgumentException("Tipo de pessoa inválido.");
+                throw new DomainException("Tipo de pessoa inválido.");
 
             if (personType == PersonType.Individual && dateOfBirth == null)
-                throw new ArgumentException("Data de nascimento é obrigatória para pessoa física.");
+                throw new DomainException("Data de nascimento é obrigatória para pessoa física.");
 
             Name = name.Trim();
             PersonType = personType;
