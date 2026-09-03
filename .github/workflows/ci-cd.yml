@@ -88,6 +88,15 @@ jobs:
           terraform init -input=false
           terraform apply -auto-approve -input=false
 
+      - name: Criar .env com as Secrets do GitHub
+        run: |
+          cat <<EOF > .env
+          DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
+          OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
+          EOF
+
       - name: Gerar/atualizar Secret a partir do .env local
         run: ./scripts/generate-k8s-secret.sh
 

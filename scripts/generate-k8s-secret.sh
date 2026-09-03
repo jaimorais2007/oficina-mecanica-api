@@ -23,15 +23,22 @@ done < "$ENV_FILE"
 DB_NAME="${envmap[DB_NAME]:-}"
 DB_USER="${envmap[DB_USER]:-}"
 DB_PASSWORD="${envmap[DB_PASSWORD]:-}"
+DB_CONNECTION_STRING="${envmap[DB_CONNECTION_STRING]:-}"
 JWT_SECRET="${envmap[JWT_SECRET]:-}"
 EMAIL_PASSWORD="${envmap[EMAIL_PASSWORD]:-}"
+OTEL_EXPORTER_OTLP_HEADERS="${envmap[OTEL_EXPORTER_OTLP_HEADERS]:-}"
 
-CONNECTION_STRING="Host=postgres-external;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+if [ -n "$DB_CONNECTION_STRING" ]; then
+  CONNECTION_STRING="$DB_CONNECTION_STRING"
+else
+  CONNECTION_STRING="Host=postgres-external;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}"
+fi
 
 kubectl create secret generic oficina-mecanica-api-secret \
   --from-literal=ConnectionStrings__DefaultConnection="$CONNECTION_STRING" \
   --from-literal=Jwt__Secret="$JWT_SECRET" \
   --from-literal=EmailSettings__Password="$EMAIL_PASSWORD" \
+  --from-literal=OTEL_EXPORTER_OTLP_HEADERS="$OTEL_EXPORTER_OTLP_HEADERS" \
   --dry-run=client -o yaml | kubectl apply -f -
 
 echo "==> Secret oficina-mecanica-api-secret aplicado."
