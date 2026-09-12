@@ -10,7 +10,6 @@ services:
       - "8080:8080"
     environment:
       - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
-      - Jwt__Secret=${JWT_SECRET}
       - EmailSettings__Password=${EMAIL_PASSWORD}
     volumes:
       - dp_keys:/home/appuser/.aspnet/DataProtection-Keys

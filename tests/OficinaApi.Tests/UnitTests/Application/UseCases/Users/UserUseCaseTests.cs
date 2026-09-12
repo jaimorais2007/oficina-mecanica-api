@@ -164,46 +164,5 @@ namespace Unit.Tests.Application.UseCases.Users
             result.IsSuccess.Should().BeTrue();
             _repoMock.Verify(r => r.DeleteAsync(id), Times.Once);
         }
-
-        [Fact]
-        public async Task AuthenticateUserUseCase_CredenciaisValidas_RetornaDto()
-        {
-            var user = BuildUser("auth@oficina.com");
-            _repoMock.Setup(r => r.GetByEmailAsync("auth@oficina.com")).ReturnsAsync(user);
-
-            var useCase = new AuthenticateUserUseCase(_repoMock.Object, Mock.Of<ILogger<AuthenticateUserUseCase>>());
-            var result = await useCase.ExecuteAsync(new AuthenticateUserRequest("auth@oficina.com", "senha123"));
-
-            result.IsSuccess.Should().BeTrue();
-            result.Response.Should().NotBeNull();
-            result.Response!.Email.Should().Be("auth@oficina.com");
-        }
-
-        [Fact]
-        public async Task AuthenticateUserUseCase_SenhaErrada_RetornaNull()
-        {
-            var user = BuildUser("auth@oficina.com");
-            _repoMock.Setup(r => r.GetByEmailAsync("auth@oficina.com")).ReturnsAsync(user);
-
-            var useCase = new AuthenticateUserUseCase(_repoMock.Object, Mock.Of<ILogger<AuthenticateUserUseCase>>());
-            var result = await useCase.ExecuteAsync(new AuthenticateUserRequest("auth@oficina.com", "senha_errada"));
-
-            result.IsSuccess.Should().BeTrue();
-            result.Response.Should().BeNull();
-        }
-
-        [Fact]
-        public async Task AuthenticateUserUseCase_UsuarioInexistente_RetornaNull()
-        {
-            _repoMock
-                .Setup(r => r.GetByEmailAsync(It.IsAny<string>()))
-                .ReturnsAsync((User?)null);
-
-            var useCase = new AuthenticateUserUseCase(_repoMock.Object, Mock.Of<ILogger<AuthenticateUserUseCase>>());
-            var result = await useCase.ExecuteAsync(new AuthenticateUserRequest("naoexiste@oficina.com", "senha123"));
-
-            result.IsSuccess.Should().BeTrue();
-            result.Response.Should().BeNull();
-        }
     }
 }

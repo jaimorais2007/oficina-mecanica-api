@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
@@ -13,7 +12,6 @@ namespace OficinaApi.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] // Requires JWT
 public class UsersController : ControllerBase
 {
     private readonly IUseCase<NoInput, IEnumerable<UserDto>> _getAllUsersUseCase;
@@ -61,11 +59,9 @@ public class UsersController : ControllerBase
         return Ok(result.Response);
     }
 
-    [SwaggerOperation(Summary = "Cria um novo usuário", 
-                      Description = "Cadastra um novo usuário no sistema com os dados informados (Nome, Email, Senha e Role). " +
-                                    "Esta rota permite acesso sem token temporariamente para facilitar a criação do primeiro administrador.")]
+    [SwaggerOperation(Summary = "Cria um novo usuário",
+                      Description = "Cadastra um novo usuário no sistema com os dados informados (Nome, Email, Senha e Role).")]
     [HttpPost]
-    [AllowAnonymous] // Permitir criação do primeiro usuário
     public async Task<IActionResult> Create([FromBody] CreateUserDto dto)
     {
         var result = await _createUserUseCase.ExecuteAsync(dto);

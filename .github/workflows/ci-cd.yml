@@ -92,7 +92,6 @@ jobs:
         run: |
           cat <<EOF > .env
           DB_CONNECTION_STRING=${{ secrets.DB_CONNECTION_STRING }}
-          JWT_SECRET=${{ secrets.JWT_SECRET }}
           EMAIL_PASSWORD=${{ secrets.EMAIL_PASSWORD }}
           OTEL_EXPORTER_OTLP_HEADERS=${{ secrets.OTEL_EXPORTER_OTLP_HEADERS }}
           EOF
