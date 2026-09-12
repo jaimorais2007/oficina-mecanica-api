@@ -432,3 +432,12 @@ FodyWeavers.xsd
 
 # Configurações de segredos locais
 appsettings.Development.json
+
+# Chaves SSH e kubeconfigs locais (nao versionar)
+clear
+clear.pub
+*-kubeconfig.yaml
+docker-compose.yml.bak
+
+# Config local do Claude Code (contem segredos: senha do banco, tokens)
+.claude/
