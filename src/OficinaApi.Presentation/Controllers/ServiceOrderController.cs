@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OficinaApi.Application.DTOs;
 using OficinaApi.Application.Interfaces;
@@ -8,7 +7,6 @@ namespace OficinaApi.Presentation.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize]
 public class ServiceOrdersController : ControllerBase
 {
     private readonly IUseCase<NoInput, IEnumerable<ServiceOrderDto>> _getAllServiceOrdersUseCase;

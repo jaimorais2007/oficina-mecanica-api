@@ -84,8 +84,6 @@ public static class DependencyInjectionConfiguration
         services.AddScoped<IUseCase<CreateUserDto, UserDto>, CreateUserUseCase>();
         services.AddScoped<IUseCase<UpdateUserRequest, bool>, UpdateUserUseCase>();
         services.AddScoped<IUseCase<Guid, bool>, DeleteUserUseCase>();
-        services.AddScoped<IUseCase<AuthenticateUserRequest, UserDto?>, AuthenticateUserUseCase>();
-        services.AddScoped<IUseCase<GenerateTokenRequest, string>, GenerateTokenUseCase>();
         services.AddScoped<IUseCase<Guid, NoInput>, LogicalDeletionUserUseCase>();
 
         services.AddScoped<IUseCase<NoInput, IEnumerable<VehicleDto?>>, GetAllVehiclesUseCase>();

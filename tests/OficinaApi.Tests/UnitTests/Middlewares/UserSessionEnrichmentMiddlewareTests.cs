@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -33,7 +32,7 @@ public class UserSessionEnrichmentMiddlewareTests
         var expectedSessionId = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(rawToken))).ToLowerInvariant();
 
         var httpContext = new DefaultHttpContext();
-        var claims = new[] { new Claim(JwtRegisteredClaimNames.Sub, userId) };
+        var claims = new[] { new Claim("sub", userId) };
         var identity = new ClaimsIdentity(claims, "Bearer");
         httpContext.User = new ClaimsPrincipal(identity);
         httpContext.Request.Headers["Authorization"] = $"Bearer {rawToken}";

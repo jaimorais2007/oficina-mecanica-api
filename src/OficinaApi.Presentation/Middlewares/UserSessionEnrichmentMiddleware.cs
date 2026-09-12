@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
@@ -69,7 +68,7 @@ public class UserSessionEnrichmentMiddleware
             return null;
         }
 
-        return context.User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value
+        return context.User.FindFirst("sub")?.Value
             ?? context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
     }
 
